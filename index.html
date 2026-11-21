@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MantaLab — audit de robots MT5</title>
+<link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
+<meta name="description" content="Déposez le rapport du testeur MetaTrader 5 d'un robot : martingale, grille, stop-loss et règles de prop firm vérifiés en quelques secondes, sans que le fichier quitte votre ordinateur.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papier: #e9eeec;
+    --fiche: #f7f9f8;
+    --encre: #1b2a41;
+    --encre-douce: #4a5a6e;
+    --trait: #c5d0cd;
+    --ok: #2f7d5b;
+    --attention: #b7790c;
+    --alerte: #b5372b;
+    --inconnu: #6b7685;
+    --focus: #2563eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --papier: #121a24; --fiche: #1a2431; --encre: #e6ecf2; --encre-douce: #a9b6c4;
+      --trait: #33414f; --ok: #4fb38a; --attention: #e0a537; --alerte: #ec6a5c; --inconnu: #93a0ae;
+    }
+  }
+  :root[data-theme="dark"] {
+    --papier: #121a24; --fiche: #1a2431; --encre: #e6ecf2; --encre-douce: #a9b6c4;
+    --trait: #33414f; --ok: #4fb38a; --attention: #e0a537; --alerte: #ec6a5c; --inconnu: #93a0ae;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--papier); color: var(--encre);
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 1.0625rem; line-height: 1.55;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .page { max-width: 58rem; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
+
+  header.barre { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--trait); }
+  .marque { font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 125%; font-size: 1.15rem; letter-spacing: .01em; }
+  .marque { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+  .marque span { font-weight: 400; color: var(--encre-douce); font-stretch: 100%; font-size: .9rem; }
+  .logo { height: 1.9rem; width: auto; display: block; }
+  .logo-sombre { display: none; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display: none; } :root:not([data-theme="light"]) .logo-sombre { display: block; } }
+
+  /* ----- Offre payante ----- */
+  .offre { margin-top: 3.5rem; background: var(--fiche); border: 1px solid var(--trait); border-top: 4px solid #D62917; padding: 1.5rem 1.25rem; display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; }
+  .offre h2 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.4rem; margin: 0 0 .5rem; }
+  .offre p { margin: 0 0 .6rem; color: var(--encre-douce); }
+  .offre ul { margin: 0 0 .5rem; padding-left: 1.1rem; }
+  .offre li { margin-bottom: .25rem; }
+  .offre .actions { display: flex; flex-direction: column; gap: .6rem; min-width: 14rem; }
+  .bouton { display: inline-block; text-align: center; font-family: "Archivo", sans-serif; font-weight: 700; font-stretch: 105%; text-decoration: none; padding: .75rem 1.1rem; border: 2px solid var(--encre); }
+  .bouton.plein { background: var(--encre); color: var(--fiche); }
+  .bouton:hover { text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 40rem) { .offre { grid-template-columns: 1fr; } .offre .actions { min-width: 0; } }
+  .langue button { font: inherit; font-size: .9rem; background: none; border: 1px solid var(--trait); color: var(--encre); padding: .25rem .6rem; cursor: pointer; }
+  .langue button[aria-pressed="true"] { background: var(--encre); color: var(--fiche); border-color: var(--encre); }
+
+  .accroche { padding: 2.5rem 0 1.5rem; max-width: 40rem; }
+  h1 {
+    font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 112%;
+    font-size: clamp(2rem, 5.5vw, 3.4rem); line-height: 1.02; margin: 0 0 1rem; letter-spacing: -.01em;
+  }
+  .accroche p { margin: 0; color: var(--encre-douce); max-width: 34rem; }
+
+  .depot {
+    display: block; border: 2px dashed var(--encre-douce); background: var(--fiche);
+    padding: 2rem 1.25rem; text-align: left; cursor: pointer; position: relative;
+  }
+  .depot.survol { border-color: var(--focus); border-style: solid; }
+  .depot strong { display: block; font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.25rem; }
+  .depot small { color: var(--encre-douce); }
+  .depot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .exemples { margin-top: .85rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; color: var(--encre-douce); font-size: .95rem; }
+  .exemples button { font: inherit; font-size: .95rem; background: transparent; color: var(--encre); border: 1px solid var(--encre-douce); padding: .3rem .75rem; cursor: pointer; }
+  .exemples button:hover { background: var(--fiche); }
+  .confidentiel { margin-top: .75rem; font-size: .9rem; color: var(--encre-douce); }
+
+  .erreur { margin-top: 1.25rem; border-left: 4px solid var(--alerte); background: var(--fiche); padding: .9rem 1rem; }
+
+  /* ----- La fiche de résultat ----- */
+  .fiche { margin-top: 2.5rem; background: var(--fiche); border: 1px solid var(--trait); padding: 1.5rem 1.25rem 2rem; position: relative; overflow: hidden; }
+  .fiche-tete { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; }
+  .fiche-tete h2 { font-family: "Archivo", sans-serif; font-stretch: 100%; font-size: 1.5rem; margin: 0 0 .25rem; overflow-wrap: anywhere; }
+  .fiche-tete .meta { color: var(--encre-douce); font-size: .95rem; }
+  .tampon {
+    --c: var(--inconnu);
+    font-family: "Archivo", sans-serif; font-weight: 900; font-stretch: 125%;
+    color: var(--c); border: 4px solid var(--c); padding: .35rem .8rem .3rem; text-align: center;
+    transform: rotate(-6deg); line-height: 1.05; font-size: clamp(1.1rem, 3.4vw, 1.7rem);
+    box-shadow: inset 0 0 0 2px var(--fiche), inset 0 0 0 4px var(--c);
+    margin: .5rem .25rem 0 0; white-space: nowrap; opacity: 0;
+  }
+  .tampon small { display: block; font-weight: 600; font-stretch: 100%; font-size: .45em; margin-top: .2rem; }
+  .tampon.pose { animation: poser .42s cubic-bezier(.2,1.6,.4,1) forwards; }
+  @keyframes poser { from { opacity: 0; transform: rotate(-14deg) scale(1.6); } to { opacity: .92; transform: rotate(-6deg) scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .tampon.pose { animation: none; opacity: .92; } }
+  .tampon.eleve { --c: var(--alerte); } .tampon.moyen { --c: var(--attention); } .tampon.faible { --c: var(--ok); }
+
+  .prop { margin: 1.25rem 0 1.5rem; padding: .75rem 1rem; border: 1px solid var(--trait); font-weight: 700; }
+  .prop .oui { color: var(--ok); } .prop .non { color: var(--alerte); }
+
+  .lignes { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--encre); }
+  .ligne { border-bottom: 1px solid var(--trait); }
+  .ligne details summary {
+    list-style: none; cursor: pointer; display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; padding: .9rem .25rem; align-items: baseline;
+  }
+  .ligne details summary::-webkit-details-marker { display: none; }
+  .statut { font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 110%; font-size: .85rem; }
+  .statut::before { content: ""; display: inline-block; width: .65rem; height: .65rem; margin-right: .45rem; border-radius: 50%; background: currentColor; vertical-align: .05rem; }
+  .statut.ok { color: var(--ok); } .statut.attention { color: var(--attention); } .statut.alerte { color: var(--alerte); } .statut.inconnu { color: var(--inconnu); }
+  .ligne h3 { margin: 0; font-size: 1rem; }
+  .ligne .resume { margin: .15rem 0 0; color: var(--encre-douce); }
+  .ligne .detail { padding: 0 .25rem 1rem 8.75rem; font-size: .95rem; }
+  .ligne .detail ul { margin: .25rem 0; padding-left: 1.1rem; }
+  .ligne summary:hover h3 { text-decoration: underline; text-underline-offset: 3px; }
+
+  .notes { margin-top: 1.5rem; font-size: .9rem; color: var(--encre-douce); }
+  .notes p { margin: .3rem 0; }
+
+  section.comment { margin-top: 3.5rem; max-width: 40rem; }
+  section.comment h2 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.4rem; }
+  section.comment ol { padding-left: 1.3rem; }
+  section.comment li { margin-bottom: .45rem; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--trait); font-size: .88rem; color: var(--encre-douce); max-width: 46rem; }
+
+  @media (max-width: 40rem) {
+    .fiche-tete { grid-template-columns: 1fr; }
+    .tampon { justify-self: start; }
+    .ligne details summary { grid-template-columns: 1fr; gap: .2rem; }
+    .ligne .detail { padding-left: .25rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="barre">
+    <div class="marque"><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"><span data-t="marque_sous"></span></div>
+    <div class="langue" role="group" aria-label="Langue / Language">
+      <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="accroche">
+      <h1 data-t="titre"></h1>
+      <p data-t="sous_titre"></p>
+    </div>
+
+    <label class="depot" id="depot">
+      <strong data-t="depot_titre"></strong>
+      <small data-t="depot_aide"></small>
+      <input type="file" id="fichier" accept=".htm,.html" aria-describedby="confidentiel">
+    </label>
+    <div class="exemples">
+      <span data-t="exemples"></span>
+      <button type="button" data-exemple="martingale" data-t="ex_martingale"></button>
+      <button type="button" data-exemple="grille" data-t="ex_grille"></button>
+      <button type="button" data-exemple="propre" data-t="ex_propre"></button>
+    </div>
+    <p class="confidentiel" id="confidentiel" data-t="confidentiel"></p>
+
+    <div id="erreur" class="erreur" role="alert" hidden></div>
+    <div id="resultat" aria-live="polite"></div>
+
+    <section class="offre" aria-labelledby="offre-titre">
+      <div>
+        <h2 id="offre-titre" data-t="offre_titre"></h2>
+        <p data-t="offre_texte"></p>
+        <ul>
+          <li data-t="offre_1"></li>
+          <li data-t="offre_2"></li>
+          <li data-t="offre_3"></li>
+          <li data-t="offre_4"></li>
+        </ul>
+      </div>
+      <div class="actions">
+        <a class="bouton plein" href="commande.html" data-t="offre_commander"></a>
+        <a class="bouton" href="exemple/multimartin.html" data-t="offre_exemple"></a>
+      </div>
+    </section>
+
+    <section class="comment" aria-labelledby="comment-titre">
+      <h2 id="comment-titre" data-t="comment_titre"></h2>
+      <ol>
+        <li data-t="etape1"></li>
+        <li data-t="etape2"></li>
+        <li data-t="etape3"></li>
+        <li data-t="etape4"></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer>
+    <p data-t="pied1"></p>
+    <p data-t="pied2"></p>
+  </footer>
+</div>
+
+<script src="engine.js"></script>
+<script src="exemples.js"></script>
+<script>
+(function () {
+  "use strict";
+  const E = window.LaboEngine;
+
+  const T = {
+    fr: {
+      marque_sous: "— test indépendant de robots MT5",
+      titre: "Ce robot cache-t-il une martingale ?",
+      sous_titre: "Déposez le rapport du testeur de stratégie MetaTrader 5. En quelques secondes : martingale, grille, stop-loss, trades ultra-courts et règles de prop firm vérifiés, avec des exemples tirés des trades.",
+      depot_titre: "Déposer un rapport du testeur (.html)",
+      depot_aide: "Glissez le fichier ici, ou cliquez pour le choisir.",
+      exemples: "Pas de rapport sous la main ? Essayer avec :",
+      ex_martingale: "un robot à martingale", ex_grille: "un robot à grille", ex_propre: "un robot propre",
+      confidentiel: "Le fichier est analysé dans votre navigateur. Il n'est envoyé nulle part.",
+      comment_titre: "Obtenir le rapport d'un robot",
+      etape1: "Dans MetaTrader 5, ouvrez le testeur de stratégie (Ctrl+R) et choisissez le robot, même une version démo du Market.",
+      etape2: "Testez au moins 1 à 3 ans, en modélisation « Chaque tick basé sur des ticks réels ».",
+      etape3: "À la fin du test, onglet Backtest : clic droit → Rapport → HTML (Internet Explorer).",
+      etape4: "Déposez ce fichier .html ci-dessus.",
+      pied1: "Ce rapport décrit le comportement observé du robot dans le test fourni. Ce n'est pas un conseil en investissement. Les résultats passés ne préjugent pas des résultats futurs.",
+      pied2: "Seuils étalonnés sur 10 robots de référence testés par le labo MantaLab (martingales, grilles, robots propres). Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
+      offre_titre: "Vous hésitez avant d'acheter un robot ?",
+      offre_texte: "Le rapport du vendeur montre ce qu'il veut bien montrer. Le labo MantaLab fait tourner le robot lui-même et vous remet une fiche indépendante :",
+      offre_1: "martingale, grille, stops virtuels : ce que le robot fait vraiment, pas ce que dit sa notice ;",
+      offre_2: "le pire observé : série de pertes, exposition maximale, drawdown ;",
+      offre_3: "4 scénarios : exécution idéale, retards, ticks réels, autre année ;",
+      offre_4: "compatibilité prop firm, en PDF, sous 48 h.",
+      offre_commander: "Faire auditer un robot",
+      offre_exemple: "Voir une fiche d'exemple",
+      analyse: "Analyse en cours…",
+      erreur_lecture: "Impossible de lire ce fichier : ",
+      erreur_html: "Choisissez le rapport au format .html exporté depuis le testeur de MetaTrader 5.",
+      risque: { eleve: "Risque élevé", moyen: "Risque moyen", faible: "Risque faible", inconnu: "Indéterminé" },
+      tampon_sous: "comportement observé",
+      prop_oui: "Compatible avec un challenge de prop firm classique (5 % / jour, 10 % max) :",
+      oui: "oui", non: "non", indetermine: "indéterminé",
+      raisons: { prop: "limites de perte dépassées", trades_courts: "trades ultra-courts (risque HFT)", martingale: "martingale (interdite ou mal vue chez beaucoup de prop firms)", grille: "grille (interdite ou mal vue chez beaucoup de prop firms)" },
+      erreur_aucune: "aucune transaction trouvée. Vérifiez que c'est bien le rapport .html du testeur de stratégie MetaTrader 5.",
+      statut: { ok: "Rien à signaler", attention: "À surveiller", alerte: "Alerte", inconnu: "Pas assez de données" },
+      titres: { martingale: "Martingale", grille: "Grille / moyenne à la baisse", stop_loss: "Stop-loss", trades_courts: "Trades ultra-courts", profil: "Gains et pertes", prop: "Règles de prop firm" },
+      exemples_obs: "Exemples observés :",
+      meta: (b, r) => `${b.symbole}${b.periode ? " " + b.periode : ""} · ${E.fmtT(b.debut).slice(0, 10)} → ${E.fmtT(b.fin).slice(0, 10)} · ${r.resume.positions} positions · résultat net ${fmtArgent(r.resume.net)}`,
+      exemple_label: "Exemple simulé",
+      avert: "Remarques de lecture :",
+      avertissements: { directions: (a) => `${a.n} transaction(s) avec un sens entrée/sortie non reconnu : déduit du profit.`, ordres: () => "Table des ordres introuvable : le stop-loss ne peut pas être vérifié.", depot: () => "Dépôt initial introuvable : 10 000 supposé." },
+      txt: {
+        pas_assez: (d) => `Pas assez de trades pour conclure (${d.n}).`,
+        martingale_alerte: (d) => `Après une perte, le robot augmente la taille de la position suivante dans ${pc(d.part)} des cas (${d.hausses} fois), jusqu'à ${d.chaineMax} fois d'affilée. Sa plus grosse position fait ${d.mult}× la plus petite.`,
+        martingale_attention: (d) => `Le robot augmente parfois sa taille après une perte (${d.hausses} fois sur ${d.apresPerte}), sans schéma systématique.`,
+        martingale_ok: () => "Aucune augmentation de taille après une perte.",
+        martingale_grille: (d) => `Le robot augmente sa mise à chaque renfort d'une position perdante encore ouverte (${d.haussesGrille} fois sur ${d.defav} renforts) : martingale « de grille ». Sa plus grosse position fait ${d.mult}× la plus petite.`,
+        grille_alerte: (d) => `Le robot ouvre de nouvelles positions dans le même sens pendant que le prix va contre lui (${d.defav} fois), jusqu'à ${d.simMax} positions ouvertes en même temps.`,
+        grille_attention: (d) => `Le robot a parfois renforcé une position perdante (${d.defav} fois, ${d.simMax} positions au maximum).`,
+        grille_ok: (d) => `Pas de renforcement de positions perdantes (au plus ${d.simMax} position(s) dans le même sens en même temps).`,
+        stop_ok: () => "Les positions sont ouvertes avec un stop-loss.",
+        stop_pose_apres: (d) => `Le stop-loss n'est pas dans l'ordre d'entrée, mais il est posé chez le courtier juste après l'ouverture : ${pc(d.partParSL)} des pertes se ferment par ce stop.`,
+        stop_manquant: (d) => `${pc(d.part)} des positions sont ouvertes sans stop-loss.`,
+        stop_virtuel: (d) => `Aucun stop-loss n'est transmis au courtier (${pc(d.part)} des positions), mais le robot coupe lui-même ses pertes à distance fixe : ${pc(d.partProches)} des pertes se ferment vers ${d.points} points. C'est un stop « virtuel » : il protège tant que MetaTrader tourne, pas si le terminal plante ou perd la connexion.`,
+        stop_inconnu: () => "Le rapport ne contient pas l'information de stop-loss.",
+        courts_alerte: (d) => `${pc(d.part)} des positions durent moins de ${d.seuil} s : risque d'être classé HFT / tick scalping par une prop firm.`,
+        courts_attention: (d) => `${pc(d.part)} des positions durent moins de ${d.seuil} s.`,
+        courts_ok: (d) => `Très peu de positions durent moins de ${d.seuil} s.`,
+        profil_alerte: (d) => `${pc(d.taux)} de trades gagnants, mais une perte moyenne ${d.ratio}× plus grosse que le gain moyen : beaucoup de petits gains, de rares grosses pertes.`,
+        profil_ok: (d) => `${pc(d.taux)} de trades gagnants ; perte moyenne = ${d.ratio}× le gain moyen.`,
+        prop_alerte: (d) => "Ne passerait pas un challenge classique : " + d.problemes.map((p) => p.type === "jour" ? `perte de ${pc(p.pct, 1)} sur une journée (${p.jour}), limite ${pc(p.limite)}` : p.type === "total" ? `perte totale de ${pc(p.pct, 1)} du dépôt, limite ${pc(p.limite)}` : `drawdown d'équité de ${pc(p.pct, 1)} selon le rapport`).join(" ; ") + ".",
+        prop_ok: (d) => "Reste dans les limites d'un challenge classique" + (d.avecEquite ? "." : " (calcul sur le solde : les pertes latentes ne sont pas prises en compte)."),
+      },
+      ex: {
+        martingale: (e) => e.perte === undefined ? `${E.fmtT(e.t)} : ${e.rang}e position ouverte sur ${e.symbole} avec ${e.v1} lot, la précédente en avait ${e.v0} (×${(e.v1 / e.v0).toFixed(1)})` : `${E.fmtT(e.t)} : après une perte de ${fmtArgent(e.perte)} sur ${e.v0} lot, nouvelle position de ${e.v1} lot (×${(e.v1 / e.v0).toFixed(1)})`,
+        grille: (e) => `${E.fmtT(e.t)} : ${e.rang}e position ${e.sens === "buy" ? "à l'achat" : "à la vente"} sur ${e.symbole} à ${e.prix}, la précédente était à ${e.avant}`,
+        stop_loss: (e) => `${E.fmtT(e.t)} : ${e.sens === "buy" ? "achat" : "vente"} de ${e.v} lot sans stop-loss${e.virtuel ? " chez le courtier" : ""}`,
+      },
+    },
+    en: {
+      marque_sous: "— independent MT5 robot testing",
+      titre: "Is this robot hiding a martingale?",
+      sous_titre: "Drop a MetaTrader 5 Strategy Tester report. In seconds: martingale, grid, stop-loss, ultra-short trades and prop-firm rules checked, with examples taken from the trades.",
+      depot_titre: "Drop a Strategy Tester report (.html)",
+      depot_aide: "Drag the file here, or click to choose it.",
+      exemples: "No report at hand? Try with:",
+      ex_martingale: "a martingale robot", ex_grille: "a grid robot", ex_propre: "a clean robot",
+      confidentiel: "The file is analysed in your browser. It is not sent anywhere.",
+      comment_titre: "Getting a robot's report",
+      etape1: "In MetaTrader 5, open the Strategy Tester (Ctrl+R) and pick the robot — a Market demo works too.",
+      etape2: "Test at least 1 to 3 years, with “Every tick based on real ticks” modelling.",
+      etape3: "When the test ends, Backtest tab: right-click → Report → HTML (Internet Explorer).",
+      etape4: "Drop that .html file above.",
+      pied1: "This report describes the robot's observed behaviour in the test provided. It is not investment advice. Past results do not guarantee future results.",
+      pied2: "Thresholds calibrated on 10 reference robots tested by the MantaLab lab (martingales, grids, clean robots). A remark, a mistake? They help make the tool more reliable.",
+      offre_titre: "Thinking about buying a robot?",
+      offre_texte: "The seller's report shows what the seller wants you to see. The MantaLab lab runs the robot itself and gives you an independent report:",
+      offre_1: "martingale, grid, virtual stops: what the robot really does, not what its manual says;",
+      offre_2: "the worst observed: losing streak, maximum exposure, drawdown;",
+      offre_3: "4 scenarios: ideal execution, delays, real ticks, another year;",
+      offre_4: "prop-firm compatibility, as a PDF, within 48 h.",
+      offre_commander: "Get a robot audited",
+      offre_exemple: "See a sample report",
+      analyse: "Analysing…",
+      erreur_lecture: "Could not read this file: ",
+      erreur_html: "Choose the .html report exported from the MetaTrader 5 Strategy Tester.",
+      risque: { eleve: "High risk", moyen: "Medium risk", faible: "Low risk", inconnu: "Undetermined" },
+      tampon_sous: "observed behaviour",
+      prop_oui: "Compatible with a standard prop-firm challenge (5% daily, 10% max):",
+      oui: "yes", non: "no", indetermine: "undetermined",
+      raisons: { prop: "loss limits exceeded", trades_courts: "ultra-short trades (HFT risk)", martingale: "martingale (banned or frowned upon by many prop firms)", grille: "grid (banned or frowned upon by many prop firms)" },
+      erreur_aucune: "no deals found. Check that this is the .html report from the MetaTrader 5 Strategy Tester.",
+      statut: { ok: "Nothing to report", attention: "Watch", alerte: "Alert", inconnu: "Not enough data" },
+      titres: { martingale: "Martingale", grille: "Grid / averaging down", stop_loss: "Stop-loss", trades_courts: "Ultra-short trades", profil: "Wins and losses", prop: "Prop-firm rules" },
+      exemples_obs: "Observed examples:",
+      meta: (b, r) => `${b.symbole}${b.periode ? " " + b.periode : ""} · ${E.fmtT(b.debut).slice(0, 10)} → ${E.fmtT(b.fin).slice(0, 10)} · ${r.resume.positions} positions · net result ${fmtArgent(r.resume.net)}`,
+      exemple_label: "Simulated example",
+      avert: "Reading notes:",
+      avertissements: { directions: (a) => `${a.n} deal(s) with an unrecognised in/out direction: inferred from profit.`, ordres: () => "Orders table not found: stop-loss cannot be checked.", depot: () => "Initial deposit not found: 10,000 assumed." },
+      txt: {
+        pas_assez: (d) => `Not enough trades to conclude (${d.n}).`,
+        martingale_alerte: (d) => `After a loss, the robot increases the size of its next position in ${pc(d.part)} of cases (${d.hausses} times), up to ${d.chaineMax} times in a row. Its largest position is ${d.mult}× its smallest.`,
+        martingale_attention: (d) => `The robot sometimes increases its size after a loss (${d.hausses} times out of ${d.apresPerte}), with no systematic pattern.`,
+        martingale_ok: () => "No size increase after a loss.",
+        martingale_grille: (d) => `The robot increases its size each time it adds to a losing position that is still open (${d.haussesGrille} times out of ${d.defav} additions): a “grid” martingale. Its largest position is ${d.mult}× its smallest.`,
+        grille_alerte: (d) => `The robot opens new positions in the same direction while price moves against it (${d.defav} times), with up to ${d.simMax} positions open at once.`,
+        grille_attention: (d) => `The robot sometimes added to a losing position (${d.defav} times, ${d.simMax} positions at most).`,
+        grille_ok: (d) => `No adding to losing positions (at most ${d.simMax} position(s) in the same direction at once).`,
+        stop_ok: () => "Positions are opened with a stop-loss.",
+        stop_pose_apres: (d) => `The stop-loss is not in the entry order, but it is placed at the broker right after opening: ${pc(d.partParSL)} of losses close on that stop.`,
+        stop_manquant: (d) => `${pc(d.part)} of positions are opened without a stop-loss.`,
+        stop_virtuel: (d) => `No stop-loss is sent to the broker (${pc(d.part)} of positions), but the robot cuts its own losses at a fixed distance: ${pc(d.partProches)} of losses close around ${d.points} points. This is a “virtual” stop: it protects while MetaTrader runs, not if the terminal crashes or loses connection.`,
+        stop_inconnu: () => "The report does not include stop-loss information.",
+        courts_alerte: (d) => `${pc(d.part)} of positions last under ${d.seuil} s: risk of being classed as HFT / tick scalping by a prop firm.`,
+        courts_attention: (d) => `${pc(d.part)} of positions last under ${d.seuil} s.`,
+        courts_ok: (d) => `Very few positions last under ${d.seuil} s.`,
+        profil_alerte: (d) => `${pc(d.taux)} winning trades, but the average loss is ${d.ratio}× the average win: many small wins, rare large losses.`,
+        profil_ok: (d) => `${pc(d.taux)} winning trades; average loss = ${d.ratio}× average win.`,
+        prop_alerte: (d) => "Would fail a standard challenge: " + d.problemes.map((p) => p.type === "jour" ? `${pc(p.pct, 1)} loss in one day (${p.jour}), limit ${pc(p.limite)}` : p.type === "total" ? `${pc(p.pct, 1)} total loss of the deposit, limit ${pc(p.limite)}` : `${pc(p.pct, 1)} equity drawdown according to the report`).join("; ") + ".",
+        prop_ok: (d) => "Stays within a standard challenge's limits" + (d.avecEquite ? "." : " (computed on balance: floating losses are not included)."),
+      },
+      ex: {
+        martingale: (e) => e.perte === undefined ? `${E.fmtT(e.t)}: position #${e.rang} on ${e.symbole} with ${e.v1} lot, previous one had ${e.v0} (×${(e.v1 / e.v0).toFixed(1)})` : `${E.fmtT(e.t)}: after a ${fmtArgent(e.perte)} loss on ${e.v0} lot, next position of ${e.v1} lot (×${(e.v1 / e.v0).toFixed(1)})`,
+        grille: (e) => `${E.fmtT(e.t)}: ${e.rang}th ${e.sens} position on ${e.symbole} at ${e.prix}, previous one at ${e.avant}`,
+        stop_loss: (e) => `${E.fmtT(e.t)}: ${e.sens} ${e.v} lot without stop-loss${e.virtuel ? " at the broker" : ""}`,
+      },
+    },
+  };
+
+  let langue = "fr";
+  try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
+  let dernier = null; // { resultat, avertissements, exemple }
+
+  function pc(x, dec = 0) { return (x * 100).toFixed(dec).replace(".", langue === "fr" ? "," : ".") + (langue === "fr" ? " %" : "%"); }
+  function fmtArgent(v) { return v.toLocaleString(langue === "fr" ? "fr-FR" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  function compter(evenement) {
+    // Comptage d'usage anonyme (aucune donnée du rapport). Branché quand la page est en ligne.
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: "evt-" + evenement, title: evenement, event: true }); } catch (e) {}
+  }
+
+  function appliquerLangue() {
+    document.documentElement.lang = langue;
+    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = T[langue][el.dataset.t]; });
+    document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === langue)));
+    if (dernier) afficher(dernier, false);
+  }
+
+  function afficher({ resultat: r, avertissements, exemple }, animer = true) {
+    const L = T[langue];
+    const b = r.backtest;
+    const ordre = ["martingale", "grille", "stop_loss", "trades_courts", "profil", "prop"];
+    const lignes = ordre.map((k) => {
+      const c = r.constats[k];
+      const texte = L.txt[c.cle] ? L.txt[c.cle](c.donnees) : "";
+      const exemples = (c.exemples || []).map((e) => (L.ex[k] ? `<li>${esc(L.ex[k](e))}</li>` : "")).join("");
+      return `<li class="ligne"><details>
+        <summary><span class="statut ${c.niveau}">${esc(L.statut[c.niveau])}</span>
+          <div><h3>${esc(L.titres[k])}</h3><p class="resume">${esc(texte)}</p></div></summary>
+        <div class="detail">${exemples ? `<p>${esc(L.exemples_obs)}</p><ul>${exemples}</ul>` : ""}</div>
+      </details></li>`;
+    }).join("");
+    const prop = r.compatibleProp === null ? L.indetermine : r.compatibleProp ? `<span class="oui">${L.oui}</span>`
+      : `<span class="non">${L.non}</span> — ${esc(r.raisonsProp.map((k) => L.raisons[k]).join(", "))}`;
+    const notes = avertissements && avertissements.length ? `<div class="notes"><p>${esc(L.avert)}</p>${avertissements.map((a) => `<p>${esc(L.avertissements[a.code] ? L.avertissements[a.code](a) : a.code)}</p>`).join("")}</div>` : "";
+    document.getElementById("resultat").innerHTML = `
+      <article class="fiche" aria-labelledby="fiche-titre">
+        <div class="fiche-tete">
+          <div>
+            <h2 id="fiche-titre">${esc(exemple ? L.exemple_label + " — " + L["ex_" + exemple] : b.robot)}</h2>
+            <div class="meta">${esc(L.meta(b, r))}</div>
+          </div>
+          <div class="tampon ${r.risque}${animer ? " pose" : ""}" ${animer ? "" : 'style="opacity:.92"'} role="img" aria-label="${esc(L.risque[r.risque])}">${esc(L.risque[r.risque])}<small>${esc(L.tampon_sous)}</small></div>
+        </div>
+        <p class="prop">${esc(L.prop_oui)} ${prop}</p>
+        <ul class="lignes">${lignes}</ul>
+        ${notes}
+      </article>`;
+    if (animer) document.getElementById("resultat").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+
+  function montrerErreur(msg) {
+    const el = document.getElementById("erreur");
+    el.textContent = msg;
+    el.hidden = !msg;
+  }
+
+  async function lireFichier(f) {
+    montrerErreur("");
+    if (!/\.html?$/i.test(f.name)) { montrerErreur(T[langue].erreur_html); return; }
+    try {
+      const html = E.decode(await f.arrayBuffer());
+      const { backtest, avertissements } = E.parseMt5Report(html);
+      dernier = { resultat: E.auditer(backtest), avertissements, exemple: null };
+      afficher(dernier);
+      compter("rapport-analyse");
+    } catch (e) {
+      montrerErreur(T[langue].erreur_lecture + (e.code === "aucune_transaction" ? T[langue].erreur_aucune : e.message));
+      compter("rapport-erreur");
+    }
+  }
+
+  const depot = document.getElementById("depot");
+  const input = document.getElementById("fichier");
+  input.addEventListener("change", () => { if (input.files[0]) lireFichier(input.files[0]); input.value = ""; });
+  ["dragenter", "dragover"].forEach((ev) => depot.addEventListener(ev, (e) => { e.preventDefault(); depot.classList.add("survol"); }));
+  ["dragleave", "drop"].forEach((ev) => depot.addEventListener(ev, (e) => { e.preventDefault(); depot.classList.remove("survol"); }));
+  depot.addEventListener("drop", (e) => { const f = e.dataTransfer.files[0]; if (f) lireFichier(f); });
+
+  document.querySelectorAll("[data-exemple]").forEach((btn) => btn.addEventListener("click", () => {
+    montrerErreur("");
+    const nom = btn.dataset.exemple;
+    dernier = { resultat: E.auditer(window.LaboExemples[nom]()), avertissements: [], exemple: nom };
+    afficher(dernier);
+    compter("exemple-" + nom);
+  }));
+
+  document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => {
+    langue = b.dataset.lang;
+    try { localStorage.setItem("labo-langue", langue); } catch (e) {}
+    appliquerLangue();
+  }));
+
+  appliquerLangue();
+})();
+</script>
+</body>
+</html>
