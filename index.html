@@ -192,10 +192,10 @@
 
   /* ----- Essai ----- */
   .bloc { border-top: 1px solid var(--filet); padding: 4.5rem 0; }
-  .bloc-tete { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: end; margin-bottom: 2.2rem; }
+  .bloc-tete { text-align: center; margin: 0 auto 2.6rem; max-width: 46rem; }
   .bloc-tete h2 { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
-  .bloc-tete p { margin: 0; color: var(--encre-2); max-width: 30rem; }
-  @media (max-width: 52rem) { .bloc-tete { grid-template-columns: 1fr; gap: .8rem; } }
+  .bloc-tete p { margin: .9rem auto 0; color: var(--encre-2); max-width: 40rem; font-size: 1.05rem; text-wrap: balance; }
+  @media (max-width: 52rem) { .bloc-tete { text-align: left; } .bloc-tete p { margin-left: 0; } }
   .exemples { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline; color: var(--encre-2); font-size: .875rem; }
   .exemples button { font: 500 .875rem/1.4 "Inter", sans-serif; background: none; border: 0; padding: 0; color: var(--encre); cursor: pointer;
     text-decoration: underline; text-decoration-color: var(--filet-fort); text-underline-offset: 3px; }
@@ -204,7 +204,7 @@
   .erreur { margin-top: 1.25rem; border: 1px solid color-mix(in srgb, var(--alerte) 35%, transparent); background: color-mix(in srgb, var(--alerte) 6%, var(--fond)); padding: .9rem 1rem; border-radius: 10px; font-size: .95rem; }
 
   /* ----- Vérifications : un tableau, pas des cartes ----- */
-  .onglets { display: flex; gap: 2rem; border-bottom: 1px solid var(--filet-fort); overflow-x: auto; scrollbar-width: none; }
+  .onglets { display: flex; justify-content: safe center; gap: 2rem; border-bottom: 1px solid var(--filet-fort); overflow-x: auto; scrollbar-width: none; }
   .onglets::-webkit-scrollbar { display: none; }
   .onglets button { flex: none; font: 500 .95rem/1 "Inter", sans-serif; color: var(--encre-2); background: none; border: 0; padding: 1rem 0 .95rem; cursor: pointer;
     border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
@@ -262,7 +262,7 @@
   /* ----- Précision ----- */
   .precision { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: end; }
   .precision .grand { font-weight: 600; font-size: clamp(4.5rem, 12vw, 9rem); letter-spacing: -.06em; line-height: .9; font-variant-numeric: tabular-nums; }
-  .precision .grand + p { margin: 1rem 0 0; color: var(--encre-2); max-width: 28rem; }
+  .precision .grand + p { margin: 1.7rem 0 0; color: var(--encre-2); max-width: 28rem; }
   .faits { border-top: 1px solid var(--encre); }
   .fait { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--filet); align-items: baseline; }
   .fait b { font-weight: 600; font-size: 1.3rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
