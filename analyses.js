@@ -45,8 +45,11 @@
       source: "help.fundednext.com" },
     { id: "fn_lite", nom: "FundedNext Stellar Lite", phases: [0.08, 0.04], jour: 0.04, max: 0.08, suiveur: false, minJours: 2, quickStrike: 0.3,
       source: "help.fundednext.com" },
-    { id: "the5ers_hs", nom: "The5ers High Stakes", phases: [0.10, 0.05], jour: 0.05, max: 0.10, suiveur: false, minJours: 0,
-      minJoursGagnants: 3, seuilJourGagnant: 0.005, nonConfirme: true, source: "the5ers.com/high-stakes" },
+    // The5ers (FAQ officielle du 16/11/2026) : perte journalière = 5 % du solde/équité de DÉBUT DE JOURNÉE (le plus
+    // haut des deux), pas du capital initial ; perte maximale fixe depuis le capital initial. 3-5 % / 8-10 % selon le
+    // compte : on prend les valeurs du tableau officiel (5 % / 10 %).
+    { id: "the5ers_hs", nom: "The5ers High Stakes", phases: [0.10, 0.05], jour: 0.05, jourSurSoldeDuJour: true, max: 0.10, suiveur: false, minJours: 0,
+      minJoursGagnants: 3, seuilJourGagnant: 0.005, selonCompte: true, source: "the5ers.com/faqs (16/11/2026)" },
   ];
 
   // ---------------------------------------------------------------- outils numériques
@@ -120,8 +123,10 @@
    * Un enregistrement par jour de cotation (lundi-vendredi, + week-ends où le robot a agi) :
    * résultat des positions FERMÉES ce jour-là, en fraction du solde du début de journée.
    */
-  function serieJours(positions, debut, fin, depot) {
-    const pnl = new Map(), ouv = new Map();
+  function serieJours(positions, debut, fin, depot, mouvements) {
+    const pnl = new Map(), ouv = new Map(), mvt = new Map();
+    // dépôts / retraits en cours de route (signaux) : ils changent le solde, ce ne sont ni des gains ni des pertes
+    for (const m of mouvements || []) { const k = Math.floor(m.temps / JOUR); mvt.set(k, (mvt.get(k) || 0) + m.montant); }
     for (const p of positions) {
       const ko = Math.floor(p.ouverture / JOUR);
       ouv.set(ko, (ouv.get(ko) || 0) + 1);
@@ -139,7 +144,7 @@
       if ((js === 0 || js === 6) && !g && !o) continue;
       const r = solde > 0 ? Math.max(-1, g / solde) : 0;
       jours.push({ k, pnl: g, r, ouvertes: o });
-      solde += g;
+      solde += g + (mvt.get(k) || 0);
     }
     return jours;
   }
@@ -186,7 +191,7 @@
     }
     const net = fermees.reduce((s, p) => s + p.profit, 0);
     const positives = tranches.filter((t) => t.net > 0).length;
-    const partMeilleureTranche = net > 0 ? Math.max(...tranches.map((t) => t.net)) / net : null;
+    const partMeilleureTranche = net > 0 ? tranches.reduce((a, t) => Math.max(a, t.net), -Infinity) / net : null;
 
     // Dépendance aux meilleurs trades.
     const gains = fermees.map((p) => p.profit).sort((a, b) => b - a);
@@ -235,8 +240,13 @@
     const fermees = positions.filter((p) => p.fermeture !== null).sort((a, b) => a.fermeture - b.fermeture);
     const res = { constats: [] };
     // Drawdown du SOLDE (positions fermées) en fraction du plus haut atteint.
-    let solde = backtest.depot, pic = solde, ddSolde = 0;
-    for (const p of fermees) { solde += p.profit; if (solde > pic) pic = solde; if (pic > 0) ddSolde = Math.max(ddSolde, 1 - solde / pic); }
+    // Un retrait n'est pas une perte : il décale le solde ET son plus haut.
+    const mvts = (backtest.mouvements || []).slice().sort((a, b) => a.temps - b.temps);
+    let solde = backtest.depot, pic = solde, ddSolde = 0, im = 0;
+    for (const p of fermees) {
+      while (im < mvts.length && mvts[im].temps <= p.fermeture) { solde += mvts[im].montant; pic += mvts[im].montant; im++; }
+      solde += p.profit; if (solde > pic) pic = solde; if (pic > 0) ddSolde = Math.max(ddSolde, 1 - solde / pic);
+    }
     res.ddSolde = arr(ddSolde);
     // Pertes latentes cachées : le pire moment se voit sur l'équité (positions ouvertes) et pas sur le solde.
     const ddEq = backtest.stats ? backtest.stats.drawdownEquiteMaxPct : undefined;
@@ -299,7 +309,8 @@
       if (d.ouvertes > 0) joursTrades++;
       if (f.seuilJourGagnant !== undefined && g >= f.seuilJourGagnant) joursGagnants++;
       if (g > meilleurJour) meilleurJour = g;
-      if (solde <= debut - f.jour) return { issue: "echec", raison: "jour", jours };
+      const limiteJour = f.jourSurSoldeDuJour ? f.jour * debut : f.jour; // en fraction du capital initial
+      if (solde <= debut - limiteJour) return { issue: "echec", raison: "jour", jours };
       const plancher = f.suiveur ? Math.max(plusHautFinJour, 1) - f.max : 1 - f.max;
       if (solde <= plancher) return { issue: "echec", raison: "max", jours };
       if (solde > plusHautFinJour) plusHautFinJour = solde;
@@ -354,7 +365,8 @@
       const meilleur = parTaille.reduce((a, c) => (c.reussite > a.reussite ? c : a), parTaille[0]);
       const interdit = f.quickStrike !== undefined && courts30 >= f.quickStrike ? "quick_strike" : null;
       return { id: f.id, nom: f.nom, regles: { phases: f.phases, jour: f.jour, max: f.max, suiveur: f.suiveur, minJours: f.minJours,
-        minJoursGagnants: f.minJoursGagnants || 0, meilleurJourMax: f.meilleurJourMax || null, nonConfirme: !!f.nonConfirme, source: f.source },
+        minJoursGagnants: f.minJoursGagnants || 0, meilleurJourMax: f.meilleurJourMax || null, jourSurSoldeDuJour: !!f.jourSurSoldeDuJour,
+        selonCompte: !!f.selonCompte, source: f.source },
         parTaille, taille1: parTaille.find((x) => x.k === 1), meilleur: { k: meilleur.k, reussite: meilleur.reussite },
         reel: { departs: reels, reussite: reels >= P.minDepartsReels ? arr(reelsOk / reels, 3) : null }, interdit };
     });
@@ -422,7 +434,7 @@
     const P = Object.assign({}, PARAMS, parametres || {});
     const b = audit.backtest, positions = audit.positions;
     const graine = graineDe(positions);
-    const jours = serieJours(positions, b.debut, b.fin, b.depot);
+    const jours = serieJours(positions, b.debut, b.fin, b.depot, b.mouvements);
     const solid = solidite(jours, positions, b, P, alea(graine));
     const integ = integrite(positions, b, audit, P);
     const prop = challenges(jours, positions, integ, P, alea(graine ^ 0x9e3779b9));

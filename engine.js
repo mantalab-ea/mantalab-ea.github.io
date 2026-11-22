@@ -33,6 +33,10 @@
     return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
   }
 
+  // min / max sans « Math.min.apply » : au-delà de ~100 000 valeurs, apply fait déborder la pile (longs historiques)
+  const minDe = (t) => t.reduce((a, x) => (x < a ? x : a), Infinity);
+  const maxDe = (t) => t.reduce((a, x) => (x > a ? x : a), -Infinity);
+
   function dayKey(ms) {
     return new Date(ms).toISOString().slice(0, 10);
   }
@@ -194,12 +198,114 @@
         robot: findStat(allRows, [/^expert/]) || "Robot",
         symbole: findStat(allRows, [/^symbol/, /^symbole/]) || transactions[0].symbole,
         periode: (findStat(allRows, [/^period/, /^période/]) || "").replace(/\s*\(.*\)\s*$/, ""),
-        debut: Math.min.apply(null, temps),
-        fin: Math.max.apply(null, temps),
+        debut: minDe(temps),
+        fin: maxDe(temps),
         depot,
         transactions,
         stats,
         scenario: "rapport fourni",
+      },
+      avertissements,
+    };
+  }
+
+  // ---------------------------------------------------------------- historique d'un SIGNAL MQL5 (CSV)
+
+  /**
+   * Export « Trading history » d'une page de signal MQL5 (réservé aux membres connectés, format du 22/11/2026) :
+   *   Time;Symbol;Type;Direction;Volume;Price;Commission;Swap;Profit;Comment
+   *   2026.11.18 03:04:15;XAUUSD;Buy;Out;0.03;3 825.13;-0.11;;14.70;[sl 3825.21]
+   *   2024.10.22 16:32:44;;Balance;;;;;;1 615.05;
+   * Lignes les plus récentes en premier. Pas de stop-loss d'entrée : seules les clôtures « [sl …] » le révèlent.
+   */
+  function parseSignalCsv(texte) {
+    const lignes = String(texte).replace(/^\uFEFF/, "").split(/\r?\n/).filter((l) => l.trim());
+    const tete = (lignes[0] || "").split(";").map((x) => x.trim().toLowerCase());
+    if (tete.filter((x) => x === "time").length === 2) return parseSignalPositionsCsv(lignes);
+    const col = (nom) => tete.indexOf(nom);
+    const iT = col("time"), iS = col("symbol"), iTy = col("type"), iD = col("direction"), iV = col("volume"), iP = col("price");
+    const iC = col("commission"), iSw = col("swap"), iPr = col("profit"), iCo = col("comment");
+    if ([iT, iS, iTy, iD, iV, iP, iPr].some((i) => i < 0)) {
+      const err = new Error("Ce fichier CSV n'est pas un historique de signal MQL5 (colonnes Time;Symbol;Type;Direction… attendues).");
+      err.code = "csv_inconnu";
+      throw err;
+    }
+    const transactions = [], mouvements = [], avertissements = [];
+    let ignorees = 0;
+    // du plus ancien au plus récent, en gardant l'ordre du fichier à seconde égale
+    for (const l of lignes.slice(1).reverse()) {
+      const r = l.split(";");
+      const temps = parseTime(r[iT]);
+      if (temps === null) { ignorees++; continue; }
+      const type = (r[iTy] || "").trim().toLowerCase();
+      if (type === "balance" || type === "credit") { mouvements.push({ temps, montant: parseNum(r[iPr]) || 0 }); continue; }
+      const dir = (r[iD] || "").trim().toLowerCase();
+      if ((type !== "buy" && type !== "sell") || (dir !== "in" && dir !== "out" && dir !== "inout")) { ignorees++; continue; }
+      const tx = {
+        temps, symbole: (r[iS] || "").trim(), sens: type, entree: dir, volume: parseNum(r[iV]), prix: parseNum(r[iP]),
+        commission: iC >= 0 ? parseNum(r[iC]) || 0 : 0, swap: iSw >= 0 ? parseNum(r[iSw]) || 0 : 0, profit: parseNum(r[iPr]) || 0,
+        stopLoss: null, commentaire: iCo >= 0 ? (r[iCo] || "").trim().replace(/^\[|\]$/g, "") : "",
+      };
+      if (dir === "inout") {
+        transactions.push(Object.assign({}, tx, { entree: "out" }));
+        transactions.push(Object.assign({}, tx, { entree: "in", profit: 0, commission: 0, swap: 0 }));
+      } else transactions.push(tx);
+    }
+    return finSignal(transactions, mouvements, avertissements, ignorees, "transactions");
+  }
+
+  /**
+   * Export « History » (bouton visible de l'onglet Historique, /export/positions) : une ligne par POSITION.
+   *   Time;Type;Volume;Symbol;Price;Volume;Time;Price;Commission;Swap;Profit
+   *   2026.11.18 02:23:35;Sell;0.03;XAUUSD;3830.03;0.03;2026.11.18 03:04:15;3825.13;-0.22;;14.7
+   *   2024.10.22 16:32:44;Balance;;;;;;;;;1615.05
+   * Aucun commentaire : on ne sait pas si une perte s'est fermée sur un stop-loss → stop-loss « inconnu ».
+   */
+  function parseSignalPositionsCsv(lignes) {
+    const transactions = [], mouvements = [], avertissements = [];
+    let ignorees = 0;
+    for (const l of lignes.slice(1).reverse()) {
+      const r = l.split(";");
+      const t0 = parseTime(r[0]);
+      if (t0 === null) { ignorees++; continue; }
+      const type = (r[1] || "").trim().toLowerCase();
+      if (type === "balance" || type === "credit") { mouvements.push({ temps: t0, montant: parseNum(r[10]) || 0 }); continue; }
+      if (type !== "buy" && type !== "sell") { ignorees++; continue; }
+      const sym = (r[3] || "").trim(), v = parseNum(r[2]), t1 = parseTime(r[6] || "");
+      transactions.push({ temps: t0, symbole: sym, sens: type, entree: "in", volume: v, prix: parseNum(r[4]), commission: 0, swap: 0, profit: 0, stopLoss: null, commentaire: null });
+      if (t1 !== null) {
+        const vf = parseNum(r[5]);
+        transactions.push({ temps: t1, symbole: sym, sens: type === "buy" ? "sell" : "buy", entree: "out", volume: isNaN(vf) ? v : vf, prix: parseNum(r[7]),
+          commission: parseNum(r[8]) || 0, swap: parseNum(r[9]) || 0, profit: parseNum(r[10]) || 0, stopLoss: null, commentaire: null });
+      }
+    }
+    return finSignal(transactions, mouvements, avertissements, ignorees, "positions");
+  }
+
+  /** Fin commune aux deux exports : dépôt initial, mouvements, symbole principal, avertissements. */
+  function finSignal(transactions, mouvements, avertissements, ignorees, format) {
+    if (!transactions.length) {
+      const err = new Error("Aucune transaction dans cet historique de signal.");
+      err.code = "aucune_transaction";
+      throw err;
+    }
+    if (ignorees) avertissements.push({ code: "lignes_ignorees", n: ignorees });
+    mouvements.sort((a, b) => a.temps - b.temps); // le dépôt initial = le PREMIER mouvement dans le temps, quel que soit l'ordre du fichier
+    const depot = mouvements.length && mouvements[0].montant > 0 ? mouvements[0].montant : NaN;
+    if (isNaN(depot)) avertissements.push({ code: "depot" });
+    const suivants = mouvements.slice(isNaN(depot) ? 0 : 1).filter((m) => m.montant);
+    if (suivants.length) avertissements.push({ code: "mouvements", n: suivants.length, total: suivants.reduce((a, m) => a + m.montant, 0) });
+    if (format === "positions") avertissements.push({ code: "export_positions" });
+    const parSymbole = {};
+    transactions.forEach((t) => (parSymbole[t.symbole] = (parSymbole[t.symbole] || 0) + 1));
+    const symboles = Object.keys(parSymbole).sort((a, b) => parSymbole[b] - parSymbole[a]);
+    const temps = transactions.map((t) => t.temps);
+    return {
+      backtest: {
+        robot: "Signal MQL5", source: "signal", format, clotureInconnue: format === "positions",
+        symbole: symboles.length > 1 ? `${symboles[0]} +${symboles.length - 1}` : symboles[0],
+        periode: "", debut: minDe(temps), fin: maxDe(temps),
+        depot: isNaN(depot) ? 10000 : depot, mouvements: suivants, transactions, stats: {}, scenario: "signal réel",
       },
       avertissements,
     };
@@ -252,6 +358,7 @@
     partSansStopAlerte: 0.5, partSansStopAttention: 0.1,
     minPertesStopVirtuel: 10, toleranceStopVirtuel: 0.15, partStopVirtuel: 0.7,
     partPlafondStop: 0.3, partAuDelaPlafond: 0.05, partRenfortsAttention: 0.02,
+    fenetrePanierSecondes: 2,
     partRenfortsAlerte: 0.15, partStopPoseApres: 0.25, partPileStop: 0.1, densitePileStop: 2, partAuDelaGaps: 0.2,
     dureeCourteSecondes: 60, partCourteAlerte: 0.3, partCourteAttention: 0.05,
     tauxReussiteSuspect: 0.85, ratioPerteGainSuspect: 3.0,
@@ -266,30 +373,83 @@
     return { code, niveau: "inconnu", cle: "pas_assez", donnees: { n }, mesures: {}, exemples: [] };
   }
 
-  function detecterMartingale(positions, r) {
+  /**
+   * PANIERS : positions du même symbole et du même sens ouvertes à au plus r.fenetrePanierSecondes (2 s) de la
+   * première = UNE décision, découpée en plusieurs ordres (0,01 + 0,02 + 0,03…). Sans ce regroupement, un vrai
+   * signal (Gold Reaper, 22/11/2026 : 212 entrées sur 575 sont des paniers de 2 à 7 positions) passait pour une
+   * martingale et une grille. Volume et profit additionnés ; prix d'entrée moyen pondéré ; fermé quand tout l'est.
+   */
+  function regrouperPaniers(positions, r) {
+    const fenetre = r.fenetrePanierSecondes * 1000;
+    const tri = positions.slice().sort((a, b) => a.ouverture - b.ouverture);
+    const courant = new Map(), res = [];
+    for (const p of tri) {
+      const cle = p.symbole + "|" + p.sens, b = courant.get(cle);
+      if (fenetre > 0 && b && p.ouverture - b.ouverture <= fenetre) {
+        b.prixEntree = (b.prixEntree * b.volume + p.prixEntree * p.volume) / (b.volume + p.volume);
+        b.volume = +(b.volume + p.volume).toFixed(8);
+        b.profit += p.profit;
+        b.fermeture = b.fermeture === null || p.fermeture === null ? null : Math.max(b.fermeture, p.fermeture);
+        b.n++;
+        continue;
+      }
+      const nb = Object.assign({}, p, { n: 1 });
+      courant.set(cle, nb);
+      res.push(nb);
+    }
+    return res;
+  }
+
+  /**
+   * Après une perte FERMÉE, la position suivante du MÊME symbole est-elle plus grosse ? Même symbole : sur un signal
+   * multi-marchés, 1 lot d'indice après 0,01 lot d'or n'est pas une martingale (signal 2376856 : « ×10 000 »).
+   * Un DÉPÔT entre la perte et la position suivante : pas de comparaison (le robot grossit avec le compte).
+   */
+  function detecterMartingale(positions, r, unitaires, depots) {
     const fermees = positions.filter(fermee);
     if (fermees.length < r.minPositions) return pasAssez("martingale", fermees.length);
     const parOuverture = positions.slice().sort((a, b) => a.ouverture - b.ouverture);
-    const parFermeture = fermees.slice().sort((a, b) => a.fermeture - b.fermeture);
-    let apresPerte = 0, hausses = 0, chaine = 0, chaineMax = 0, i = 0, derniere = null;
+    const fermeesParSymbole = new Map();
+    for (const p of fermees.slice().sort((a, b) => a.fermeture - b.fermeture)) {
+      if (!fermeesParSymbole.has(p.symbole)) fermeesParSymbole.set(p.symbole, []);
+      fermeesParSymbole.get(p.symbole).push(p);
+    }
+    const curseur = new Map(), derniereParSymbole = new Map();
+    const dep = (depots || []).slice().sort((a, b) => a - b);
+    const depotEntre = (t0, t1) => dep.some((t) => t > t0 && t <= t1);
+    let apresPerte = 0, hausses = 0, chaine = 0, chaineMax = 0;
     const exemples = [];
-    const vMin = Math.min.apply(null, positions.map((p) => p.volume));
-    const mult = vMin ? Math.max.apply(null, positions.map((p) => p.volume)) / vMin : 1;
+    const u = unitaires || positions; // plus grosse / plus petite POSITION (pas panier) pour le texte
+    const vMin = minDe(u.map((p) => p.volume));
+    // Hausse d'UN seul cran de 0,01 lot (0,01 → 0,02) chez un robot qui trade au lot minimum : arrondi d'un lot qui
+    // suit le solde, pas une martingale (signaux réels du 22/11/2026). Au-dessus de 0,01 lot, ce cran n'existe pas.
+    const cran = vMin <= 0.01 + EPS ? 0.01 : 0;
+    const mult = vMin ? maxDe(u.map((p) => p.volume)) / vMin : 1;
     for (const p of parOuverture) {
-      while (i < parFermeture.length && parFermeture[i].fermeture <= p.ouverture) derniere = parFermeture[i++];
-      if (!derniere) continue;
+      const liste = fermeesParSymbole.get(p.symbole) || [];
+      let i = curseur.get(p.symbole) || 0, derniere = derniereParSymbole.get(p.symbole) || null;
+      while (i < liste.length && liste[i].fermeture <= p.ouverture) derniere = liste[i++];
+      curseur.set(p.symbole, i);
+      derniereParSymbole.set(p.symbole, derniere);
+      if (!derniere || depotEntre(derniere.fermeture, p.ouverture)) continue;
       if (derniere.profit < 0) {
         apresPerte++;
-        if (p.volume >= derniere.volume * r.ratioMartingale) {
-          hausses++; chaine++; chaineMax = Math.max(chaineMax, chaine);
-          if (exemples.length < 3) exemples.push({ t: p.ouverture, perte: derniere.profit, v0: derniere.volume, v1: p.volume });
+        if (p.volume >= derniere.volume * r.ratioMartingale - EPS) {
+          // la CHAÎNE compte toute hausse (0,01 → 0,02 → 0,04… est une martingale) ; le décompte isolé ignore un seul cran
+          chaine++; chaineMax = Math.max(chaineMax, chaine);
+          if (p.volume - derniere.volume > cran + EPS) {
+            hausses++;
+            if (exemples.length < 3) exemples.push({ t: p.ouverture, perte: derniere.profit, v0: derniere.volume, v1: p.volume });
+          }
         } else chaine = 0;
       } else chaine = 0;
     }
     const part = apresPerte ? hausses / apresPerte : 0;
     const mesures = { apresPerte, hausses, part: +part.toFixed(3), chaineMax, mult: +mult.toFixed(2) };
     const alerte = (hausses >= r.minEvenementsMartingale && part >= r.partMartingaleAlerte) || chaineMax >= r.chaineMartingaleAlerte;
-    const niveau = alerte ? "alerte" : hausses > 0 ? "attention" : "ok";
+    // « à surveiller » dès 3 hausses (comme la grille) : 1 ou 2 = anecdotique (EMA Cross : 2 sur 47, ordres en attente
+    // déclenchés ensemble par un gap ; étalonnage du 22/11/2026).
+    const niveau = alerte ? "alerte" : hausses >= r.minEvenementsMartingale ? "attention" : "ok";
     return { code: "martingale", niveau, cle: "martingale_" + niveau, donnees: mesures, mesures, exemples };
   }
 
@@ -346,9 +506,11 @@
     return { code: "grille", niveau, cle: "grille_" + niveau, donnees: mesures, mesures, exemples, exemplesHausse };
   }
 
-  function detecterStopLoss(positions, r) {
+  function detecterStopLoss(positions, r, clotureInconnue) {
     const connues = positions.filter((p) => p.stopLoss !== null && p.stopLoss !== undefined);
-    if (!connues.length) return { code: "stop_loss", niveau: "inconnu", cle: "stop_inconnu", donnees: {}, mesures: {}, exemples: [] };
+    if (!connues.length) return clotureInconnue
+      ? { code: "stop_loss", niveau: "inconnu", cle: "stop_export_positions", donnees: {}, mesures: {}, exemples: [] }
+      : stopDeduit(positions, r);
     const sans = connues.filter((p) => !(p.stopLoss > 0));
     const part = sans.length / connues.length;
     let niveau = part >= r.partSansStopAlerte ? "alerte" : part >= r.partSansStopAttention ? "attention" : "ok";
@@ -377,6 +539,30 @@
       }
     }
     return { code: "stop_loss", niveau, cle, donnees: mesures, mesures, exemples };
+  }
+
+  /**
+   * Stop d'entrée INCONNU (historique de signal MQL5) : on le déduit des clôtures. Une perte fermée « sl » prouve un
+   * stop chez le courtier ; aucune sur de nombreuses pertes = probablement aucun stop (ou un stop virtuel).
+   */
+  function stopDeduit(positions, r) {
+    const pertes = positions.filter((p) => fermee(p) && p.profit < 0);
+    const vide = { code: "stop_loss", niveau: "inconnu", cle: "stop_inconnu", donnees: {}, mesures: {}, exemples: [] };
+    if (pertes.length < r.minPertesStopVirtuel) return vide;
+    const parSL = pertes.filter((p) => p.fermeParSL).length;
+    const mesures = { deduit: true, pertes: pertes.length, pertesParSL: parSL, partParSL: +(parSL / pertes.length).toFixed(3) };
+    if (parSL >= r.minPertesStopVirtuel && parSL / pertes.length >= r.partStopPoseApres)
+      return { code: "stop_loss", niveau: "ok", cle: "stop_constate", donnees: mesures, mesures, exemples: [] };
+    const v = stopVirtuel(positions, r);
+    if (v) {
+      Object.assign(mesures, v, { part: 1 - parSL / pertes.length });
+      return { code: "stop_loss", niveau: "attention", cle: "stop_virtuel", donnees: mesures, mesures, exemples: [] };
+    }
+    if (parSL === 0) {
+      const exemples = pertes.slice().sort((a, b) => a.profit - b.profit).slice(0, 3).map((p) => ({ t: p.ouverture, sens: p.sens, v: p.volume, perte: p.profit }));
+      return { code: "stop_loss", niveau: "alerte", cle: "stop_absent_probable", donnees: mesures, mesures, exemples };
+    }
+    return { code: "stop_loss", niveau: "attention", cle: "stop_partiel", donnees: mesures, mesures, exemples: [] };
   }
 
   /** Pertes des positions sans stop, regroupées autour d'une même distance de prix ? */
@@ -441,7 +627,7 @@
     const gm = gains.length ? somme(gains) / gains.length : 0;
     const pm = pertes.length ? somme(pertes) / pertes.length : 0;
     const ratio = gm ? pm / gm : 0;
-    const mesures = { taux: +taux.toFixed(3), gainMoyen: +gm.toFixed(2), perteMoyenne: +pm.toFixed(2), ratio: +ratio.toFixed(2), pire: pertes.length ? +Math.max.apply(null, pertes).toFixed(2) : 0 };
+    const mesures = { taux: +taux.toFixed(3), gainMoyen: +gm.toFixed(2), perteMoyenne: +pm.toFixed(2), ratio: +ratio.toFixed(2), pire: pertes.length ? +maxDe(pertes).toFixed(2) : 0 };
     const niveau = taux >= r.tauxReussiteSuspect && ratio >= r.ratioPerteGainSuspect ? "alerte" : "ok";
     return { code: "profil", niveau, cle: "profil_" + niveau, donnees: mesures, mesures, exemples: [] };
   }
@@ -497,7 +683,7 @@
       if (ouvert > expo + EPS) { expo = ouvert; quand = t; }
       simMax = Math.max(simMax, simult);
     }
-    const vMin = positions.length ? Math.min.apply(null, positions.map((p) => p.volume)) : 0;
+    const vMin = positions.length ? minDe(positions.map((p) => p.volume)) : 0;
     return {
       pireSerie: { pertes: pire.n, montant: +pire.perte.toFixed(2), pctDepot: depot ? +(-pire.perte / depot).toFixed(4) : null, debut: pire.debut, fin: pire.fin },
       expositionMax: { lots: +expo.toFixed(2), foisMiseMin: vMin ? +(expo / vMin).toFixed(1) : null, quand, positionsSimultanees: simMax },
@@ -509,11 +695,12 @@
   function auditer(backtest, reglages) {
     const r = Object.assign({}, REGLAGES, reglages || {});
     const positions = reconstruirePositions(backtest.transactions);
+    const paniers = regrouperPaniers(positions, r);
     const dd = backtest.stats ? backtest.stats.drawdownEquiteMaxPct : undefined;
     const liste = [
-      detecterMartingale(positions, r),
-      detecterGrille(positions, r),
-      detecterStopLoss(positions, r),
+      detecterMartingale(paniers, r, positions, (backtest.mouvements || []).filter((m) => m.montant > 0).map((m) => m.temps)),
+      detecterGrille(paniers, r),
+      detecterStopLoss(positions, r, !!backtest.clotureInconnue),
       detecterTradesCourts(positions, r),
       detecterProfil(positions, r),
       detecterReglesProp(positions, backtest.depot, r, dd),
@@ -541,14 +728,14 @@
     if (c.prop.niveau !== "inconnu") compatibleProp = raisonsProp.length === 0;
     const fermees = positions.filter(fermee);
     return {
-      backtest, positions, constats: c, risque, compatibleProp, raisonsProp,
+      backtest, positions, paniers: paniers.length, constats: c, risque, compatibleProp, raisonsProp,
       detectes: liste.filter((x) => x.niveau === "alerte").map((x) => x.code).sort(),
       resume: { positions: positions.length, fermees: fermees.length, net: fermees.reduce((s, p) => s + p.profit, 0) },
       extremes: extremes(positions, backtest.depot),
     };
   }
 
-  const api = { parseMt5Report, decode, reconstruirePositions, auditer, REGLAGES, fmtT, parseNum, parseTime, _rows: rows };
+  const api = { parseMt5Report, parseSignalCsv, decode, reconstruirePositions, regrouperPaniers, auditer, REGLAGES, fmtT, parseNum, parseTime, _rows: rows };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LaboEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

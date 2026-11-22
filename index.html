@@ -170,6 +170,10 @@
 
   section.comment { margin-top: 3.5rem; max-width: 40rem; }
   section.comment h2 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.4rem; }
+  section.comment h3 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.1rem; margin-top: 1.5rem; }
+  .depot-signal { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .4rem; }
+  .depot-signal input { font: inherit; width: 9rem; padding: .3rem .5rem; border: 1px solid var(--encre-douce); background: var(--fiche); color: var(--encre); }
+  .depot-signal button { font: inherit; padding: .3rem .8rem; border: 2px solid var(--encre); background: var(--encre); color: var(--fiche); cursor: pointer; }
   section.comment ol { padding-left: 1.3rem; }
   section.comment li { margin-bottom: .45rem; }
   footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--trait); font-size: .88rem; color: var(--encre-douce); max-width: 46rem; }
@@ -201,7 +205,7 @@
     <label class="depot" id="depot">
       <strong data-t="depot_titre"></strong>
       <small data-t="depot_aide"></small>
-      <input type="file" id="fichier" accept=".htm,.html" aria-describedby="confidentiel">
+      <input type="file" id="fichier" accept=".htm,.html,.csv" aria-describedby="confidentiel">
     </label>
     <div class="exemples">
       <span data-t="exemples"></span>
@@ -239,6 +243,12 @@
         <li data-t="etape3"></li>
         <li data-t="etape4"></li>
       </ol>
+      <h3 data-t="signal_titre"></h3>
+      <ol>
+        <li data-t="signal1"></li>
+        <li data-t="signal2"></li>
+        <li data-t="signal3"></li>
+      </ol>
     </section>
   </main>
 
@@ -262,7 +272,7 @@
       marque_sous: "— test indépendant de robots MT5",
       titre: "Ce robot cache-t-il une martingale ?",
       sous_titre: "Déposez le rapport du testeur de stratégie MetaTrader 5. En quelques secondes : martingale, grille et stop-loss vérifiés, une note de sécurité et de solidité sur 100, et vos chances sur 6 challenges de prop firms (FTMO, FundedNext, The5ers).",
-      depot_titre: "Déposer un rapport du testeur (.html)",
+      depot_titre: "Déposer un rapport du testeur (.html) ou l'historique d'un signal (.csv)",
       depot_aide: "Glissez le fichier ici, ou cliquez pour le choisir.",
       exemples: "Pas de rapport sous la main ? Essayer avec :",
       ex_martingale: "un robot à martingale", ex_grille: "un robot à grille", ex_propre: "un robot propre",
@@ -284,7 +294,13 @@
       offre_exemple: "Voir une fiche d'exemple",
       analyse: "Analyse en cours…",
       erreur_lecture: "Impossible de lire ce fichier : ",
-      erreur_html: "Choisissez le rapport au format .html exporté depuis le testeur de MetaTrader 5.",
+      erreur_html: "Choisissez le rapport .html du testeur de MetaTrader 5, ou l'historique .csv exporté depuis la page d'un signal MQL5.",
+      signal_titre: "Auditer un signal MQL5 (un compte réel copié)",
+      signal1: "Connectez-vous sur mql5.com (compte gratuit) et ouvrez la page du signal.",
+      signal2: "Le plus complet : ouvrez l'adresse du signal suivie de /export/history (par exemple mql5.com/fr/signals/2265877/export/history). Le bouton « History » de l'onglet Historique marche aussi, mais sans le stop-loss.",
+      signal3: "Déposez ce fichier .csv ci-dessus. Il est analysé dans votre navigateur, comme un rapport de test.",
+      depot_signal: "Dépôt initial du signal (indiqué sur sa page) :",
+      recalculer: "Recalculer",
       risque: { eleve: "Risque élevé", moyen: "Risque moyen", faible: "Risque faible", inconnu: "Indéterminé" },
       tampon_sous: "comportement observé",
       prop_oui: "Compatible avec un challenge de prop firm classique (5 % / jour, 10 % max) :",
@@ -297,7 +313,7 @@
       meta: (b, r) => `${b.symbole}${b.periode ? " " + b.periode : ""} · ${E.fmtT(b.debut).slice(0, 10)} → ${E.fmtT(b.fin).slice(0, 10)} · ${r.resume.positions} positions · résultat net ${fmtArgent(r.resume.net)}`,
       exemple_label: "Exemple simulé",
       avert: "Remarques de lecture :",
-      avertissements: { directions: (a) => `${a.n} transaction(s) avec un sens entrée/sortie non reconnu : déduit du profit.`, ordres: () => "Table des ordres introuvable : le stop-loss ne peut pas être vérifié.", depot: () => "Dépôt initial introuvable : 10 000 supposé." },
+      avertissements: { directions: (a) => `${a.n} transaction(s) avec un sens entrée/sortie non reconnu : déduit du profit.`, ordres: () => "Table des ordres introuvable : le stop-loss ne peut pas être vérifié.", depot: () => "Dépôt initial introuvable : 10 000 supposé. Les pourcentages en dépendent.", lignes_ignorees: (a) => `${a.n} ligne(s) illisible(s) ignorée(s).`, export_positions: () => "Export « History » : une ligne par position, sans le motif de clôture.", mouvements: (a) => `${a.n} dépôt(s) ou retrait(s) en cours de route (${fmtSigne(a.total)}) : ils ne comptent ni comme gains ni comme pertes.` },
       note_nom: { securite: "Sécurité", solidite: "Solidité" },
       note_sous: { securite: "Le robot prend-il des risques cachés ?", solidite: "Ses gains sont-ils solides, ou dus à la chance ?" },
       note_niveau: { bon: "bon", moyen: "moyen", faible: "faible", inconnu: "pas assez de données" },
@@ -346,7 +362,7 @@
         optimiste: "Ce robot garde des pertes latentes importantes : en vrai challenge, il ferait moins bien que cette simulation.",
         eleve: "Robot à risque élevé : réussir un challenge ne veut pas dire garder le compte financé. Martingales et grilles finissent souvent par une grosse perte, et beaucoup de prop firms les interdisent. Aucune taille n'est conseillée.",
         quick_strike: (c) => `FundedNext limite les positions de moins de 30 secondes à 30 % : ce robot en a ${pc(c.partMoins30s)}.`,
-        nonConfirme: "The5ers : la base de calcul de la perte journalière et le type de perte maximale ne sont pas précisés sur leur site ; on les suppose identiques à FTMO 2-Step.",
+        selonCompte: "The5ers : limites de 3 à 5 % par jour et 8 à 10 % au total selon le compte ; simulé avec 5 % et 10 %. Leur perte journalière se calcule sur le solde du début de journée, pas sur le capital initial.",
         taille: "Taille = taille des positions par rapport au test (×0,5 = deux fois plus petites).",
       },
       txt: {
@@ -361,8 +377,12 @@
         stop_ok: () => "Les positions sont ouvertes avec un stop-loss.",
         stop_pose_apres: (d) => `Le stop-loss n'est pas dans l'ordre d'entrée, mais il est posé chez le courtier juste après l'ouverture : ${pc(d.partParSL)} des pertes se ferment par ce stop.`,
         stop_manquant: (d) => `${pc(d.part)} des positions sont ouvertes sans stop-loss.`,
-        stop_virtuel: (d) => `Aucun stop-loss n'est transmis au courtier (${pc(d.part)} des positions), mais le robot coupe lui-même ses pertes à distance fixe : ${pc(d.partProches)} des pertes se ferment vers ${d.points} points. C'est un stop « virtuel » : il protège tant que MetaTrader tourne, pas si le terminal plante ou perd la connexion.`,
+        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Presque aucune" : "Aucune"} perte ne se ferme sur un stop-loss du courtier (${d.pertesParSL} sur ${d.pertes})` : `Aucun stop-loss n'est transmis au courtier (${pc(d.part)} des positions)`}, mais le robot coupe lui-même ses pertes à distance fixe : ${pc(d.partProches)} des pertes se ferment vers ${d.points} points. C'est un stop « virtuel » : il protège tant que MetaTrader tourne, pas si le terminal plante ou perd la connexion.`,
         stop_inconnu: () => "Le rapport ne contient pas l'information de stop-loss.",
+        stop_export_positions: () => "Cet export (bouton « History ») ne dit pas comment chaque position s'est fermée : impossible de vérifier le stop-loss. Pour le vérifier, utilisez l'export des transactions : adresse du signal suivie de /export/history.",
+        stop_constate: (d) => `Le fichier ne donne pas le stop d'entrée, mais ${pc(d.partParSL)} des pertes (${d.pertesParSL} sur ${d.pertes}) se ferment sur un stop-loss du courtier : le robot en utilise un.`,
+        stop_absent_probable: (d) => `Aucune des ${d.pertes} pertes ne se ferme sur un stop-loss du courtier : le robot n'en pose probablement pas. Les pertes sont coupées à la main ou par le robot, sans plafond visible.`,
+        stop_partiel: (d) => `Seules ${d.pertesParSL} pertes sur ${d.pertes} se ferment sur un stop-loss du courtier. Soit le stop n'est pas systématique, soit le robot ferme ses pertes avant de l'atteindre : un stop jamais touché ne laisse aucune trace dans l'historique.`,
         courts_alerte: (d) => `${pc(d.part)} des positions durent moins de ${d.seuil} s : risque d'être classé HFT / tick scalping par une prop firm.`,
         courts_attention: (d) => `${pc(d.part)} des positions durent moins de ${d.seuil} s.`,
         courts_ok: (d) => `Très peu de positions durent moins de ${d.seuil} s.`,
@@ -381,7 +401,7 @@
       marque_sous: "— independent MT5 robot testing",
       titre: "Is this robot hiding a martingale?",
       sous_titre: "Drop a MetaTrader 5 Strategy Tester report. In seconds: martingale, grid and stop-loss checked, a safety and solidity score out of 100, and your odds on 6 prop-firm challenges (FTMO, FundedNext, The5ers).",
-      depot_titre: "Drop a Strategy Tester report (.html)",
+      depot_titre: "Drop a Strategy Tester report (.html) or a signal history (.csv)",
       depot_aide: "Drag the file here, or click to choose it.",
       exemples: "No report at hand? Try with:",
       ex_martingale: "a martingale robot", ex_grille: "a grid robot", ex_propre: "a clean robot",
@@ -403,7 +423,13 @@
       offre_exemple: "See a sample report",
       analyse: "Analysing…",
       erreur_lecture: "Could not read this file: ",
-      erreur_html: "Choose the .html report exported from the MetaTrader 5 Strategy Tester.",
+      erreur_html: "Choose the .html report from the MetaTrader 5 Strategy Tester, or the .csv history exported from an MQL5 signal page.",
+      signal_titre: "Auditing an MQL5 signal (a live account you would copy)",
+      signal1: "Log in on mql5.com (free account) and open the signal page.",
+      signal2: "Most complete: open the signal address followed by /export/history (for example mql5.com/en/signals/2265877/export/history). The “History” button in the History tab works too, but without the stop-loss.",
+      signal3: "Drop that .csv file above. It is analysed in your browser, like a test report.",
+      depot_signal: "Signal initial deposit (shown on its page):",
+      recalculer: "Recalculate",
       risque: { eleve: "High risk", moyen: "Medium risk", faible: "Low risk", inconnu: "Undetermined" },
       tampon_sous: "observed behaviour",
       prop_oui: "Compatible with a standard prop-firm challenge (5% daily, 10% max):",
@@ -416,7 +442,7 @@
       meta: (b, r) => `${b.symbole}${b.periode ? " " + b.periode : ""} · ${E.fmtT(b.debut).slice(0, 10)} → ${E.fmtT(b.fin).slice(0, 10)} · ${r.resume.positions} positions · net result ${fmtArgent(r.resume.net)}`,
       exemple_label: "Simulated example",
       avert: "Reading notes:",
-      avertissements: { directions: (a) => `${a.n} deal(s) with an unrecognised in/out direction: inferred from profit.`, ordres: () => "Orders table not found: stop-loss cannot be checked.", depot: () => "Initial deposit not found: 10,000 assumed." },
+      avertissements: { directions: (a) => `${a.n} deal(s) with an unrecognised in/out direction: inferred from profit.`, ordres: () => "Orders table not found: stop-loss cannot be checked.", depot: () => "Initial deposit not found: 10,000 assumed. Percentages depend on it.", lignes_ignorees: (a) => `${a.n} unreadable line(s) skipped.`, export_positions: () => "“History” export: one line per position, without the closing reason.", mouvements: (a) => `${a.n} deposit(s) or withdrawal(s) along the way (${fmtSigne(a.total)}): counted neither as gains nor losses.` },
       note_nom: { securite: "Safety", solidite: "Solidity" },
       note_sous: { securite: "Does the robot take hidden risks?", solidite: "Are its gains solid, or down to luck?" },
       note_niveau: { bon: "good", moyen: "average", faible: "poor", inconnu: "not enough data" },
@@ -465,7 +491,7 @@
         optimiste: "This robot carries large floating losses: in a real challenge it would do worse than this simulation.",
         eleve: "High-risk robot: passing a challenge does not mean keeping the funded account. Martingales and grids often end in a large loss, and many prop firms ban them. No size is recommended.",
         quick_strike: (c) => `FundedNext caps positions shorter than 30 seconds at 30%: this robot has ${pc(c.partMoins30s)}.`,
-        nonConfirme: "The5ers: their site does not state the daily-loss basis or the max-loss type; assumed identical to FTMO 2-Step.",
+        selonCompte: "The5ers: limits of 3-5% per day and 8-10% overall depending on the account; simulated with 5% and 10%. Their daily loss is based on the start-of-day balance, not the initial capital.",
         taille: "Size = position size relative to the test (×0.5 = half as large).",
       },
       txt: {
@@ -480,8 +506,12 @@
         stop_ok: () => "Positions are opened with a stop-loss.",
         stop_pose_apres: (d) => `The stop-loss is not in the entry order, but it is placed at the broker right after opening: ${pc(d.partParSL)} of losses close on that stop.`,
         stop_manquant: (d) => `${pc(d.part)} of positions are opened without a stop-loss.`,
-        stop_virtuel: (d) => `No stop-loss is sent to the broker (${pc(d.part)} of positions), but the robot cuts its own losses at a fixed distance: ${pc(d.partProches)} of losses close around ${d.points} points. This is a “virtual” stop: it protects while MetaTrader runs, not if the terminal crashes or loses connection.`,
+        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Almost no" : "No"} loss closes on a broker stop-loss (${d.pertesParSL} of ${d.pertes})` : `No stop-loss is sent to the broker (${pc(d.part)} of positions)`}, but the robot cuts its own losses at a fixed distance: ${pc(d.partProches)} of losses close around ${d.points} points. This is a “virtual” stop: it protects while MetaTrader runs, not if the terminal crashes or loses connection.`,
         stop_inconnu: () => "The report does not include stop-loss information.",
+        stop_export_positions: () => "This export (“History” button) does not say how each position closed: the stop-loss cannot be checked. To check it, use the deals export: the signal address followed by /export/history.",
+        stop_constate: (d) => `The file does not give the entry stop, but ${pc(d.partParSL)} of losses (${d.pertesParSL} of ${d.pertes}) close on a broker stop-loss: the robot uses one.`,
+        stop_absent_probable: (d) => `None of the ${d.pertes} losses closes on a broker stop-loss: the robot probably sets none. Losses are cut manually or by the robot, with no visible cap.`,
+        stop_partiel: (d) => `Only ${d.pertesParSL} of ${d.pertes} losses close on a broker stop-loss. Either the stop is not systematic, or the robot closes losses before reaching it: a stop that is never hit leaves no trace in the history.`,
         courts_alerte: (d) => `${pc(d.part)} of positions last under ${d.seuil} s: risk of being classed as HFT / tick scalping by a prop firm.`,
         courts_attention: (d) => `${pc(d.part)} of positions last under ${d.seuil} s.`,
         courts_ok: (d) => `Very few positions last under ${d.seuil} s.`,
@@ -540,7 +570,7 @@
     if (ch.niveau !== "ok") chal = `<p class="intro">${esc(L.chal_inconnu)}</p>`;
     else {
       const c = L.chal_cols;
-      const lignes = ch.firmes.map((f) => `<tr><td><b>${esc(f.nom)}</b>${f.regles.nonConfirme ? " *" : ""}</td><td>${esc(L.chal_regles(f.regles))}</td>
+      const lignes = ch.firmes.map((f) => `<tr><td><b>${esc(f.nom)}</b>${f.regles.selonCompte ? " *" : ""}</td><td>${esc(L.chal_regles(f.regles))}</td>
         <td class="chiffre ${classeTaux(f.taille1.reussite)}" data-l="${esc(c[2])}">${pc(f.taille1.reussite)}<small>${esc(L.chal_reussite(f.taille1))}</small></td>
         <td class="chiffre${f.reel.reussite === null ? "" : " " + classeTaux(f.reel.reussite)}" data-l="${esc(c[3])}">${esc(L.chal_reel(f.reel))}<small>${esc(L.chal_reel_sous(f.reel))}</small></td>
         <td class="chiffre" data-l="${esc(c[4])}">${risque === "eleve" ? "—" : esc(L.chal_taille(f.meilleur))}</td></tr>`).join("");
@@ -548,7 +578,7 @@
       if (ch.optimiste) rem.unshift(L.chal_rem.optimiste);
       if (risque === "eleve") rem.unshift(L.chal_rem.eleve);
       if (ch.firmes.some((f) => f.interdit === "quick_strike")) rem.unshift(L.chal_rem.quick_strike(ch));
-      if (ch.firmes.some((f) => f.regles.nonConfirme)) rem.push("* " + L.chal_rem.nonConfirme);
+      if (ch.firmes.some((f) => f.regles.selonCompte)) rem.push("* " + L.chal_rem.selonCompte);
       chal = `<p class="intro">${esc(L.chal_intro(ch))}</p><div class="table-defile"><table class="challenges"><thead><tr>${L.chal_cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead><tbody>${lignes}</tbody></table></div>
         <ul class="remarques">${rem.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
     }
@@ -590,7 +620,9 @@
     const prop = r.compatibleProp === null ? L.indetermine : r.compatibleProp ? `<span class="oui">${L.oui}</span>`
       : `<span class="non">${L.non}</span> — ${esc(r.raisonsProp.map((k) => L.raisons[k]).join(", "))}`;
     const bx = analyses ? blocsAnalyses(analyses, r.risque) : { notes: "", parties: "" };
-    const notes = avertissements && avertissements.length ? `<div class="notes"><p>${esc(L.avert)}</p>${avertissements.map((a) => `<p>${esc(L.avertissements[a.code] ? L.avertissements[a.code](a) : a.code)}</p>`).join("")}</div>` : "";
+    const champDepot = b.source === "signal" && (avertissements || []).some((a) => a.code === "depot")
+      ? `<form class="depot-signal" id="depot-signal"><label for="depot-valeur">${esc(L.depot_signal)}</label><input id="depot-valeur" type="number" min="1" step="any" inputmode="decimal" value="${b.depot}"><button type="submit">${esc(L.recalculer)}</button></form>` : "";
+    const notes = avertissements && avertissements.length ? `<div class="notes"><p>${esc(L.avert)}</p>${avertissements.map((a) => `<p>${esc(L.avertissements[a.code] ? L.avertissements[a.code](a) : a.code)}</p>`).join("")}${champDepot}</div>` : "";
     document.getElementById("resultat").innerHTML = `
       <article class="fiche" aria-labelledby="fiche-titre">
         <div class="fiche-tete">
@@ -606,6 +638,16 @@
         ${bx.parties}
         ${notes}
       </article>`;
+    const form = document.getElementById("depot-signal");
+    if (form) form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = parseFloat(document.getElementById("depot-valeur").value);
+      if (!(v > 0)) return;
+      const bt = Object.assign({}, r.backtest, { depot: v });
+      const resultat = E.auditer(bt);
+      dernier = { resultat, analyses: AN.analyser(resultat), avertissements: avertissements.filter((a) => a.code !== "depot"), exemple: null };
+      afficher(dernier, false);
+    });
     if (animer) document.getElementById("resultat").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   }
 
@@ -617,16 +659,19 @@
 
   async function lireFichier(f) {
     montrerErreur("");
-    if (!/\.html?$/i.test(f.name)) { montrerErreur(T[langue].erreur_html); return; }
+    if (!/\.(html?|csv)$/i.test(f.name)) { montrerErreur(T[langue].erreur_html); return; }
     try {
-      const html = E.decode(await f.arrayBuffer());
-      const { backtest, avertissements } = E.parseMt5Report(html);
+      const texte = E.decode(await f.arrayBuffer());
+      const signal = /\.csv$/i.test(f.name);
+      const { backtest, avertissements } = signal ? E.parseSignalCsv(texte) : E.parseMt5Report(texte);
+      // export MQL5 « 2265877.history.csv » : le numéro du signal sert de titre
+      if (signal) { const id = /(\d{4,})/.exec(f.name); if (id) backtest.robot = `Signal MQL5 n° ${id[1]}`; }
       const resultat = E.auditer(backtest);
       dernier = { resultat, analyses: AN.analyser(resultat), avertissements, exemple: null };
       afficher(dernier);
-      compter("rapport-analyse");
+      compter(signal ? "signal-analyse" : "rapport-analyse");
     } catch (e) {
-      montrerErreur(T[langue].erreur_lecture + (e.code === "aucune_transaction" ? T[langue].erreur_aucune : e.message));
+      montrerErreur(T[langue].erreur_lecture + (e.code === "aucune_transaction" ? T[langue].erreur_aucune : e.code === "csv_inconnu" ? T[langue].erreur_html : e.message));
       compter("rapport-erreur");
     }
   }
