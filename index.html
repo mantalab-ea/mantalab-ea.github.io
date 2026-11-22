@@ -209,7 +209,28 @@
   .verif .constat { font-size: .85rem; color: var(--encre); display: flex; gap: .55rem; align-items: baseline; }
   .verif .constat::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: var(--danger); transform: translateY(-.05rem); }
   @media (max-width: 52rem) { .verif { grid-template-columns: 1fr; gap: .35rem; } }
-  .verif .constat.plus::before { background: var(--encre); }
+  .cmp { border-top: 1px solid var(--encre); }
+  .cmp-l { display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--filet); }
+  .cmp-l > div { padding: 1.05rem 1rem 1.05rem 0; }
+  .cmp-tete > div { font-size: .8rem; color: var(--encre-2); padding: .9rem 1rem .9rem 0; }
+  .cmp-tete .nous { color: var(--rouge); font-weight: 600; }
+  .cmp-q { font-weight: 600; letter-spacing: -.01em; }
+  .cmp-c { display: flex; gap: .6rem; align-items: baseline; font-size: .9rem; color: var(--encre-2); }
+  .cmp-c::before { flex: none; width: 1.15rem; height: 1.15rem; border-radius: 50%; display: inline-grid; place-items: center; font-size: .72rem; font-weight: 700; transform: translateY(.15rem); }
+  .cmp-c.oui::before { content: "✓"; background: var(--encre); color: var(--fond); }
+  .cmp-c.non::before { content: "✕"; background: var(--fond-2); color: var(--encre-3); }
+  .cmp-c.partiel::before { content: "~"; background: var(--fond-2); color: var(--encre-2); }
+  .cmp-c.nous { color: var(--encre); font-weight: 500; }
+  .cmp-lib { display: none; font-size: .72rem; color: var(--encre-3); font-weight: 400; }
+  .cmp-c.nous.oui::before { background: var(--rouge); color: #fff; }
+  .cmp-l > .nous { background: color-mix(in srgb, var(--rouge) 5%, transparent); padding-left: 1rem; }
+  @media (max-width: 52rem) {
+    .cmp-tete { display: none; }
+    .cmp-l { grid-template-columns: 1fr; padding: 1rem 0; }
+    .cmp-l > div { padding: .25rem 0; }
+    .cmp-l > .nous { padding: .5rem .7rem; border-radius: 8px; margin-top: .3rem; }
+    .cmp-lib { display: block; }
+  }
 
   /* ----- Précision ----- */
   .precision { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: end; }
@@ -423,15 +444,33 @@
   <section class="bloc" id="plus" aria-labelledby="plus-titre">
     <div class="contenu">
       <div class="bloc-tete">
-        <h2 id="plus-titre" data-t="plus_titre">Lire un rapport ne suffit pas.</h2>
-        <p data-t="plus_sous">Un outil d'analyse ne voit que le rapport qu'on lui donne, souvent celui du vendeur. Le labo MantaLab va plus loin.</p>
+        <h2 id="plus-titre" data-t="plus_titre">Ce que nous faisons, et que les autres ne font pas.</h2>
+        <p data-t="plus_sous">Le rapport du vendeur montre ce qu'il veut bien montrer. Un outil d'analyse ne voit que ce rapport. Le labo MantaLab teste le robot lui-même.</p>
       </div>
-      <div class="verifs">
-        <div class="verif"><h3 data-t="p1_t">Le labo teste le robot lui-même</h3><p data-t="p1_p">Nous téléchargeons la démo officielle, ou vous nous envoyez le fichier, et nous faisons tourner le robot nous-mêmes. Aucun rapport du vendeur.</p><span class="constat plus" data-t="p1_ex">4 scénarios : exécution idéale, retards, ticks réels du courtier, autre année.</span></div>
-        <div class="verif"><h3 data-t="p2_t">L'équité minute par minute</h3><p data-t="p2_p">Les pertes que la courbe de solde cache, mesurées sur les cours minute par minute, comme les surveillent les prop firms.</p><span class="constat plus" data-t="p2_ex">0,05 point d'écart moyen avec MetaTrader sur le drawdown.</span></div>
-        <div class="verif"><h3 data-t="p3_t">Un taux d'erreur publié</h3><p data-t="p3_p">Chaque version du moteur est vérifiée sur 209 tests de robots au comportement connu, et ses erreurs sont listées une par une.</p><span class="constat plus" data-t="p3_ex">98,8 % de verdicts justes, 29 sur 29 sur de vrais robots.</span></div>
-        <div class="verif"><h3 data-t="p4_t">De l'argent réel</h3><p data-t="p4_p">L'historique d'un signal MQL5 se vérifie comme un test : martingale, grille, stops, pertes cachées.</p><span class="constat plus" data-t="p4_ex">Validé sur 16 signaux réels du site MQL5.</span></div>
-        <div class="verif"><h3 data-t="p5_t">Les robots faits avec une IA</h3><p data-t="p5_p">Créé avec ChatGPT ou Claude, sans démo sur le Market ? Envoyez le fichier : le labo le teste comme les autres.</p><span class="constat plus" data-t="p5_ex">Fichier .ex5 ou code .mq5 accepté.</span></div>
+      <div class="cmp" role="table" aria-labelledby="plus-titre">
+        <div class="cmp-l cmp-tete" role="row"><div role="columnheader"></div>
+          <div role="columnheader" data-t="cmp_col_v">Le rapport du vendeur</div><div role="columnheader" data-t="cmp_col_o">Un outil qui lit le rapport</div>
+          <div role="columnheader" class="nous" data-t="cmp_col_m">Le labo MantaLab</div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c1">Martingale, grille, stops absents</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">Le rapport du vendeur</small><span data-t="cmp_c1_v">Rarement signalés</span></span></div>
+          <div class="cmp-c oui" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">Un outil qui lit le rapport</small><span data-t="cmp_c1_o">Détectés</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">Le labo MantaLab</small><span data-t="cmp_c1_m">Détectés, avec un taux d'erreur publié</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c2">Robot testé par un tiers indépendant</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">Le rapport du vendeur</small><span data-t="cmp_c2_v">Non, c'est le vendeur</span></span></div>
+          <div class="cmp-c non" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">Un outil qui lit le rapport</small><span data-t="cmp_c2_o">Non, il lit le rapport qu'on lui donne</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">Le labo MantaLab</small><span data-t="cmp_c2_m">Oui : la démo officielle, ou votre fichier</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c3">Conditions réelles : retards, ticks du courtier, autre année</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">Le rapport du vendeur</small><span data-t="cmp_c3_v">Une période choisie</span></span></div>
+          <div class="cmp-c non" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">Un outil qui lit le rapport</small><span data-t="cmp_c3_o">Impossible sans relancer le test</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">Le labo MantaLab</small><span data-t="cmp_c3_m">4 scénarios à chaque audit</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c4">Pertes cachées, minute par minute</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">Le rapport du vendeur</small><span data-t="cmp_c4_v">Courbe de solde seulement</span></span></div>
+          <div class="cmp-c non" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">Un outil qui lit le rapport</small><span data-t="cmp_c4_o">Impossible : le rapport ne contient pas les cours</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">Le labo MantaLab</small><span data-t="cmp_c4_m">Mesurées, 0,05 point d'écart avec MetaTrader</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c5">Robots faits avec ChatGPT ou Claude</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">Le rapport du vendeur</small><span data-t="cmp_c5_v">Pas de vendeur</span></span></div>
+          <div class="cmp-c partiel" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">Un outil qui lit le rapport</small><span data-t="cmp_c5_o">Seulement si vous faites le test vous-même</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">Le labo MantaLab</small><span data-t="cmp_c5_m">Envoyez le fichier, le labo s'occupe du reste</span></span></div></div>
       </div>
     </div>
   </section>
@@ -543,12 +582,13 @@
       v4_ex: "Moving Average : 94 % de chances d'un vrai avantage, 17 % une fois la sur-optimisation prise en compte.",
       v5_ex: "GridPro Panel : jusqu'à 31 % de perte en une seule journée. FTMO en tolère 5 %.",
       v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres, comptés comme une seule décision.",
-      plus_titre: "Lire un rapport ne suffit pas.", plus_sous: "Un outil d'analyse ne voit que le rapport qu'on lui donne, souvent celui du vendeur. Le labo MantaLab va plus loin.",
-      p1_t: "Le labo teste le robot lui-même", p1_p: "Nous téléchargeons la démo officielle, ou vous nous envoyez le fichier, et nous faisons tourner le robot nous-mêmes. Aucun rapport du vendeur.", p1_ex: "4 scénarios : exécution idéale, retards, ticks réels du courtier, autre année.",
-      p2_t: "L'équité minute par minute", p2_p: "Les pertes que la courbe de solde cache, mesurées sur les cours minute par minute, comme les surveillent les prop firms.", p2_ex: "0,05 point d'écart moyen avec MetaTrader sur le drawdown.",
-      p3_t: "Un taux d'erreur publié", p3_p: "Chaque version du moteur est vérifiée sur 209 tests de robots au comportement connu, et ses erreurs sont listées une par une.", p3_ex: "98,8 % de verdicts justes, 29 sur 29 sur de vrais robots.",
-      p4_t: "De l'argent réel", p4_p: "L'historique d'un signal MQL5 se vérifie comme un test : martingale, grille, stops, pertes cachées.", p4_ex: "Validé sur 16 signaux réels du site MQL5.",
-      p5_t: "Les robots faits avec une IA", p5_p: "Créé avec ChatGPT ou Claude, sans démo sur le Market ? Envoyez le fichier : le labo le teste comme les autres.", p5_ex: "Fichier .ex5 ou code .mq5 accepté.",
+      plus_titre: "Ce que nous faisons, et que les autres ne font pas.", plus_sous: "Le rapport du vendeur montre ce qu'il veut bien montrer. Un outil d'analyse ne voit que ce rapport. Le labo MantaLab teste le robot lui-même.",
+      cmp_col_v: "Le rapport du vendeur", cmp_col_o: "Un outil qui lit le rapport", cmp_col_m: "Le labo MantaLab",
+      cmp_c1: "Martingale, grille, stops absents", cmp_c1_v: "Rarement signalés", cmp_c1_o: "Détectés", cmp_c1_m: "Détectés, avec un taux d'erreur publié",
+      cmp_c2: "Robot testé par un tiers indépendant", cmp_c2_v: "Non, c'est le vendeur", cmp_c2_o: "Non, il lit le rapport qu'on lui donne", cmp_c2_m: "Oui : la démo officielle, ou votre fichier",
+      cmp_c3: "Conditions réelles : retards, ticks du courtier, autre année", cmp_c3_v: "Une période choisie", cmp_c3_o: "Impossible sans relancer le test", cmp_c3_m: "4 scénarios à chaque audit",
+      cmp_c4: "Pertes cachées, minute par minute", cmp_c4_v: "Courbe de solde seulement", cmp_c4_o: "Impossible : le rapport ne contient pas les cours", cmp_c4_m: "Mesurées, 0,05 point d'écart avec MetaTrader",
+      cmp_c5: "Robots faits avec ChatGPT ou Claude", cmp_c5_v: "Pas de vendeur", cmp_c5_o: "Seulement si vous faites le test vous-même", cmp_c5_m: "Envoyez le fichier, le labo s'occupe du reste",
       precision_titre: "Nous publions notre taux d'erreur.", precision_lien: "Notre méthode et nos 7 erreurs, une par une",
       c5_v: "226", c5_l: "tests dans la base du labo, réanalysés à chaque évolution du moteur",
       nav_verifs_ancien: "", nav_comment: "Comment ça marche", nav_cta: "Faire auditer un robot", nav_cta_court: "Audit · 29 €",
@@ -717,12 +757,13 @@
       v4_ex: "Moving Average: 94% chance of a real edge, 17% once over-optimisation is accounted for.",
       v5_ex: "GridPro Panel: up to 31% lost in a single day. FTMO allows 5%.",
       v6_ex: "A gold signal: 212 of 575 entries placed as baskets of 2 to 7 orders, counted as one decision.",
-      plus_titre: "Reading a report isn't enough.", plus_sous: "An analysis tool only sees the report you give it, often the seller's. The MantaLab lab goes further.",
-      p1_t: "The lab tests the robot itself", p1_p: "We download the official demo, or you send us the file, and we run the robot ourselves. No seller report.", p1_ex: "4 scenarios: ideal execution, delays, broker's real ticks, another year.",
-      p2_t: "Minute-by-minute equity", p2_p: "The losses the balance curve hides, measured on minute-by-minute prices, the way prop firms watch them.", p2_ex: "0.05 point average gap with MetaTrader on drawdown.",
-      p3_t: "A published error rate", p3_p: "Every engine version is checked on 209 tests of robots with known behaviour, and its errors are listed one by one.", p3_ex: "98.8% correct verdicts, 29 out of 29 on real robots.",
-      p4_t: "Real money", p4_p: "An MQL5 signal history is checked like a test: martingale, grid, stops, hidden losses.", p4_ex: "Validated on 16 real MQL5 signals.",
-      p5_t: "Robots built with AI", p5_p: "Built with ChatGPT or Claude, no demo on the Market? Send the file: the lab tests it like any other.", p5_ex: ".ex5 file or .mq5 source accepted.",
+      plus_titre: "What we do that others don't.", plus_sous: "The seller's report shows what the seller wants to show. An analysis tool only sees that report. The MantaLab lab tests the robot itself.",
+      cmp_col_v: "The seller's report", cmp_col_o: "A tool that reads the report", cmp_col_m: "The MantaLab lab",
+      cmp_c1: "Martingale, grid, missing stops", cmp_c1_v: "Rarely disclosed", cmp_c1_o: "Detected", cmp_c1_m: "Detected, with a published error rate",
+      cmp_c2: "Robot tested by an independent third party", cmp_c2_v: "No, it's the seller", cmp_c2_o: "No, it reads the report it's given", cmp_c2_m: "Yes: the official demo, or your file",
+      cmp_c3: "Real conditions: delays, broker ticks, another year", cmp_c3_v: "One chosen period", cmp_c3_o: "Impossible without re-running the test", cmp_c3_m: "4 scenarios in every audit",
+      cmp_c4: "Hidden losses, minute by minute", cmp_c4_v: "Balance curve only", cmp_c4_o: "Impossible: the report has no prices", cmp_c4_m: "Measured, 0.05 point from MetaTrader",
+      cmp_c5: "Robots built with ChatGPT or Claude", cmp_c5_v: "No seller", cmp_c5_o: "Only if you run the test yourself", cmp_c5_m: "Send the file, the lab does the rest",
       precision_titre: "We publish our error rate.", precision_lien: "Our method and our 7 errors, one by one",
       c5_v: "226", c5_l: "tests in the lab database, re-analysed every time the engine changes",
       nav_verifs_ancien: "", nav_comment: "How it works", nav_cta: "Get a robot audited", nav_cta_court: "Audit · €29",
