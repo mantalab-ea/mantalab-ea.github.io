@@ -181,8 +181,11 @@
    * lot est retrouvée dans les trades eux-mêmes (profit ÷ écart de prix ÷ volume), symbole par symbole.
    * Rend, par jour, le creux d'équité en fraction du solde de minuit — ce que surveillent les prop firms.
    */
-  function equiteMinute(positions, barres, depot, mouvements) {
+  function equiteMinute(positions, barres, depot, mouvements, points) {
     const B = barres, n = B.t.length, MIN = 60000;
+    // points (facultatif) : nombre de points de la courbe à renvoyer (fiche PDF) ; n'influe sur aucun autre résultat
+    const pas = points ? Math.max(1, Math.ceil(n / points)) : 0, serie = pas ? { t: [], solde: [], bas: [] } : null;
+    let creuxSeg = Infinity;
     const valeurs = new Map();
     for (const p of positions) {
       if (p.fermeture === null || p.prixSortie === null || !(p.volume > 0)) continue;
@@ -225,10 +228,14 @@
       if (soldeMinuit > 0) creux = Math.min(creux, (bas - soldeMinuit) / soldeMinuit);
       if (pic > 0 && 1 - bas / pic > ddMax) { ddMax = 1 - bas / pic; quand = debutBarre; }
       pic = Math.max(pic, solde + flotFin);
+      if (serie) {
+        creuxSeg = Math.min(creuxSeg, bas);
+        if ((i + 1) % pas === 0 || i === n - 1) { serie.t.push(debutBarre); serie.solde.push(arr(solde, 2)); serie.bas.push(arr(creuxSeg, 2)); creuxSeg = Infinity; }
+      }
     }
     if (jourCourant !== null) parJour.set(jourCourant, creux);
     const couvertes = positions.filter((p) => valeurPoint.has(p.symbole)).length;
-    return { parJour, ddEquite: arr(ddMax), quand, couverture: arr(couvertes / Math.max(1, positions.length), 3), barres: n };
+    return { parJour, ddEquite: arr(ddMax), quand, couverture: arr(couvertes / Math.max(1, positions.length), 3), barres: n, serie };
   }
 
   // ---------------------------------------------------------------- 1. solidité
