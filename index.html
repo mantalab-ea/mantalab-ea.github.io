@@ -52,7 +52,9 @@
   /* ----- En-tête ----- */
   header.barre { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--fond) 82%, transparent);
     backdrop-filter: saturate(180%) blur(16px); -webkit-backdrop-filter: saturate(180%) blur(16px); border-bottom: 1px solid var(--filet); }
-  .barre .contenu { display: flex; align-items: center; gap: 2rem; height: 3.75rem; }
+  .barre .contenu { display: flex; align-items: center; gap: 2rem; height: 4rem; }
+  .barre .logo { height: 1.9rem; }
+  @media (max-width: 30rem) { .barre .logo { height: 1.6rem; } }
   .marque { display: flex; flex: none; }
   .logo { height: 1.45rem; width: auto; display: block; } .logo-sombre { display: none; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display: none; } :root:not([data-theme="light"]) .logo-sombre { display: block; } }
@@ -202,6 +204,14 @@
   .erreur { margin-top: 1.25rem; border: 1px solid color-mix(in srgb, var(--alerte) 35%, transparent); background: color-mix(in srgb, var(--alerte) 6%, var(--fond)); padding: .9rem 1rem; border-radius: 10px; font-size: .95rem; }
 
   /* ----- Vérifications : un tableau, pas des cartes ----- */
+  .cartes-v { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .cv { display: flex; flex-direction: column; border: 1px solid var(--filet-fort); border-radius: 16px; padding: 1.4rem 1.5rem 1.3rem; background: var(--fond); }
+  .cv h3 { margin: 0; font-weight: 600; font-size: .9rem; letter-spacing: -.005em; color: var(--encre-2); }
+  .cv-n { display: block; margin: .9rem 0 .6rem; font-weight: 600; font-size: clamp(2.4rem, 4vw, 3.1rem); line-height: 1; letter-spacing: -.05em; color: var(--rouge); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cv-ex { margin: 0 0 1.2rem; font-size: .95rem; color: var(--encre); }
+  .cv-q { margin: auto 0 0; padding-top: .9rem; border-top: 1px solid var(--filet); font-size: .85rem; color: var(--encre-2); }
+  @media (max-width: 58rem) { .cartes-v { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 36rem) { .cartes-v { grid-template-columns: 1fr; } }
   .verifs { border-top: 1px solid var(--encre); }
   .verif { display: grid; grid-template-columns: 11rem minmax(0, 1.25fr) minmax(0, 1fr); gap: 2rem; padding: 1.35rem 0; border-bottom: 1px solid var(--filet); align-items: baseline; }
   .verif h3 { margin: 0; font-weight: 600; font-size: 1.05rem; letter-spacing: -.015em; }
@@ -430,13 +440,13 @@
         <h2 id="verifs-titre" data-t="verifs_titre">Ce que l'audit vérifie.</h2>
         <p data-t="verifs_sous">Chaque constat s'appuie sur les trades eux-mêmes. Exemples tirés de robots publics de la bibliothèque MQL5.</p>
       </div>
-      <div class="verifs">
-        <div class="verif"><h3 data-t="v1_t">Martingale</h3><p data-t="v1_p">Le robot augmente-t-il sa mise après une perte pour se refaire ? Même cachée dans une grille ou un panier d'ordres.</p><span class="constat" data-t="v1_ex">VR Overturn : mise augmentée après 41 pertes sur 41, jusqu'à 43,8 fois la mise de départ.</span></div>
-        <div class="verif"><h3 data-t="v2_t">Grille</h3><p data-t="v2_p">Ouvre-t-il de nouvelles positions pendant que le prix va contre lui, au lieu de couper la perte ?</p><span class="constat" data-t="v2_ex">GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros que le précédent.</span></div>
-        <div class="verif"><h3 data-t="v3_t">Stop-loss</h3><p data-t="v3_p">Un vrai stop chez le courtier, un stop posé après l'entrée, un stop « virtuel » qui disparaît si MetaTrader plante… ou rien du tout.</p><span class="constat" data-t="v3_ex">MultiMartin : aucun stop chez le courtier ; 97 % des pertes coupées par le robot vers 509 points.</span></div>
-        <div class="verif"><h3 data-t="v4_t">Solidité des gains</h3><p data-t="v4_p">Avantage réel ou coup de chance ? Sharpe probabiliste, sur-optimisation, stabilité, 1 000 variantes de l'historique.</p><span class="constat" data-t="v4_ex">Moving Average : 94 % de chances d'un vrai avantage, 17 % une fois la sur-optimisation prise en compte.</span></div>
-        <div class="verif"><h3 data-t="v5_t">Challenges de prop firms</h3><p data-t="v5_p">FTMO, FundedNext, The5ers : vos chances de réussite, rejouées sur l'historique réel et sur 1 000 variantes.</p><span class="constat" data-t="v5_ex">GridPro Panel : jusqu'à 31 % de perte en une seule journée. FTMO en tolère 5 %.</span></div>
-        <div class="verif"><h3 data-t="v6_t">Signaux MQL5</h3><p data-t="v6_p">Un compte réel que vous comptez copier ? Déposez l'historique du signal : mêmes vérifications, sur de l'argent réel.</p><span class="constat" data-t="v6_ex">Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres, comptés comme une seule décision.</span></div>
+      <div class="cartes-v">
+        <article class="cv"><h3 data-t="v1_t">Martingale</h3><b class="cv-n" data-compte data-t="v1_n">43,8×</b><p class="cv-ex" data-t="v1_ex">VR Overturn : sa mise grimpe jusqu'à 43,8 fois celle de départ, après 41 pertes sur 41.</p><p class="cv-q" data-t="v1_p">Le robot augmente-t-il sa mise pour se refaire après une perte ?</p></article>
+        <article class="cv"><h3 data-t="v2_t">Grille</h3><b class="cv-n" data-compte data-t="v2_n">7</b><p class="cv-ex" data-t="v2_ex">GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros.</p><p class="cv-q" data-t="v2_p">Empile-t-il des positions quand le prix va contre lui ?</p></article>
+        <article class="cv"><h3 data-t="v3_t">Stop-loss</h3><b class="cv-n" data-compte data-t="v3_n">97 %</b><p class="cv-ex" data-t="v3_ex">MultiMartin : aucun stop chez le courtier. 97 % des pertes sont coupées par le robot lui-même.</p><p class="cv-q" data-t="v3_p">Vrai stop chez le courtier, stop « virtuel »… ou rien du tout ?</p></article>
+        <article class="cv"><h3 data-t="v4_t">Solidité des gains</h3><b class="cv-n" data-compte data-t="v4_n">94 → 17 %</b><p class="cv-ex" data-t="v4_ex">Moving Average : 94 % de chances d'un vrai avantage… 17 % une fois la sur-optimisation comptée.</p><p class="cv-q" data-t="v4_p">Avantage réel, ou simple chance ?</p></article>
+        <article class="cv"><h3 data-t="v5_t">Challenges de prop firms</h3><b class="cv-n" data-compte data-t="v5_n">−31 %</b><p class="cv-ex" data-t="v5_ex">GridPro Panel : 31 % perdus en une seule journée. FTMO en tolère 5 %.</p><p class="cv-q" data-t="v5_p">Passerait-il un challenge FTMO, FundedNext ou The5ers ?</p></article>
+        <article class="cv"><h3 data-t="v6_t">Signaux MQL5</h3><b class="cv-n" data-compte data-t="v6_n">212</b><p class="cv-ex" data-t="v6_ex">Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres.</p><p class="cv-q" data-t="v6_p">Un compte réel à copier ? Mêmes vérifications, sur de l'argent réel.</p></article>
       </div>
     </div>
   </section>
@@ -479,15 +489,15 @@
     <div class="contenu precision">
       <div>
         <h2 class="titre-bloc" id="precision-titre" data-t="precision_titre">Nous publions notre taux d'erreur.</h2>
-        <div class="grand" data-t="c1_v">98,8 %</div>
+        <div class="grand" data-compte data-t="c1_v">98,8 %</div>
         <p data-t="c1_l">de verdicts justes sur 209 tests de robots dont nous connaissons exactement le comportement, sur 19 marchés. Les erreurs restantes sont connues et documentées, une par une.</p>
         <p><a href="methode.html" data-t="precision_lien">Notre méthode et nos 7 erreurs, une par une</a></p>
       </div>
       <div class="faits">
-        <div class="fait"><b data-t="c2_v">29 / 29</b><span data-t="c2_l">verdicts conformes sur 10 vrais robots de référence</span></div>
-        <div class="fait"><b data-t="c3_v">0,05 pt</b><span data-t="c3_l">d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute</span></div>
-        <div class="fait"><b data-t="c4_v">6</b><span data-t="c4_l">challenges de prop firms simulés avec leurs règles officielles</span></div>
-        <div class="fait"><b data-t="c5_v">226</b><span data-t="c5_l">tests dans la base du labo, réanalysés à chaque évolution du moteur</span></div>
+        <div class="fait"><b data-compte data-t="c2_v">29 / 29</b><span data-t="c2_l">verdicts conformes sur 10 vrais robots de référence</span></div>
+        <div class="fait"><b data-compte data-t="c3_v">0,05 pt</b><span data-t="c3_l">d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute</span></div>
+        <div class="fait"><b data-compte data-t="c4_v">6</b><span data-t="c4_l">challenges de prop firms simulés avec leurs règles officielles</span></div>
+        <div class="fait"><b data-compte data-t="c5_v">226</b><span data-t="c5_l">tests dans la base du labo, réanalysés à chaque évolution du moteur</span></div>
       </div>
     </div>
   </section>
@@ -519,7 +529,7 @@
         <div class="prix"><b data-t="offre_prix">29 €</b><span data-t="offre_prix_sous">par robot · fiche PDF sous 48 h</span></div>
         <div class="actions">
           <a class="bouton" href="commande.html" data-t="offre_commander">Faire auditer un robot</a>
-          <a class="bouton second" href="exemple/multimartin.html" data-t="offre_exemple">Voir une fiche d'exemple</a>
+          <a class="bouton second" href="exemple/multimartin.html" target="_blank" rel="noopener" data-t="offre_exemple">Voir une fiche d'exemple</a>
         </div>
       </div>
       <ul>
@@ -576,12 +586,12 @@
       g_legende: "Test du labo MantaLab, équité recalculée minute par minute. Un rapport de vendeur montre le solde ; l'audit mesure aussi ce qui reste ouvert.",
       essai_titre: "Vérifiez un robot en quelques secondes.", essai_sous: "Martingale, grille, stop-loss, notes sur 100 et six challenges de prop firms. Gratuit, sans inscription.",
       depot_bouton: "Choisir un fichier",
-      v1_ex: "VR Overturn : mise augmentée après 41 pertes sur 41, jusqu'à 43,8 fois la mise de départ.",
-      v2_ex: "GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros que le précédent.",
-      v3_ex: "MultiMartin : aucun stop chez le courtier ; 97 % des pertes coupées par le robot vers 509 points.",
-      v4_ex: "Moving Average : 94 % de chances d'un vrai avantage, 17 % une fois la sur-optimisation prise en compte.",
-      v5_ex: "GridPro Panel : jusqu'à 31 % de perte en une seule journée. FTMO en tolère 5 %.",
-      v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres, comptés comme une seule décision.",
+      v1_ex: "VR Overturn : sa mise grimpe jusqu'à 43,8 fois celle de départ, après 41 pertes sur 41.",
+      v2_ex: "GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros.",
+      v3_ex: "MultiMartin : aucun stop chez le courtier. 97 % des pertes sont coupées par le robot lui-même.",
+      v4_ex: "Moving Average : 94 % de chances d'un vrai avantage… 17 % une fois la sur-optimisation comptée.",
+      v5_ex: "GridPro Panel : 31 % perdus en une seule journée. FTMO en tolère 5 %.",
+      v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres.",
       plus_titre: "Ce que nous faisons, et que les autres ne font pas.", plus_sous: "Le rapport du vendeur montre ce qu'il veut bien montrer. Un outil d'analyse ne voit que ce rapport. Le labo MantaLab teste le robot lui-même.",
       cmp_col_v: "Le rapport du vendeur", cmp_col_o: "Un outil qui lit le rapport", cmp_col_m: "Le labo MantaLab",
       cmp_c1: "Martingale, grille, stops absents", cmp_c1_v: "Rarement signalés", cmp_c1_o: "Détectés", cmp_c1_m: "Détectés, avec un taux d'erreur publié",
@@ -598,12 +608,12 @@
       c3_v: "0,05 pt", c3_l: "d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute",
       c4_v: "6", c4_l: "challenges de prop firms simulés avec leurs règles officielles",
       verifs_titre: "Ce que l'audit vérifie.", verifs_sous: "Chaque constat s'appuie sur les trades eux-mêmes. Exemples tirés de robots publics de la bibliothèque MQL5.",
-      v1_t: "Martingale", v1_p: "Le robot augmente-t-il sa mise après une perte pour se refaire ? Même cachée dans une grille ou un panier d'ordres.",
-      v2_t: "Grille", v2_p: "Ouvre-t-il de nouvelles positions pendant que le prix va contre lui, au lieu de couper la perte ?",
-      v3_t: "Stop-loss", v3_p: "Un vrai stop chez le courtier, un stop posé après l'entrée, un stop « virtuel » qui disparaît si MetaTrader plante… ou rien du tout.",
-      v4_t: "Solidité des gains", v4_p: "Avantage réel ou coup de chance ? Sharpe probabiliste, sur-optimisation, stabilité, 1 000 variantes de l'historique.",
-      v5_t: "Challenges de prop firms", v5_p: "FTMO, FundedNext, The5ers : vos chances de réussite, rejouées sur l'historique réel et sur 1 000 variantes.",
-      v6_t: "Signaux MQL5", v6_p: "Un compte réel que vous comptez copier ? Déposez l'historique du signal : mêmes vérifications, sur de l'argent réel.",
+      v1_n: "43,8×", v2_n: "7", v3_n: "97 %", v4_n: "94 → 17 %", v5_n: "−31 %", v6_n: "212", v1_t: "Martingale", v1_p: "Le robot augmente-t-il sa mise pour se refaire après une perte ?",
+      v2_t: "Grille", v2_p: "Empile-t-il des positions quand le prix va contre lui ?",
+      v3_t: "Stop-loss", v3_p: "Vrai stop chez le courtier, stop « virtuel »… ou rien du tout ?",
+      v4_t: "Solidité des gains", v4_p: "Avantage réel, ou simple chance ?",
+      v5_t: "Challenges de prop firms", v5_p: "Passerait-il un challenge FTMO, FundedNext ou The5ers ?",
+      v6_t: "Signaux MQL5", v6_p: "Un compte réel à copier ? Mêmes vérifications, sur de l'argent réel.",
       comment_sous: "Deux fichiers possibles. Tous deux sont lus dans votre navigateur et ne quittent pas votre ordinateur.",
       rapport_titre: "Le rapport de test d'un robot",
       offre_prix: "29 €", offre_prix_sous: "par robot · fiche PDF sous 48 h",
@@ -751,12 +761,12 @@
       g_legende: "MantaLab lab test, equity recomputed minute by minute. A seller's report shows the balance; the audit also measures what is still open.",
       essai_titre: "Check a robot in seconds.", essai_sous: "Martingale, grid, stop-loss, scores out of 100 and six prop-firm challenges. Free, no sign-up.",
       depot_bouton: "Choose a file",
-      v1_ex: "VR Overturn: size raised after 41 losses out of 41, up to 43.8 times the starting size.",
-      v2_ex: "GridPro Panel: up to 7 positions open against the market, each addition larger than the last.",
-      v3_ex: "MultiMartin: no stop at the broker; 97% of losses cut by the robot around 509 points.",
-      v4_ex: "Moving Average: 94% chance of a real edge, 17% once over-optimisation is accounted for.",
-      v5_ex: "GridPro Panel: up to 31% lost in a single day. FTMO allows 5%.",
-      v6_ex: "A gold signal: 212 of 575 entries placed as baskets of 2 to 7 orders, counted as one decision.",
+      v1_ex: "VR Overturn: its size climbs up to 43.8 times the starting size, after 41 losses out of 41.",
+      v2_ex: "GridPro Panel: up to 7 positions open against the market, each addition larger.",
+      v3_ex: "MultiMartin: no stop at the broker. 97% of losses are cut by the robot itself.",
+      v4_ex: "Moving Average: 94% chance of a real edge… 17% once over-optimisation is counted.",
+      v5_ex: "GridPro Panel: 31% lost in a single day. FTMO allows 5%.",
+      v6_ex: "A gold signal: 212 of 575 entries placed as baskets of 2 to 7 orders.",
       plus_titre: "What we do that others don't.", plus_sous: "The seller's report shows what the seller wants to show. An analysis tool only sees that report. The MantaLab lab tests the robot itself.",
       cmp_col_v: "The seller's report", cmp_col_o: "A tool that reads the report", cmp_col_m: "The MantaLab lab",
       cmp_c1: "Martingale, grid, missing stops", cmp_c1_v: "Rarely disclosed", cmp_c1_o: "Detected", cmp_c1_m: "Detected, with a published error rate",
@@ -773,12 +783,12 @@
       c3_v: "0.05 pt", c3_l: "average gap with MetaTrader on drawdown, recomputed minute by minute",
       c4_v: "6", c4_l: "prop-firm challenges simulated with their official rules",
       verifs_titre: "What the audit checks.", verifs_sous: "Every finding comes from the trades themselves. Examples from public robots in the MQL5 library.",
-      v1_t: "Martingale", v1_p: "Does the robot raise its size after a loss to win it back? Even when hidden in a grid or a basket of orders.",
-      v2_t: "Grid", v2_p: "Does it open new positions while price moves against it, instead of cutting the loss?",
-      v3_t: "Stop-loss", v3_p: "A real broker stop, a stop placed after entry, a “virtual” stop that vanishes if MetaTrader crashes… or none at all.",
-      v4_t: "Solidity of gains", v4_p: "Real edge or luck? Probabilistic Sharpe, over-optimisation, stability, 1,000 variants of the history.",
-      v5_t: "Prop-firm challenges", v5_p: "FTMO, FundedNext, The5ers: your odds of passing, replayed on the real history and on 1,000 variants.",
-      v6_t: "MQL5 signals", v6_p: "A live account you plan to copy? Drop the signal history: same checks, on real money.",
+      v1_n: "43.8×", v2_n: "7", v3_n: "97%", v4_n: "94 → 17%", v5_n: "−31%", v6_n: "212", v1_t: "Martingale", v1_p: "Does the robot raise its size after a loss to win it back?",
+      v2_t: "Grid", v2_p: "Does it stack positions while price moves against it?",
+      v3_t: "Stop-loss", v3_p: "A real broker stop, a “virtual” stop… or none at all?",
+      v4_t: "Solidity of gains", v4_p: "A real edge, or just luck?",
+      v5_t: "Prop-firm challenges", v5_p: "Would it pass an FTMO, FundedNext or The5ers challenge?",
+      v6_t: "MQL5 signals", v6_p: "A live account to copy? Same checks, on real money.",
       comment_sous: "Two possible files. Both are read in your browser and never leave your computer.",
       rapport_titre: "A robot's test report",
       offre_prix: "€29", offre_prix_sous: "per robot · PDF report within 48 h",
@@ -1170,6 +1180,42 @@
   }));
 
   appliquerLangue();
+
+  // Chiffres qui « montent » quand ils arrivent à l'écran (une seule fois). Tous les nombres du texte s'animent
+  // ensemble, au même format (virgule ou point, décimales, espaces) ; le texte final est déjà dans la page.
+  let jetonCompte = 0;
+  const NOMBRE = /\d{1,3}(?:[\u202f\u00a0 ]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?/g;
+  function compter(el) {
+    const modele = el.textContent, jeton = jetonCompte, morceaux = [];
+    modele.replace(NOMBRE, (m) => { morceaux.push(m); return m; });
+    if (!morceaux.length) return;
+    const cibles = morceaux.map((m) => {
+      const sep = (m.match(/[.,](\d+)$/) || [])[0];
+      return { dec: sep ? sep.length - 1 : 0, marque: sep ? sep[0] : ",", milliers: (m.match(/[\u202f\u00a0 ]/) || [""])[0],
+               v: parseFloat(m.replace(/[\u202f\u00a0 ]/g, "").replace(",", ".")) };
+    });
+    const ecrire = (x) => { let i = 0; el.textContent = modele.replace(NOMBRE, () => {
+      const c = cibles[i++]; let t = (c.v * x).toFixed(c.dec).replace(".", c.marque);
+      if (c.milliers) t = t.replace(/\B(?=(\d{3})+(?!\d))/g, c.milliers);
+      return t; }); };
+    const t0 = performance.now(), duree = 1300;
+    const pas = (t) => {
+      if (jeton !== jetonCompte) return;            // la langue a changé : le texte a été remplacé
+      const k = Math.min(1, (t - t0) / duree), x = 1 - Math.pow(1 - k, 3);
+      ecrire(x);
+      if (k < 1) requestAnimationFrame(pas); else el.textContent = modele;
+    };
+    ecrire(0);
+    requestAnimationFrame(pas);
+  }
+  const animer = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
+  if (animer) {
+    const vus = new IntersectionObserver((entrees) => entrees.forEach((e) => {
+      if (e.isIntersecting) { vus.unobserve(e.target); compter(e.target); }
+    }), { threshold: 0.6 });
+    document.querySelectorAll("[data-compte]").forEach((el) => vus.observe(el));
+  }
+  document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => { jetonCompte++; }, true));
 })();
 </script>
 </body>

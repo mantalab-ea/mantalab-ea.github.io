@@ -4,201 +4,261 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MantaLab — faire auditer un robot</title>
-<meta name="description" content="Le labo MantaLab fait tourner votre robot MetaTrader 5 lui-même et vous remet une fiche d'audit indépendante : martingale, grille, stops, pire scénario, prop firm.">
+<meta name="description" content="Le labo MantaLab fait tourner votre robot MetaTrader 5 lui-même et vous remet une fiche d'audit indépendante sous 48 h : martingale, grille, stops, pire scénario, prop firms. 29 €.">
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="canonical" href="https://mantalab-ea.github.io/commande.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MantaLab">
 <meta property="og:title" content="MantaLab — faire auditer un robot MT5">
-<meta property="og:description" content="Le labo MantaLab teste votre robot MetaTrader 5 lui-même : martingale, grille, pire scénario, prop firm. Fiche PDF sous 48 h.">
+<meta property="og:description" content="Le labo teste votre robot MetaTrader 5 lui-même : martingale, grille, pire scénario, prop firms. Fiche PDF sous 48 h.">
 <meta property="og:url" content="https://mantalab-ea.github.io/commande.html">
-<meta property="og:image" content="https://mantalab-ea.github.io/marque/mantalab-logo.png">
+<meta property="og:image" content="https://mantalab-ea.github.io/exemple/apercu-fiche.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
 <style>
-  /* Mêmes repères que l'accueil : noir et blanc, Inter, filets fins ; le rouge est réservé au danger. */
-  :root { --fond:#fff; --fond-2:#f7f7f8; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16); --focus:#2b6cf6; }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); } }
-  :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); }
+  /* Mêmes repères que l'accueil. L'élément fort : la fiche elle-même, montrée en grand à côté du prix. */
+  :root { --fond:#fff; --fond-2:#f6f6f7; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
+    --rouge:#d62917; --rouge-fonce:#b51f12; --focus:#2b6cf6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; } }
+  :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Inter",system-ui,sans-serif; font-optical-sizing:auto; -webkit-font-smoothing:antialiased; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Inter",system-ui,sans-serif; font-optical-sizing:auto; font-feature-settings:"cv11","ss01"; -webkit-font-smoothing:antialiased; }
   a { color:inherit; }
   :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
   .contenu { max-width:70rem; margin:0 auto; padding:0 1.5rem; }
   header.barre { position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--fond) 82%, transparent); backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px); border-bottom:1px solid var(--filet); }
-  .barre .contenu { display:flex; align-items:center; justify-content:space-between; gap:1rem; height:3.75rem; }
-  .logo { height:1.45rem; width:auto; display:block; } .logo-sombre { display:none; }
+  .barre .contenu { display:flex; align-items:center; gap:1.5rem; height:4rem; }
+  .logo { height:1.9rem; width:auto; display:block; } .logo-sombre { display:none; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display:none; } :root:not([data-theme="light"]) .logo-sombre { display:block; } }
   :root[data-theme="dark"] .logo-clair { display:none; } :root[data-theme="dark"] .logo-sombre { display:block; }
+  .droite { margin-left:auto; display:flex; align-items:center; gap:1.2rem; font-size:.875rem; }
+  .droite a { color:var(--encre-2); text-decoration:none; } .droite a:hover { color:var(--encre); }
   .langue { display:flex; gap:.15rem; }
   .langue button { font:500 .8rem/1 "Inter",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
   .langue button[aria-pressed="true"] { color:var(--encre); }
-  h1 { font-weight:600; font-size:clamp(2.3rem,5vw,3.8rem); line-height:1.03; letter-spacing:-.045em; margin:4.5rem 0 1.2rem; max-width:46rem; text-wrap:balance; }
-  .intro { color:var(--encre-2); max-width:38rem; margin:0; font-size:1.1rem; }
-  .colonnes { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:3rem; margin-top:3.5rem; align-items:start; }
-  .bloc h2 { font-weight:600; letter-spacing:-.02em; font-size:1.05rem; margin:0; padding-bottom:.8rem; border-bottom:1px solid var(--encre); }
-  .bloc ul { list-style:none; margin:0; padding:0; }
-  .bloc li { padding:.8rem 0; border-bottom:1px solid var(--filet); font-size:.95rem; }
-  .achat { border:1px solid var(--filet); border-radius:14px; padding:1.5rem; box-shadow:0 1px 1px rgba(0,0,0,.02), 0 24px 48px -32px rgba(0,0,0,.25); }
-  .achat h2 { border-bottom:0; padding-bottom:0; margin-bottom:1rem; color:var(--encre-2); font-weight:500; font-size:.9rem; letter-spacing:0; }
-  .prix { font-weight:600; letter-spacing:-.05em; font-size:3.25rem; line-height:1; margin:0 0 .4rem; }
-  .prix small { font-weight:400; font-size:.95rem; color:var(--encre-2); letter-spacing:0; }
-  .delai { color:var(--encre-2); margin:0 0 1.3rem; font-size:.95rem; }
-  .bouton { display:flex; align-items:center; justify-content:center; text-align:center; font:500 .95rem/1.2 "Inter",sans-serif; text-decoration:none; padding:.85rem 1.1rem; border-radius:9px;
-    background:var(--encre); color:var(--fond); border:1px solid var(--encre); transition:opacity .15s; }
-  .bouton:hover { opacity:.86; }
-  .bouton[aria-disabled="true"] { background:var(--fond-2); color:var(--encre-2); border:1px solid var(--filet); cursor:default; opacity:1; }
-  .note { font-size:.85rem; color:var(--encre-2); margin:.8rem 0 0; }
-  ol.etapes { counter-reset:e; list-style:none; padding:0; margin:0; }
-  ol.etapes li { counter-increment:e; display:grid; grid-template-columns:1.6rem 1fr; padding:.8rem 0; border-bottom:1px solid var(--filet); color:var(--encre-2); font-size:.95rem; }
-  ol.etapes li::before { content:counter(e); color:var(--encre); font-weight:500; }
-  .colonnes .bloc:not(.achat) > p { color:var(--encre-2); font-size:.95rem; padding-top:.8rem; }
-  section.faq { margin-top:4.5rem; max-width:46rem; }
-  section.faq h2 { font-weight:600; letter-spacing:-.035em; font-size:clamp(1.6rem,3vw,2.2rem); margin:0 0 1rem; }
-  details { border-bottom:1px solid var(--filet); padding:1rem 0; } summary { cursor:pointer; font-weight:500; }
+
+  /* Haut de page : promesse + achat à gauche, la fiche à droite */
+  .haut { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.05fr); gap:4rem; align-items:center; padding:4.5rem 0 5rem; }
+  h1 { font-weight:600; font-size:clamp(2.3rem,4.6vw,3.6rem); line-height:1.03; letter-spacing:-.045em; margin:0 0 1.1rem; text-wrap:balance; }
+  .intro { color:var(--encre-2); font-size:1.12rem; margin:0 0 2rem; max-width:30rem; }
+  .achat { border:1px solid var(--filet-fort); border-radius:16px; padding:1.5rem; max-width:27rem; }
+  .prix { display:flex; align-items:baseline; gap:.6rem; margin:0 0 .25rem; }
+  .prix b { font-weight:600; letter-spacing:-.05em; font-size:3.2rem; line-height:1; }
+  .prix span { color:var(--encre-2); }
+  .delai { color:var(--encre-2); margin:0 0 1.2rem; font-size:.95rem; }
+  .bouton { display:flex; align-items:center; justify-content:center; text-align:center; font:500 1rem/1.2 "Inter",sans-serif; text-decoration:none; padding:.95rem 1.1rem; border-radius:10px;
+    background:var(--rouge); color:#fff; border:1px solid var(--rouge); transition:background-color .15s; }
+  .bouton:hover { background:var(--rouge-fonce); }
+  .bouton[aria-disabled="true"] { background:var(--fond-2); color:var(--encre-2); border-color:var(--filet); cursor:default; }
+  .garanties { list-style:none; margin:1.1rem 0 0; padding:0; font-size:.9rem; color:var(--encre-2); display:grid; gap:.45rem; }
+  .garanties li { display:flex; gap:.55rem; align-items:baseline; }
+  .garanties li::before { content:"✓"; color:var(--rouge); font-weight:700; }
+  .note { font-size:.82rem; color:var(--encre-3); margin:.9rem 0 0; }
+  .apercu { position:relative; display:block; text-decoration:none; }
+  .apercu img { display:block; width:100%; height:auto; border-radius:14px; border:1px solid var(--filet-fort);
+    box-shadow:0 1px 2px rgba(0,0,0,.06), 0 30px 60px -30px rgba(0,0,0,.45); transform:rotate(1.2deg); transition:transform .25s ease; }
+  .apercu:hover img { transform:rotate(0deg) scale(1.01); }
+  .apercu span { position:absolute; left:50%; bottom:-1.1rem; transform:translateX(-50%); white-space:nowrap; background:var(--encre); color:var(--fond);
+    font-size:.85rem; font-weight:500; padding:.55rem .95rem; border-radius:999px; }
+
+  /* Sections */
+  .bloc { border-top:1px solid var(--filet); padding:4.5rem 0; }
+  .bloc h2 { font-weight:600; font-size:clamp(1.7rem,3vw,2.4rem); line-height:1.08; letter-spacing:-.035em; margin:0 0 2.2rem; text-wrap:balance; }
+  .inclus { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0; border-top:1px solid var(--encre); }
+  .inclus div { padding:1.3rem 1.5rem 1.4rem 0; border-bottom:1px solid var(--filet); }
+  .inclus div:not(:nth-child(3n+1)) { padding-left:1.5rem; border-left:1px solid var(--filet); }
+  .inclus b { display:block; font-weight:600; font-size:1.05rem; letter-spacing:-.015em; margin-bottom:.3rem; }
+  .inclus span { color:var(--encre-2); font-size:.93rem; }
+  .etapes { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:2rem; counter-reset:e; }
+  .etapes div { counter-increment:e; border-top:1px solid var(--encre); padding-top:1rem; }
+  .etapes div::before { content:counter(e); display:block; font-weight:600; font-size:2.4rem; letter-spacing:-.04em; line-height:1; color:var(--rouge); margin-bottom:.8rem; }
+  .etapes b { display:block; font-weight:600; margin-bottom:.3rem; }
+  .etapes span { color:var(--encre-2); font-size:.93rem; }
+  .robots { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+  .robots div { border:1px solid var(--filet-fort); border-radius:14px; padding:1.4rem 1.5rem; }
+  .robots b { display:block; font-weight:600; font-size:1.1rem; letter-spacing:-.015em; margin-bottom:.35rem; }
+  .robots span { color:var(--encre-2); font-size:.93rem; }
+  .rembourse { margin:1.2rem 0 0; color:var(--encre-2); font-size:.93rem; }
+  .rembourse b { color:var(--encre); font-weight:600; }
+  .faq { max-width:46rem; }
+  details { border-bottom:1px solid var(--filet); padding:1.05rem 0; } summary { cursor:pointer; font-weight:500; list-style:none; display:flex; justify-content:space-between; gap:1rem; }
+  summary::-webkit-details-marker { display:none; }
+  summary::after { content:"+"; color:var(--encre-3); font-weight:400; font-size:1.2rem; line-height:1; }
+  details[open] summary::after { content:"−"; }
   details p { margin:.6rem 0 0; color:var(--encre-2); }
   .retour { display:inline-block; margin-top:2.5rem; color:var(--encre-2); font-size:.9rem; }
-  footer { margin-top:5rem; border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
-  @media (max-width: 48rem) { .colonnes { grid-template-columns:1fr; gap:2.5rem; } h1 { margin-top:3rem; } }
+  footer { border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
+  @media (max-width: 56rem) {
+    .haut { grid-template-columns:1fr; gap:3.5rem; padding-top:3rem; }
+    .inclus, .etapes, .robots { grid-template-columns:1fr; }
+    .inclus div:not(:nth-child(3n+1)) { padding-left:0; border-left:0; }
+    .achat { max-width:none; }
+  }
+  @media (max-width: 36rem) { .droite > a { display:none; } }
+  @media (prefers-reduced-motion: reduce) { .apercu img { transition:none; transform:none; } }
 </style>
 </head>
 <body>
   <header class="barre"><div class="contenu">
     <a href="index.html"><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab — accueil"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab — accueil"></a>
-    <div class="langue" role="group" aria-label="Langue / Language">
-      <button type="button" data-lang="fr" aria-pressed="true">FR</button>
-      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    <div class="droite">
+      <a href="index.html" data-t="nav_gratuit">Vérification gratuite</a>
+      <a href="methode.html" data-t="nav_methode">Méthode</a>
+      <div class="langue" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
     </div>
   </div></header>
 
   <main class="contenu">
-    <h1 data-t="titre"></h1>
-    <p class="intro" data-t="intro"></p>
-
-    <div class="colonnes">
-      <div class="bloc">
-        <h2 data-t="inclus_titre"></h2>
-        <ul>
-          <li data-t="inclus_1"></li><li data-t="inclus_2"></li><li data-t="inclus_3"></li>
-          <li data-t="inclus_4"></li><li data-t="inclus_5"></li><li data-t="inclus_6"></li>
-        </ul>
-        <p class="note"><a href="exemple/multimartin.html" data-t="voir_exemple"></a></p>
+    <section class="haut">
+      <div>
+        <h1 data-t="titre">Avant d'acheter un robot, faites-le tester.</h1>
+        <p class="intro" data-t="intro">Le labo fait tourner le robot lui-même et vous remet sa fiche d'audit. Pas le rapport du vendeur : le nôtre.</p>
+        <div class="achat">
+          <p class="prix"><b id="prix"></b><span data-t="par_robot">par robot</span></p>
+          <p class="delai" data-t="delai">Fiche en PDF, livrée par e-mail sous 48 h.</p>
+          <a id="commander" class="bouton" href="#"></a>
+          <ul class="garanties"><li data-t="g1">Testé par le labo, dans 4 scénarios</li><li data-t="g2">Indépendant des vendeurs de robots</li><li data-t="g3">Remboursé si le robot ne peut pas être testé</li></ul>
+          <p class="note" id="note-commande"></p>
+        </div>
       </div>
-      <div class="bloc achat">
-        <h2 data-t="achat_titre"></h2>
-        <p class="prix"><span id="prix"></span> <small data-t="par_robot"></small></p>
-        <p class="delai" data-t="delai"></p>
-        <a id="commander" class="bouton" href="#"></a>
-        <p class="note" id="note-commande"></p>
-      </div>
-    </div>
-
-    <div class="colonnes">
-      <div class="bloc">
-        <h2 data-t="comment_titre"></h2>
-        <ol class="etapes"><li data-t="etape_1"></li><li data-t="etape_2"></li><li data-t="etape_3"></li></ol>
-      </div>
-      <div class="bloc">
-        <h2 data-t="robots_titre"></h2>
-        <p data-t="robots_texte" style="margin:0"></p>
-      </div>
-    </div>
-
-    <section class="faq" aria-labelledby="faq-titre">
-      <h2 id="faq-titre" data-t="faq_titre"></h2>
-      <details><summary data-t="q1"></summary><p data-t="r1"></p></details>
-      <details><summary data-t="q2"></summary><p data-t="r2"></p></details>
-      <details><summary data-t="q3"></summary><p data-t="r3"></p></details>
-      <details><summary data-t="q4"></summary><p data-t="r4"></p></details>
+      <a class="apercu" href="exemple/multimartin.html" target="_blank" rel="noopener">
+        <img src="exemple/apercu-fiche.jpg" width="1000" height="1044" alt="Exemple de fiche MantaLab : verdict risque élevé, courbe du solde et de l'équité minute par minute" data-alt="alt_apercu">
+        <span data-t="voir_exemple">Voir une fiche complète ↗</span>
+      </a>
     </section>
 
-    <a class="retour" href="index.html" data-t="retour"></a>
+    <section class="bloc" aria-labelledby="inclus-titre">
+      <h2 id="inclus-titre" data-t="inclus_titre">Ce que contient la fiche.</h2>
+      <div class="inclus">
+        <div><b data-t="i1_t">Le verdict</b><span data-t="i1">Risque élevé, moyen ou faible, avec les raisons et des exemples datés.</span></div>
+        <div><b data-t="i2_t">Les pièges</b><span data-t="i2">Martingale, grille, stop absent ou « virtuel », trades ultra-courts.</span></div>
+        <div><b data-t="i3_t">La vraie courbe</b><span data-t="i3">L'équité minute par minute : les pertes que la courbe du vendeur cache.</span></div>
+        <div><b data-t="i4_t">Le pire observé</b><span data-t="i4">Série de pertes, exposition maximale, drawdown.</span></div>
+        <div><b data-t="i5_t">Deux notes sur 100</b><span data-t="i5">Sécurité et solidité : avantage réel ou simple chance ?</span></div>
+        <div><b data-t="i6_t">6 challenges</b><span data-t="i6">FTMO, FundedNext, The5ers : vos chances de réussite.</span></div>
+      </div>
+    </section>
+
+    <section class="bloc" aria-labelledby="etapes-titre">
+      <h2 id="etapes-titre" data-t="comment_titre">Comment ça se passe.</h2>
+      <div class="etapes">
+        <div><b data-t="e1_t">Vous commandez</b><span data-t="e1">Et vous indiquez le robot : son lien MQL5, ou son fichier.</span></div>
+        <div><b data-t="e2_t">Le labo le teste</b><span data-t="e2">Réglages par défaut (ou les vôtres), 4 scénarios, un an d'historique.</span></div>
+        <div><b data-t="e3_t">Vous recevez la fiche</b><span data-t="e3">En PDF, sous 48 h.</span></div>
+      </div>
+    </section>
+
+    <section class="bloc" aria-labelledby="robots-titre">
+      <h2 id="robots-titre" data-t="robots_titre">Quels robots ?</h2>
+      <div class="robots">
+        <div><b data-t="r_market_t">Un robot du Market MQL5</b><span data-t="r_market">Il suffit qu'il ait une démo gratuite. Donnez-nous son lien.</span></div>
+        <div><b data-t="r_fichier_t">Un robot dont vous avez le fichier</b><span data-t="r_fichier">Vendu ailleurs, ou créé avec ChatGPT ou Claude : envoyez le .ex5 ou le code .mq5.</span></div>
+      </div>
+      <p class="rembourse" data-h="rembourse"><b>Si le labo ne peut pas tester votre robot, vous êtes remboursé intégralement.</b> Un robot acheté sur le Market est verrouillé sur le compte de l'acheteur : pour ceux-là, il faut la démo.</p>
+    </section>
+
+    <section class="bloc faq" aria-labelledby="faq-titre">
+      <h2 id="faq-titre" data-t="faq_titre">Questions fréquentes.</h2>
+      <details><summary data-t="q1">Est-ce un conseil d'investissement ?</summary><p data-t="r1">Non. La fiche décrit ce que le robot a fait dans nos tests. Les résultats passés ne préjugent pas des résultats futurs.</p></details>
+      <details><summary data-t="q2">Êtes-vous liés aux vendeurs de robots ?</summary><p data-t="r2">Non. Aucun vendeur ne paie MantaLab, ni MetaQuotes, ni les prop firms.</p></details>
+      <details><summary data-t="q3">Pourquoi pas le rapport du vendeur ?</summary><p data-t="r3">Parce que le vendeur choisit la période, les réglages et les conditions. Le labo fait ses propres tests, dans des conditions moins favorables.</p></details>
+      <details><summary data-t="q4">Quelles sont les limites ?</summary><p data-t="r4">Un test décrit le passé, sur un marché et une période. La fiche dit toujours exactement ce qui a été testé.</p></details>
+      <a class="retour" href="index.html" data-t="retour">← Vérifier gratuitement un rapport</a>
+    </section>
   </main>
-
-  <footer><div class="contenu"><p data-t="pied"></p></div></footer>
-
+  <footer><div class="contenu"><p data-t="pied">MantaLab — test indépendant de robots MetaTrader 5. Ce service ne constitue pas un conseil en investissement.</p></div></footer>
 <script>
 (function () {
   "use strict";
   // ---- RÉGLAGES DE LA BOUTIQUE ----------------------------------------------------------
   // Tant que LIEN_PAIEMENT est vide, le bouton affiche « commandes bientôt ouvertes » et ne
-  // collecte rien. Coller ici le lien de paiement (Lemon Squeezy…) une fois la boutique créée.
+  // collecte rien. Coller ici le lien de paiement Stripe une fois créé.
   const LIEN_PAIEMENT = "";
   const PRIX = "29 €";
   // ----------------------------------------------------------------------------------------
-
   const T = {
     fr: {
-      titre: "Faites tester un robot par le labo, avant de le payer.",
-      intro: "Le rapport d'un vendeur montre ce qu'il veut bien montrer. MantaLab fait tourner le robot lui-même dans MetaTrader 5, le soumet à plusieurs scénarios, et vous remet une fiche indépendante.",
-      inclus_titre: "Ce que contient la fiche",
-      inclus_1: "Le verdict de risque, avec les raisons, chiffres et exemples tirés des trades.",
-      inclus_2: "Martingale (classique ou « de grille »), grille, stops absents ou virtuels, trades ultra-courts.",
-      inclus_3: "Le pire observé : série de pertes, exposition maximale, drawdown.",
-      inclus_4: "4 scénarios : exécution idéale, retards d'exécution, ticks réels, année précédente.",
-      inclus_5: "Notes de sécurité et de solidité sur 100, et 6 challenges de prop firms (FTMO, FundedNext, The5ers) simulés sur l'équité minute par minute.",
-      inclus_6: "Le robot est testé par le labo lui-même : vous n'avez rien à installer. Fiche en ligne et en PDF.",
-      voir_exemple: "Voir une fiche d'exemple (robot MultiMartin) →",
-      achat_titre: "Audit d'un robot",
+      nav_gratuit: "Vérification gratuite", nav_methode: "Méthode",
+      titre: "Avant d'acheter un robot, faites-le tester.",
+      intro: "Le labo fait tourner le robot lui-même et vous remet sa fiche d'audit. Pas le rapport du vendeur : le nôtre.",
       par_robot: "par robot",
-      delai: "Fiche livrée par e-mail sous 48 h.",
+      delai: "Fiche en PDF, livrée par e-mail sous 48 h.",
       commander: "Commander l'audit",
       bientot: "Commandes bientôt ouvertes",
-      note_bientot: "Les commandes ouvrent très prochainement. En attendant, la vérification gratuite d'un rapport est disponible sur la page d'accueil.",
-      note_paiement: "Paiement sécurisé. Vous indiquez le robot à tester au moment de la commande.",
-      comment_titre: "Comment ça se passe",
-      etape_1: "Vous commandez et indiquez le robot : lien de sa page sur le Market MQL5 (la démo gratuite suffit). Robot vendu ailleurs ou créé avec ChatGPT ou Claude : vous nous envoyez son fichier (.ex5 ou code .mq5) en réponse à l'e-mail de confirmation.",
-      etape_2: "Le labo installe le robot et le teste dans les 4 scénarios, avec ses réglages par défaut (ou ceux que vous précisez).",
-      etape_3: "Vous recevez la fiche : en ligne et en PDF.",
+      g1: "Testé par le labo, dans 4 scénarios", g2: "Indépendant des vendeurs de robots", g3: "Remboursé si le robot ne peut pas être testé",
+      note_bientot: "En attendant, la vérification d'un rapport est gratuite sur la page d'accueil.",
+      note_paiement: "Paiement sécurisé par Stripe. Vous indiquez le robot à la commande.",
+      voir_exemple: "Voir une fiche complète ↗",
+      alt_apercu: "Exemple de fiche MantaLab : verdict risque élevé, courbe du solde et de l'équité minute par minute",
+      inclus_titre: "Ce que contient la fiche.",
+      i1_t: "Le verdict", i1: "Risque élevé, moyen ou faible, avec les raisons et des exemples datés.",
+      i2_t: "Les pièges", i2: "Martingale, grille, stop absent ou « virtuel », trades ultra-courts.",
+      i3_t: "La vraie courbe", i3: "L'équité minute par minute : les pertes que la courbe du vendeur cache.",
+      i4_t: "Le pire observé", i4: "Série de pertes, exposition maximale, drawdown.",
+      i5_t: "Deux notes sur 100", i5: "Sécurité et solidité : avantage réel ou simple chance ?",
+      i6_t: "6 challenges", i6: "FTMO, FundedNext, The5ers : vos chances de réussite.",
+      comment_titre: "Comment ça se passe.",
+      e1_t: "Vous commandez", e1: "Et vous indiquez le robot : son lien MQL5, ou son fichier.",
+      e2_t: "Le labo le teste", e2: "Réglages par défaut (ou les vôtres), 4 scénarios, un an d'historique.",
+      e3_t: "Vous recevez la fiche", e3: "En PDF, sous 48 h.",
       robots_titre: "Quels robots ?",
-      robots_texte: "Les robots (« Expert Advisors ») MetaTrader 5, gratuits ou payants : ceux du Market qui ont une démo gratuite, et tout robot dont vous avez le fichier, y compris ceux créés avec une IA. Un robot acheté sur le Market est verrouillé sur le compte de l'acheteur : pour ceux-là, il faut la démo. Si le labo ne peut pas tester votre robot, vous êtes remboursé intégralement. Un symbole et une unité de temps par audit, au choix.",
-      faq_titre: "Questions fréquentes",
+      r_market_t: "Un robot du Market MQL5", r_market: "Il suffit qu'il ait une démo gratuite. Donnez-nous son lien.",
+      r_fichier_t: "Un robot dont vous avez le fichier", r_fichier: "Vendu ailleurs, ou créé avec ChatGPT ou Claude : envoyez le .ex5 ou le code .mq5.",
+      rembourse: "<b>Si le labo ne peut pas tester votre robot, vous êtes remboursé intégralement.</b> Un robot acheté sur le Market est verrouillé sur le compte de l'acheteur : pour ceux-là, il faut la démo.",
+      faq_titre: "Questions fréquentes.",
       q1: "Est-ce un conseil d'investissement ?",
-      r1: "Non. La fiche décrit le comportement observé du robot dans nos tests. Elle ne dit pas s'il faut l'acheter, et les résultats passés ne préjugent pas des résultats futurs.",
-      q2: "Êtes-vous liés aux vendeurs de robots ou à MetaQuotes ?",
-      r2: "Non. MantaLab est indépendant : aucun vendeur ne paie pour être audité favorablement.",
-      q3: "Pourquoi pas simplement le rapport du vendeur ?",
-      r3: "Parce qu'il est choisi par le vendeur : période, réglages, conditions. Le labo produit ses propres tests, dans des conditions moins favorables, et cherche les comportements que le rapport ne montre pas.",
+      r1: "Non. La fiche décrit ce que le robot a fait dans nos tests. Les résultats passés ne préjugent pas des résultats futurs.",
+      q2: "Êtes-vous liés aux vendeurs de robots ?",
+      r2: "Non. Aucun vendeur ne paie MantaLab, ni MetaQuotes, ni les prop firms.",
+      q3: "Pourquoi pas le rapport du vendeur ?",
+      r3: "Parce que le vendeur choisit la période, les réglages et les conditions. Le labo fait ses propres tests, dans des conditions moins favorables.",
       q4: "Quelles sont les limites ?",
-      r4: "Un test décrit le passé, sur un symbole et une période. Il ne couvre pas tous les réglages possibles d'un robot. La fiche indique toujours ce qui a été testé.",
+      r4: "Un test décrit le passé, sur un marché et une période. La fiche dit toujours exactement ce qui a été testé.",
       retour: "← Vérifier gratuitement un rapport",
       pied: "MantaLab — test indépendant de robots MetaTrader 5. Ce service ne constitue pas un conseil en investissement.",
     },
     en: {
-      titre: "Have a robot tested by the lab, before you pay for it.",
-      intro: "A seller's report shows what the seller wants you to see. MantaLab runs the robot itself in MetaTrader 5, puts it through several scenarios and gives you an independent report.",
-      inclus_titre: "What the report contains",
-      inclus_1: "The risk verdict, with reasons, figures and examples taken from the trades.",
-      inclus_2: "Martingale (classic or “grid”), grid, missing or virtual stops, ultra-short trades.",
-      inclus_3: "The worst observed: losing streak, maximum exposure, drawdown.",
-      inclus_4: "4 scenarios: ideal execution, execution delays, real ticks, previous year.",
-      inclus_5: "Safety and solidity scores out of 100, and 6 prop-firm challenges (FTMO, FundedNext, The5ers) simulated on minute-by-minute equity.",
-      inclus_6: "The lab runs the robot itself: nothing for you to install. Report online and as a PDF.",
-      voir_exemple: "See a sample report (MultiMartin robot) →",
-      achat_titre: "Robot audit",
+      nav_gratuit: "Free check", nav_methode: "Method",
+      titre: "Before you buy a robot, have it tested.",
+      intro: "The lab runs the robot itself and sends you its audit report. Not the seller's report: ours.",
       par_robot: "per robot",
-      delai: "Report delivered by email within 48 h.",
+      delai: "PDF report, emailed within 48 h.",
       commander: "Order the audit",
       bientot: "Orders opening soon",
-      note_bientot: "Orders open very soon. Meanwhile, the free report check is available on the home page.",
-      note_paiement: "Secure payment. You tell us which robot to test when ordering.",
-      comment_titre: "How it works",
-      etape_1: "You order and tell us the robot: its MQL5 Market page link (the free demo is enough). Robot sold elsewhere or built with ChatGPT or Claude: send us its file (.ex5 or .mq5 source) by replying to the confirmation e-mail.",
-      etape_2: "The lab installs the robot and tests it in the 4 scenarios, with its default settings (or the ones you specify).",
-      etape_3: "You receive the report: online and as a PDF.",
+      g1: "Tested by the lab, in 4 scenarios", g2: "Independent of robot sellers", g3: "Refunded if the robot can't be tested",
+      note_bientot: "Meanwhile, checking a report is free on the home page.",
+      note_paiement: "Secure payment by Stripe. You name the robot when ordering.",
+      voir_exemple: "See a full report ↗",
+      alt_apercu: "Sample MantaLab report: high-risk verdict, balance and minute-by-minute equity curve",
+      inclus_titre: "What the report contains.",
+      i1_t: "The verdict", i1: "High, medium or low risk, with reasons and dated examples.",
+      i2_t: "The traps", i2: "Martingale, grid, missing or “virtual” stop, ultra-short trades.",
+      i3_t: "The real curve", i3: "Minute-by-minute equity: the losses the seller's curve hides.",
+      i4_t: "The worst observed", i4: "Losing streak, maximum exposure, drawdown.",
+      i5_t: "Two scores out of 100", i5: "Safety and solidity: a real edge, or just luck?",
+      i6_t: "6 challenges", i6: "FTMO, FundedNext, The5ers: your odds of passing.",
+      comment_titre: "How it works.",
+      e1_t: "You order", e1: "And tell us the robot: its MQL5 link, or its file.",
+      e2_t: "The lab tests it", e2: "Default settings (or yours), 4 scenarios, one year of history.",
+      e3_t: "You get the report", e3: "As a PDF, within 48 h.",
       robots_titre: "Which robots?",
-      robots_texte: "MetaTrader 5 robots (Expert Advisors), free or paid: Market robots with a free demo, and any robot whose file you have, including ones built with AI. A robot bought on the Market is locked to the buyer's account: for those, we need the demo. If the lab cannot test your robot, you get a full refund. One symbol and timeframe per audit, of your choice.",
-      faq_titre: "Frequently asked questions",
+      r_market_t: "An MQL5 Market robot", r_market: "It just needs a free demo. Send us its link.",
+      r_fichier_t: "A robot whose file you have", r_fichier: "Sold elsewhere, or built with ChatGPT or Claude: send the .ex5 or the .mq5 source.",
+      rembourse: "<b>If the lab can't test your robot, you get a full refund.</b> A robot bought on the Market is locked to the buyer's account: for those, we need the demo.",
+      faq_titre: "Frequently asked questions.",
       q1: "Is this investment advice?",
-      r1: "No. The report describes the robot's observed behaviour in our tests. It does not tell you whether to buy it, and past results do not guarantee future results.",
-      q2: "Are you linked to robot sellers or MetaQuotes?",
-      r2: "No. MantaLab is independent: no seller pays to be rated favourably.",
-      q3: "Why not just use the seller's report?",
-      r3: "Because the seller chooses it: period, settings, conditions. The lab runs its own tests, in less favourable conditions, and looks for the behaviours the report doesn't show.",
+      r1: "No. The report describes what the robot did in our tests. Past results do not predict future results.",
+      q2: "Are you linked to robot sellers?",
+      r2: "No. MantaLab is paid by no seller, nor by MetaQuotes or prop firms.",
+      q3: "Why not the seller's report?",
+      r3: "Because the seller picks the period, settings and conditions. The lab runs its own tests, in less favourable conditions.",
       q4: "What are the limits?",
-      r4: "A test describes the past, on one symbol and one period. It doesn't cover every possible setting of a robot. The report always states what was tested.",
+      r4: "A test describes the past, on one market and one period. The report always states exactly what was tested.",
       retour: "← Check a report for free",
       pied: "MantaLab — independent MetaTrader 5 robot testing. This service is not investment advice.",
     },
@@ -211,6 +271,9 @@
     const L = T[langue];
     document.documentElement.lang = langue;
     document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = L[el.dataset.t] || ""; });
+    // data-h : textes du site avec mise en valeur (<b>) — jamais de contenu venant de l'extérieur
+    document.querySelectorAll("[data-h]").forEach((el) => { el.innerHTML = L[el.dataset.h] || ""; });
+    document.querySelectorAll("[data-alt]").forEach((el) => { el.alt = L[el.dataset.alt] || el.alt; });
     document.getElementById("prix").textContent = PRIX;
     const b = document.getElementById("commander"), note = document.getElementById("note-commande");
     if (LIEN_PAIEMENT) {
