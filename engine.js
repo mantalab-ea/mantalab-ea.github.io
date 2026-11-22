@@ -365,6 +365,7 @@
     partPlafondStop: 0.3, partAuDelaPlafond: 0.05, partRenfortsAttention: 0.02,
     fenetrePanierSecondes: 2,
     partRenfortsAlerte: 0.15, partStopPoseApres: 0.25, partPileStop: 0.1, densitePileStop: 2, partAuDelaGaps: 0.2,
+    fenetreStopVariable: 4, minPertesStopVariable: 30,
     dureeCourteSecondes: 60, partCourteAlerte: 0.3, partCourteAttention: 0.05,
     tauxReussiteSuspect: 0.85, ratioPerteGainSuspect: 3.0,
     perteJourMax: 0.05, perteTotaleMax: 0.10, minPositions: 20,
@@ -511,11 +512,11 @@
     return { code: "grille", niveau, cle: "grille_" + niveau, donnees: mesures, mesures, exemples, exemplesHausse };
   }
 
-  function detecterStopLoss(positions, r, clotureInconnue) {
+  function detecterStopLoss(positions, r, clotureInconnue, grille) {
     const connues = positions.filter((p) => p.stopLoss !== null && p.stopLoss !== undefined);
     if (!connues.length) return clotureInconnue
       ? { code: "stop_loss", niveau: "inconnu", cle: "stop_export_positions", donnees: {}, mesures: {}, exemples: [] }
-      : stopDeduit(positions, r);
+      : stopDeduit(positions, r, grille);
     const sans = connues.filter((p) => !(p.stopLoss > 0));
     const part = sans.length / connues.length;
     let niveau = part >= r.partSansStopAlerte ? "alerte" : part >= r.partSansStopAttention ? "attention" : "ok";
@@ -533,7 +534,7 @@
         Object.assign(mesures, { poseApres: true, pertesParSL: parSL, pertes: pertes.length, partParSL: +(parSL / pertes.length).toFixed(3) });
         return { code: "stop_loss", niveau: "ok", cle: "stop_pose_apres", donnees: mesures, mesures, exemples: [] };
       }
-      const v = stopVirtuel(sans, r);
+      const v = stopVirtuel(sans, r) || (grille ? null : stopVirtuelVariable(sans, r));
       if (v) {
         // Le robot coupe lui-même ses pertes à distance fixe : protection réelle, mais invisible
         // pour le courtier (rien ne protège la position si le terminal s'arrête).
@@ -550,7 +551,7 @@
    * Stop d'entrée INCONNU (historique de signal MQL5) : on le déduit des clôtures. Une perte fermée « sl » prouve un
    * stop chez le courtier ; aucune sur de nombreuses pertes = probablement aucun stop (ou un stop virtuel).
    */
-  function stopDeduit(positions, r) {
+  function stopDeduit(positions, r, grille) {
     const pertes = positions.filter((p) => fermee(p) && p.profit < 0);
     const vide = { code: "stop_loss", niveau: "inconnu", cle: "stop_inconnu", donnees: {}, mesures: {}, exemples: [] };
     if (pertes.length < r.minPertesStopVirtuel) return vide;
@@ -558,7 +559,7 @@
     const mesures = { deduit: true, pertes: pertes.length, pertesParSL: parSL, partParSL: +(parSL / pertes.length).toFixed(3) };
     if (parSL >= r.minPertesStopVirtuel && parSL / pertes.length >= r.partStopPoseApres)
       return { code: "stop_loss", niveau: "ok", cle: "stop_constate", donnees: mesures, mesures, exemples: [] };
-    const v = stopVirtuel(positions, r);
+    const v = stopVirtuel(positions, r) || (grille ? null : stopVirtuelVariable(positions, r));
     if (v) {
       Object.assign(mesures, v, { part: 1 - parSL / pertes.length });
       return { code: "stop_loss", niveau: "attention", cle: "stop_virtuel", donnees: mesures, mesures, exemples: [] };
@@ -610,6 +611,28 @@
     const prix = sansStop[0].prixEntree;
     const point = prix < 10 ? 1e-5 : prix < 1000 ? 1e-3 : 1e-2;
     return { virtuel: true, distance: +ref.toFixed(6), points: Math.round(ref / point), pertesProches: proches, pertes: n, partProches: +part.toFixed(3) };
+  }
+
+  /**
+   * Stop virtuel dont la distance SUIT LA VOLATILITÉ (multiple de l'ATR…) : la distance de coupe change d'une période à
+   * l'autre, donc pas de pile unique. On ramène chaque perte à la médiane des pertes voisines dans le temps (±4 pertes)
+   * et on cherche la même pile sur ces distances relatives. Étalonnage 2026-11-23 (campagne de précision, 19 marchés) :
+   * 15 stops ATR sur 19 retrouvés, aucune fausse détection sur les robots sans stop ni sur les grilles (exclues : leurs
+   * pertes se ferment en panier, à des distances voisines). Fenêtre ±2 ou ±3 : fausses détections sur des grilles.
+   */
+  function stopVirtuelVariable(sansStop, r) {
+    const pertes = sansStop.filter((p) => fermee(p) && p.profit < 0 && p.prixSortie !== null).sort((a, b) => a.fermeture - b.fermeture);
+    if (pertes.length < r.minPertesStopVariable) return null;
+    const d = pertes.map((p) => Math.abs(p.prixSortie - p.prixEntree));
+    const W = r.fenetreStopVariable;
+    const relatives = d.map((x, i) => {
+      const voisins = d.slice(Math.max(0, i - W), i + W + 1).filter((y) => y > 0).sort((a, b) => a - b);
+      const m = voisins[Math.floor(voisins.length / 2)];
+      return { fermeture: 1, ouverture: 0, profit: -1, prixEntree: 1, prixSortie: m > 0 ? 1 + x / m : null, volume: 1 };
+    });
+    const v = stopVirtuel(relatives, r);
+    if (!v) return null;
+    return { virtuel: true, variable: true, pertesProches: v.pertesProches, pertes: v.pertes, partProches: v.partProches };
   }
 
   function detecterTradesCourts(positions, r) {
@@ -702,10 +725,11 @@
     const positions = reconstruirePositions(backtest.transactions);
     const paniers = regrouperPaniers(positions, r);
     const dd = backtest.stats ? backtest.stats.drawdownEquiteMaxPct : undefined;
+    const grille = detecterGrille(paniers, r);
     const liste = [
       detecterMartingale(paniers, r, positions, (backtest.mouvements || []).filter((m) => m.montant > 0).map((m) => m.temps)),
-      detecterGrille(paniers, r),
-      detecterStopLoss(positions, r, !!backtest.clotureInconnue),
+      grille,
+      detecterStopLoss(positions, r, !!backtest.clotureInconnue, grille.niveau === "alerte"),
       detecterTradesCourts(positions, r),
       detecterProfil(positions, r),
       detecterReglesProp(positions, backtest.depot, r, dd),

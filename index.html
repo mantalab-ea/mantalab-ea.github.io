@@ -209,6 +209,7 @@
   .verif .constat { font-size: .85rem; color: var(--encre); display: flex; gap: .55rem; align-items: baseline; }
   .verif .constat::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: var(--danger); transform: translateY(-.05rem); }
   @media (max-width: 52rem) { .verif { grid-template-columns: 1fr; gap: .35rem; } }
+  .verif .constat.plus::before { background: var(--encre); }
 
   /* ----- Précision ----- */
   .precision { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: end; }
@@ -419,13 +420,29 @@
     </div>
   </section>
 
+  <section class="bloc" id="plus" aria-labelledby="plus-titre">
+    <div class="contenu">
+      <div class="bloc-tete">
+        <h2 id="plus-titre" data-t="plus_titre">Lire un rapport ne suffit pas.</h2>
+        <p data-t="plus_sous">Un outil d'analyse ne voit que le rapport qu'on lui donne, souvent celui du vendeur. Le labo MantaLab va plus loin.</p>
+      </div>
+      <div class="verifs">
+        <div class="verif"><h3 data-t="p1_t">Le labo teste le robot lui-même</h3><p data-t="p1_p">Nous téléchargeons la démo officielle, ou vous nous envoyez le fichier, et nous faisons tourner le robot nous-mêmes. Aucun rapport du vendeur.</p><span class="constat plus" data-t="p1_ex">4 scénarios : exécution idéale, retards, ticks réels du courtier, autre année.</span></div>
+        <div class="verif"><h3 data-t="p2_t">L'équité minute par minute</h3><p data-t="p2_p">Les pertes que la courbe de solde cache, mesurées sur les cours minute par minute, comme les surveillent les prop firms.</p><span class="constat plus" data-t="p2_ex">0,05 point d'écart moyen avec MetaTrader sur le drawdown.</span></div>
+        <div class="verif"><h3 data-t="p3_t">Un taux d'erreur publié</h3><p data-t="p3_p">Chaque version du moteur est vérifiée sur 209 tests de robots au comportement connu, et ses erreurs sont listées une par une.</p><span class="constat plus" data-t="p3_ex">98,8 % de verdicts justes, 29 sur 29 sur de vrais robots.</span></div>
+        <div class="verif"><h3 data-t="p4_t">De l'argent réel</h3><p data-t="p4_p">L'historique d'un signal MQL5 se vérifie comme un test : martingale, grille, stops, pertes cachées.</p><span class="constat plus" data-t="p4_ex">Validé sur 16 signaux réels du site MQL5.</span></div>
+        <div class="verif"><h3 data-t="p5_t">Les robots faits avec une IA</h3><p data-t="p5_p">Créé avec ChatGPT ou Claude, sans démo sur le Market ? Envoyez le fichier : le labo le teste comme les autres.</p><span class="constat plus" data-t="p5_ex">Fichier .ex5 ou code .mq5 accepté.</span></div>
+      </div>
+    </div>
+  </section>
+
   <section class="bloc" id="precision" aria-labelledby="precision-titre">
     <div class="contenu precision">
       <div>
         <h2 class="titre-bloc" id="precision-titre" data-t="precision_titre">Nous publions notre taux d'erreur.</h2>
-        <div class="grand" data-t="c1_v">96,4 %</div>
+        <div class="grand" data-t="c1_v">98,8 %</div>
         <p data-t="c1_l">de verdicts justes sur 209 tests de robots dont nous connaissons exactement le comportement, sur 19 marchés. Les erreurs restantes sont connues et documentées, une par une.</p>
-        <p><a href="methode.html" data-t="precision_lien">Notre méthode et nos 21 erreurs, une par une</a></p>
+        <p><a href="methode.html" data-t="precision_lien">Notre méthode et nos 7 erreurs, une par une</a></p>
       </div>
       <div class="faits">
         <div class="fait"><b data-t="c2_v">29 / 29</b><span data-t="c2_l">verdicts conformes sur 10 vrais robots de référence</span></div>
@@ -481,7 +498,7 @@
     <div><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"></div>
     <div>
       <p data-t="pied1">Ce rapport décrit le comportement observé du robot dans le test fourni. Ce n'est pas un conseil en investissement. Les résultats passés ne préjugent pas des résultats futurs.</p>
-      <p data-t="pied2">Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 209 tests de robots au comportement connu sur 19 marchés (96 % de verdicts justes). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.</p>
+      <p data-t="pied2">Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 209 tests de robots au comportement connu sur 19 marchés (99 % de verdicts justes). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.</p>
     </div>
   </div>
 </footer>
@@ -526,11 +543,17 @@
       v4_ex: "Moving Average : 94 % de chances d'un vrai avantage, 17 % une fois la sur-optimisation prise en compte.",
       v5_ex: "GridPro Panel : jusqu'à 31 % de perte en une seule journée. FTMO en tolère 5 %.",
       v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres, comptés comme une seule décision.",
-      precision_titre: "Nous publions notre taux d'erreur.", precision_lien: "Notre méthode et nos 21 erreurs, une par une",
+      plus_titre: "Lire un rapport ne suffit pas.", plus_sous: "Un outil d'analyse ne voit que le rapport qu'on lui donne, souvent celui du vendeur. Le labo MantaLab va plus loin.",
+      p1_t: "Le labo teste le robot lui-même", p1_p: "Nous téléchargeons la démo officielle, ou vous nous envoyez le fichier, et nous faisons tourner le robot nous-mêmes. Aucun rapport du vendeur.", p1_ex: "4 scénarios : exécution idéale, retards, ticks réels du courtier, autre année.",
+      p2_t: "L'équité minute par minute", p2_p: "Les pertes que la courbe de solde cache, mesurées sur les cours minute par minute, comme les surveillent les prop firms.", p2_ex: "0,05 point d'écart moyen avec MetaTrader sur le drawdown.",
+      p3_t: "Un taux d'erreur publié", p3_p: "Chaque version du moteur est vérifiée sur 209 tests de robots au comportement connu, et ses erreurs sont listées une par une.", p3_ex: "98,8 % de verdicts justes, 29 sur 29 sur de vrais robots.",
+      p4_t: "De l'argent réel", p4_p: "L'historique d'un signal MQL5 se vérifie comme un test : martingale, grille, stops, pertes cachées.", p4_ex: "Validé sur 16 signaux réels du site MQL5.",
+      p5_t: "Les robots faits avec une IA", p5_p: "Créé avec ChatGPT ou Claude, sans démo sur le Market ? Envoyez le fichier : le labo le teste comme les autres.", p5_ex: "Fichier .ex5 ou code .mq5 accepté.",
+      precision_titre: "Nous publions notre taux d'erreur.", precision_lien: "Notre méthode et nos 7 erreurs, une par une",
       c5_v: "226", c5_l: "tests dans la base du labo, réanalysés à chaque évolution du moteur",
       nav_verifs_ancien: "", nav_comment: "Comment ça marche", nav_cta: "Faire auditer un robot", nav_cta_court: "Audit · 29 €",
       pastille: "Audit indépendant de robots MetaTrader 5",
-      c1_v: "96,4 %", c1_l: "de verdicts justes sur 209 tests de robots dont nous connaissons exactement le comportement, sur 19 marchés. Les erreurs restantes sont connues et documentées, une par une.",
+      c1_v: "98,8 %", c1_l: "de verdicts justes sur 209 tests de robots dont nous connaissons exactement le comportement, sur 19 marchés. Les erreurs restantes sont connues et documentées, une par une.",
       c2_v: "29 / 29", c2_l: "verdicts conformes sur 10 vrais robots de référence",
       c3_v: "0,05 pt", c3_l: "d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute",
       c4_v: "6", c4_l: "challenges de prop firms simulés avec leurs règles officielles",
@@ -550,7 +573,7 @@
       etape3: "À la fin du test, onglet Backtest : clic droit → Rapport → HTML (Internet Explorer).",
       etape4: "Déposez ce fichier .html ci-dessus.",
       pied1: "Ce rapport décrit le comportement observé du robot dans le test fourni. Ce n'est pas un conseil en investissement. Les résultats passés ne préjugent pas des résultats futurs.",
-      pied2: "Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 209 tests de robots au comportement connu sur 19 marchés (96 % de verdicts justes). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
+      pied2: "Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 209 tests de robots au comportement connu sur 19 marchés (99 % de verdicts justes). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
       offre_titre: "Vous hésitez avant d'acheter un robot ?",
       offre_texte: "Le rapport du vendeur montre ce qu'il veut bien montrer. Le labo MantaLab fait tourner le robot lui-même et vous remet une fiche indépendante :",
       offre_1: "martingale, grille, stops virtuels : ce que le robot fait vraiment, pas ce que dit sa notice ;",
@@ -644,7 +667,7 @@
         stop_ok: () => "Les positions sont ouvertes avec un stop-loss.",
         stop_pose_apres: (d) => `Le stop-loss n'est pas dans l'ordre d'entrée, mais il est posé chez le courtier juste après l'ouverture : ${pc(d.partParSL)} des pertes se ferment par ce stop.`,
         stop_manquant: (d) => `${pc(d.part)} des positions sont ouvertes sans stop-loss.`,
-        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Presque aucune" : "Aucune"} perte ne se ferme sur un stop-loss du courtier (${d.pertesParSL} sur ${d.pertes})` : `Aucun stop-loss n'est transmis au courtier (${pc(d.part)} des positions)`}, mais le robot coupe lui-même ses pertes à distance fixe : ${pc(d.partProches)} des pertes se ferment vers ${d.points} points. C'est un stop « virtuel » : il protège tant que MetaTrader tourne, pas si le terminal plante ou perd la connexion.`,
+        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Presque aucune" : "Aucune"} perte ne se ferme sur un stop-loss du courtier (${d.pertesParSL} sur ${d.pertes})` : `Aucun stop-loss n'est transmis au courtier (${pc(d.part)} des positions)`}, mais le robot coupe lui-même ses pertes ${d.variable ? `à une distance qui suit la volatilité du marché : ${pc(d.partProches)} des pertes se ferment au même écart, relativement aux pertes voisines.` : `à distance fixe : ${pc(d.partProches)} des pertes se ferment vers ${d.points} points.`} C'est un stop « virtuel » : il protège tant que MetaTrader tourne, pas si le terminal plante ou perd la connexion.`,
         stop_inconnu: () => "Le rapport ne contient pas l'information de stop-loss.",
         stop_export_positions: () => "Cet export (bouton « History ») ne dit pas comment chaque position s'est fermée : impossible de vérifier le stop-loss. Pour le vérifier, utilisez l'export des transactions : adresse du signal suivie de /export/history.",
         stop_constate: (d) => `Le fichier ne donne pas le stop d'entrée, mais ${pc(d.partParSL)} des pertes (${d.pertesParSL} sur ${d.pertes}) se ferment sur un stop-loss du courtier : le robot en utilise un.`,
@@ -694,11 +717,17 @@
       v4_ex: "Moving Average: 94% chance of a real edge, 17% once over-optimisation is accounted for.",
       v5_ex: "GridPro Panel: up to 31% lost in a single day. FTMO allows 5%.",
       v6_ex: "A gold signal: 212 of 575 entries placed as baskets of 2 to 7 orders, counted as one decision.",
-      precision_titre: "We publish our error rate.", precision_lien: "Our method and our 21 errors, one by one",
+      plus_titre: "Reading a report isn't enough.", plus_sous: "An analysis tool only sees the report you give it, often the seller's. The MantaLab lab goes further.",
+      p1_t: "The lab tests the robot itself", p1_p: "We download the official demo, or you send us the file, and we run the robot ourselves. No seller report.", p1_ex: "4 scenarios: ideal execution, delays, broker's real ticks, another year.",
+      p2_t: "Minute-by-minute equity", p2_p: "The losses the balance curve hides, measured on minute-by-minute prices, the way prop firms watch them.", p2_ex: "0.05 point average gap with MetaTrader on drawdown.",
+      p3_t: "A published error rate", p3_p: "Every engine version is checked on 209 tests of robots with known behaviour, and its errors are listed one by one.", p3_ex: "98.8% correct verdicts, 29 out of 29 on real robots.",
+      p4_t: "Real money", p4_p: "An MQL5 signal history is checked like a test: martingale, grid, stops, hidden losses.", p4_ex: "Validated on 16 real MQL5 signals.",
+      p5_t: "Robots built with AI", p5_p: "Built with ChatGPT or Claude, no demo on the Market? Send the file: the lab tests it like any other.", p5_ex: ".ex5 file or .mq5 source accepted.",
+      precision_titre: "We publish our error rate.", precision_lien: "Our method and our 7 errors, one by one",
       c5_v: "226", c5_l: "tests in the lab database, re-analysed every time the engine changes",
       nav_verifs_ancien: "", nav_comment: "How it works", nav_cta: "Get a robot audited", nav_cta_court: "Audit · €29",
       pastille: "Independent audit of MetaTrader 5 robots",
-      c1_v: "96.4%", c1_l: "correct verdicts over 209 tests of robots whose behaviour we know exactly, across 19 markets. The remaining errors are known and documented, one by one.",
+      c1_v: "98.8%", c1_l: "correct verdicts over 209 tests of robots whose behaviour we know exactly, across 19 markets. The remaining errors are known and documented, one by one.",
       c2_v: "29 / 29", c2_l: "verdicts confirmed on 10 real reference robots",
       c3_v: "0.05 pt", c3_l: "average gap with MetaTrader on drawdown, recomputed minute by minute",
       c4_v: "6", c4_l: "prop-firm challenges simulated with their official rules",
@@ -718,7 +747,7 @@
       etape3: "When the test ends, Backtest tab: right-click → Report → HTML (Internet Explorer).",
       etape4: "Drop that .html file above.",
       pied1: "This report describes the robot's observed behaviour in the test provided. It is not investment advice. Past results do not guarantee future results.",
-      pied2: "Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 209 tests of robots with known behaviour across 19 markets (96% correct verdicts). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.",
+      pied2: "Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 209 tests of robots with known behaviour across 19 markets (99% correct verdicts). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.",
       offre_titre: "Thinking about buying a robot?",
       offre_texte: "The seller's report shows what the seller wants you to see. The MantaLab lab runs the robot itself and gives you an independent report:",
       offre_1: "martingale, grid, virtual stops: what the robot really does, not what its manual says;",
@@ -812,7 +841,7 @@
         stop_ok: () => "Positions are opened with a stop-loss.",
         stop_pose_apres: (d) => `The stop-loss is not in the entry order, but it is placed at the broker right after opening: ${pc(d.partParSL)} of losses close on that stop.`,
         stop_manquant: (d) => `${pc(d.part)} of positions are opened without a stop-loss.`,
-        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Almost no" : "No"} loss closes on a broker stop-loss (${d.pertesParSL} of ${d.pertes})` : `No stop-loss is sent to the broker (${pc(d.part)} of positions)`}, but the robot cuts its own losses at a fixed distance: ${pc(d.partProches)} of losses close around ${d.points} points. This is a “virtual” stop: it protects while MetaTrader runs, not if the terminal crashes or loses connection.`,
+        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Almost no" : "No"} loss closes on a broker stop-loss (${d.pertesParSL} of ${d.pertes})` : `No stop-loss is sent to the broker (${pc(d.part)} of positions)`}, but the robot cuts its own losses ${d.variable ? `at a distance that follows market volatility: ${pc(d.partProches)} of losses close at the same gap relative to neighbouring losses.` : `at a fixed distance: ${pc(d.partProches)} of losses close around ${d.points} points.`} This is a “virtual” stop: it protects while MetaTrader runs, not if the terminal crashes or loses connection.`,
         stop_inconnu: () => "The report does not include stop-loss information.",
         stop_export_positions: () => "This export (“History” button) does not say how each position closed: the stop-loss cannot be checked. To check it, use the deals export: the signal address followed by /export/history.",
         stop_constate: (d) => `The file does not give the entry stop, but ${pc(d.partParSL)} of losses (${d.pertesParSL} of ${d.pertes}) close on a broker stop-loss: the robot uses one.`,
