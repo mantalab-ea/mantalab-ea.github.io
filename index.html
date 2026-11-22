@@ -130,7 +130,41 @@
   .ligne .detail { padding: 0 .25rem 1rem 8.75rem; font-size: .95rem; }
   .ligne .detail ul { margin: .25rem 0; padding-left: 1.1rem; }
   .ligne summary:hover h3 { text-decoration: underline; text-underline-offset: 3px; }
+  .ligne .simple { display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; padding: .9rem .25rem; align-items: baseline; }
 
+  .notes-100 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--trait); border: 1px solid var(--trait); margin: 1.25rem 0 0; }
+  .note-bloc { background: var(--fiche); padding: .85rem 1rem; --c: var(--inconnu); }
+  .note-bloc.bon { --c: var(--ok); } .note-bloc.moyen { --c: var(--attention); } .note-bloc.faible { --c: var(--alerte); }
+  .note-bloc summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto 1fr; gap: .1rem .9rem; align-items: baseline; }
+  .note-bloc summary::-webkit-details-marker { display: none; }
+  .note-chiffre { grid-row: span 2; font-family: "Archivo", sans-serif; font-weight: 900; font-stretch: 112%; font-size: 2.6rem; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
+  .note-chiffre small { font-size: .38em; font-weight: 700; color: var(--encre-douce); margin-left: .1rem; }
+  .note-nom { font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 110%; }
+  .note-sous { color: var(--encre-douce); font-size: .9rem; line-height: 1.35; }
+  .note-bloc summary:hover .note-nom { text-decoration: underline; text-underline-offset: 3px; }
+  .note-detail { margin: .75rem 0 0; padding: 0; list-style: none; font-size: .9rem; }
+  .note-detail li { display: flex; justify-content: space-between; gap: 1rem; padding: .2rem 0; border-top: 1px dotted var(--trait); }
+  .note-detail b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .partie { margin-top: 2rem; }
+  .partie > h3 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.15rem; margin: 0 0 .35rem; }
+  .partie > p.intro { margin: 0 0 .75rem; color: var(--encre-douce); font-size: .92rem; }
+  .table-defile { overflow-x: auto; border-top: 2px solid var(--encre); }
+  table.challenges { width: 100%; border-collapse: collapse; font-size: .92rem; font-variant-numeric: tabular-nums; }
+  table.challenges th, table.challenges td { text-align: left; padding: .55rem .5rem; border-bottom: 1px solid var(--trait); vertical-align: top; }
+  table.challenges th { font-family: "Archivo", sans-serif; font-weight: 700; font-size: .82rem; color: var(--encre-douce); }
+  table.challenges td.chiffre { font-family: "Archivo", sans-serif; font-weight: 800; font-size: 1.05rem; white-space: nowrap; }
+  table.challenges td small { display: block; font-family: "Atkinson Hyperlegible", sans-serif; font-weight: 400; font-size: .8rem; color: var(--encre-douce); }
+  .haut { color: var(--ok); } .milieu { color: var(--attention); } .bas { color: var(--alerte); }
+  .remarques { margin: .6rem 0 0; padding-left: 1.1rem; font-size: .88rem; color: var(--encre-douce); }
+  .remarques li { margin-bottom: .2rem; }
+  @media (max-width: 40rem) {
+    .notes-100 { grid-template-columns: 1fr; }
+    table.challenges thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    table.challenges tr { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem 1rem; padding: .75rem .25rem; border-bottom: 1px solid var(--trait); }
+    table.challenges td { display: block; padding: 0; border: 0; }
+    table.challenges td:first-child, table.challenges td:nth-child(2) { grid-column: 1 / -1; }
+    table.challenges td[data-l]::before { content: attr(data-l); display: block; font-family: "Atkinson Hyperlegible", sans-serif; font-weight: 400; font-size: .78rem; color: var(--encre-douce); }
+  }
   .notes { margin-top: 1.5rem; font-size: .9rem; color: var(--encre-douce); }
   .notes p { margin: .3rem 0; }
 
@@ -143,7 +177,7 @@
   @media (max-width: 40rem) {
     .fiche-tete { grid-template-columns: 1fr; }
     .tampon { justify-self: start; }
-    .ligne details summary { grid-template-columns: 1fr; gap: .2rem; }
+    .ligne details summary, .ligne .simple { grid-template-columns: 1fr; gap: .2rem; }
     .ligne .detail { padding-left: .25rem; }
   }
 </style>
@@ -215,17 +249,19 @@
 </div>
 
 <script src="engine.js"></script>
+<script src="analyses.js"></script>
 <script src="exemples.js"></script>
 <script>
 (function () {
   "use strict";
   const E = window.LaboEngine;
+  const AN = window.LaboAnalyses;
 
   const T = {
     fr: {
       marque_sous: "— test indépendant de robots MT5",
       titre: "Ce robot cache-t-il une martingale ?",
-      sous_titre: "Déposez le rapport du testeur de stratégie MetaTrader 5. En quelques secondes : martingale, grille, stop-loss, trades ultra-courts et règles de prop firm vérifiés, avec des exemples tirés des trades.",
+      sous_titre: "Déposez le rapport du testeur de stratégie MetaTrader 5. En quelques secondes : martingale, grille et stop-loss vérifiés, une note de sécurité et de solidité sur 100, et vos chances sur 6 challenges de prop firms (FTMO, FundedNext, The5ers).",
       depot_titre: "Déposer un rapport du testeur (.html)",
       depot_aide: "Glissez le fichier ici, ou cliquez pour le choisir.",
       exemples: "Pas de rapport sous la main ? Essayer avec :",
@@ -237,13 +273,13 @@
       etape3: "À la fin du test, onglet Backtest : clic droit → Rapport → HTML (Internet Explorer).",
       etape4: "Déposez ce fichier .html ci-dessus.",
       pied1: "Ce rapport décrit le comportement observé du robot dans le test fourni. Ce n'est pas un conseil en investissement. Les résultats passés ne préjugent pas des résultats futurs.",
-      pied2: "Seuils étalonnés sur 10 robots de référence testés par le labo MantaLab (martingales, grilles, robots propres). Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
+      pied2: "Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 209 tests de robots au comportement connu sur 19 marchés (96 % de verdicts justes). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
       offre_titre: "Vous hésitez avant d'acheter un robot ?",
       offre_texte: "Le rapport du vendeur montre ce qu'il veut bien montrer. Le labo MantaLab fait tourner le robot lui-même et vous remet une fiche indépendante :",
       offre_1: "martingale, grille, stops virtuels : ce que le robot fait vraiment, pas ce que dit sa notice ;",
       offre_2: "le pire observé : série de pertes, exposition maximale, drawdown ;",
       offre_3: "4 scénarios : exécution idéale, retards, ticks réels, autre année ;",
-      offre_4: "compatibilité prop firm, en PDF, sous 48 h.",
+      offre_4: "notes de sécurité et de solidité, 6 challenges de prop firms simulés, en PDF, sous 48 h.",
       offre_commander: "Faire auditer un robot",
       offre_exemple: "Voir une fiche d'exemple",
       analyse: "Analyse en cours…",
@@ -262,6 +298,57 @@
       exemple_label: "Exemple simulé",
       avert: "Remarques de lecture :",
       avertissements: { directions: (a) => `${a.n} transaction(s) avec un sens entrée/sortie non reconnu : déduit du profit.`, ordres: () => "Table des ordres introuvable : le stop-loss ne peut pas être vérifié.", depot: () => "Dépôt initial introuvable : 10 000 supposé." },
+      note_nom: { securite: "Sécurité", solidite: "Solidité" },
+      note_sous: { securite: "Le robot prend-il des risques cachés ?", solidite: "Ses gains sont-ils solides, ou dus à la chance ?" },
+      note_niveau: { bon: "bon", moyen: "moyen", faible: "faible", inconnu: "pas assez de données" },
+      note_rien: "Aucun point retiré.",
+      note_detail: {
+        martingale_alerte: "Martingale", martingale_attention: "Hausses de mise après une perte",
+        grille_alerte: "Grille", grille_attention: "Renforts de positions perdantes",
+        stop_manquant_alerte: "Pas de stop-loss", stop_manquant_attention: "Positions parfois sans stop-loss", stop_virtuel: "Stop « virtuel » seulement",
+        profil_alerte: "Petits gains, grosses pertes", latentes_alerte: "Pertes latentes cachées", latentes_attention: "Pertes latentes importantes",
+        drawdown_30: "Drawdown d'équité d'au moins 30 %", drawdown_20: "Drawdown d'équité d'au moins 20 %", serie_20: "Série de pertes d'au moins 20 % du dépôt", compte_ruine: "Compte ruiné pendant le test",
+        psr: "Avantage probablement réel", dsr: "… même en cas de sur-optimisation", historique: "Test assez long pour conclure", stabilite: "Gagnant dans chaque période",
+        dependance: "Ne dépend pas de quelques gros gains", bootstrap: "Résiste aux variantes de l'historique", plafond_risque_cache: "Plafond : risque caché dans des pertes rares",
+        plafond_risque_eleve: "Plafond : risque élevé", plafond_risque_moyen: "Plafond : risque moyen",
+      },
+      statut_sol: { ok: "Solide", attention: "Fragile", alerte: "Faible", inconnu: "Pas assez de données" },
+      sol_titre: "Solidité des gains",
+      sol_intro: (s) => `Calculée sur ${s.jours} jours de cotation. Les gains d'un robot peuvent venir d'un vrai avantage, ou de la chance et d'un réglage collé au passé.`,
+      sol_inconnu: (s) => `Pas assez de données pour conclure : ${s.jours} jours et ${s.positions} positions (il en faut au moins 20 et 30).`,
+      sol_titres: { psr: "Avantage réel ?", dsr: "Sur-optimisation", historique: "Durée du test", stabilite: "Stabilité dans le temps", dependance: "Dépendance aux gros gains", bootstrap: "Variantes de l'historique" },
+      sol: {
+        psr: (s) => `Probabilité que l'avantage soit réel : ${pc(s.psr)}. Ce calcul (Bailey et López de Prado) tient compte de la durée du test et des pertes extrêmes. Sharpe annuel : ${num(s.sharpeAnnuel, 2)}.`,
+        dsr: (s) => `Si le vendeur a essayé ${s.essaisSupposes} réglages et gardé le meilleur : ${pc(s.dsr)}. Un résultat élevé ici protège contre la sur-optimisation.`,
+        historique: (s) => s.minJours === null ? "Le robot ne gagne pas en moyenne : aucune durée de test ne pourrait prouver un avantage." : s.historiqueSuffisant ? `Assez long : ${s.jours} jours, il en fallait ${s.minJours} pour conclure à 95 %.` : `Trop court : ${s.jours} jours, il en faudrait ${s.minJours > 2520 ? "plus de 10 ans de cotation" : num(s.minJours)} pour conclure à 95 %.`,
+        stabilite: (s) => `Gagnant dans ${s.tranchesPositives} période(s) sur ${s.tranches.length} de même durée : ${s.tranches.map((t) => fmtSigne(t.net)).join(" · ")}.`,
+        dependance: (s) => `Résultat total ${fmtSigne(s.net)}. Sans ses 5 meilleurs trades : ${fmtSigne(s.sansTop5)}. Sans ses ${s.top5pctN} meilleurs (5 %) : ${fmtSigne(s.sansTop5pct)}.`,
+        bootstrap: (s) => `Sur ${s.bootstrap.tirages} variantes de l'historique (mois tirés au hasard) : ${pc(s.bootstrap.pPerte)} finissent en perte. Drawdown médian ${pc(s.bootstrap.ddMedian)}, ${pc(s.bootstrap.ddP95)} dans les 5 % pires cas.`,
+      },
+      integ_titre: "Intégrité du test",
+      integ_titres: { latentes: "Pertes latentes", trous: "Trous d'activité", lisse: "Courbe trop régulière" },
+      integ: {
+        latentes: (c) => c.niveau === "inconnu" ? "Le rapport ne donne pas le drawdown d'équité." : c.niveau === "ok" ? `Le pire recul de l'équité (${pc(c.mesures.ddEquite, 1)}) correspond à celui du solde (${pc(c.mesures.ddSolde, 1)}) : pas de pertes cachées dans des positions restées ouvertes.` : `Le pire recul de l'équité (${pc(c.mesures.ddEquite, 1)}) vaut ${num(c.mesures.ratio, 1)} fois celui du solde (${pc(c.mesures.ddSolde, 1)}) : le robot garde des positions perdantes ouvertes, invisibles sur la courbe de solde.`,
+        trous: (c) => c.niveau === "inconnu" ? "Pas assez de positions pour juger." : c.niveau === "ok" ? "Aucune longue période sans trader." : `${c.mesures.trous} période(s) sans aucune position, la plus longue de ${c.mesures.plusLong} jours (${c.exemples.map((t) => E.fmtT(t.debut).slice(0, 10) + " → " + E.fmtT(t.fin).slice(0, 10)).join(", ")}), alors qu'il ouvre d'habitude une position toutes les ${num(c.mesures.ecartMedianHeures, 0)} h. Filtre de dates, marge insuffisante ou robot bloqué : à comprendre avant d'acheter.`,
+        lisse: (c) => c.niveau === "ok" ? `Courbe de solde sans régularité suspecte (R² ${num(c.mesures.r2, 3)}).` : `Courbe de solde presque parfaitement droite (R² ${num(c.mesures.r2, 3)}) avec ${pc(c.mesures.taux)} de trades gagnants : signature fréquente d'une martingale ou d'un test retouché.`,
+      },
+      chal_titre: "Simulation de challenges de prop firms",
+      chal_intro: (c) => `Règles officielles relevées le 22/11/2026. Deux mesures : ${c.tirages} variantes de l'historique (blocs d'un mois tirés au hasard), et le challenge lancé chaque jour du vrai historique, dans l'ordre exact des trades. Jamais plus long que la durée du test.`,
+      chal_cols: ["Challenge", "Objectif · perte par jour · perte max", "Réussite", "Historique réel", "Meilleure taille"],
+      chal_regles: (r) => `${r.phases.map((x) => pc(x)).join(" puis ")} · ${pc(r.jour)} · ${pc(r.max)}${r.suiveur ? " suiveuse" : ""}`,
+      chal_reussite: (t) => (t.joursMedian ? `en ${t.joursMedian} jours de cotation (médiane)` : ""),
+      chal_reel: (r) => (r.reussite === null ? "pas conclu" : pc(r.reussite)),
+      chal_reel_sous: (r) => (r.reussite !== null ? `sur ${r.departs} départs` : r.departs ? `trop peu de départs (${r.departs})` : "test trop court"),
+      chal_taille: (m) => `×${num(m.k, 2)} : ${pc(m.reussite)}`,
+      chal_inconnu: "Pas assez de jours de trading pour simuler un challenge.",
+      chal_rem: {
+        base: "Calcul sur les positions fermées, jour par jour : une perte latente d'une position encore ouverte n'est pas vue.",
+        optimiste: "Ce robot garde des pertes latentes importantes : en vrai challenge, il ferait moins bien que cette simulation.",
+        eleve: "Robot à risque élevé : réussir un challenge ne veut pas dire garder le compte financé. Martingales et grilles finissent souvent par une grosse perte, et beaucoup de prop firms les interdisent. Aucune taille n'est conseillée.",
+        quick_strike: (c) => `FundedNext limite les positions de moins de 30 secondes à 30 % : ce robot en a ${pc(c.partMoins30s)}.`,
+        nonConfirme: "The5ers : la base de calcul de la perte journalière et le type de perte maximale ne sont pas précisés sur leur site ; on les suppose identiques à FTMO 2-Step.",
+        taille: "Taille = taille des positions par rapport au test (×0,5 = deux fois plus petites).",
+      },
       txt: {
         pas_assez: (d) => `Pas assez de trades pour conclure (${d.n}).`,
         martingale_alerte: (d) => `Après une perte, le robot augmente la taille de la position suivante dans ${pc(d.part)} des cas (${d.hausses} fois), jusqu'à ${d.chaineMax} fois d'affilée. Sa plus grosse position fait ${d.mult}× la plus petite.`,
@@ -293,7 +380,7 @@
     en: {
       marque_sous: "— independent MT5 robot testing",
       titre: "Is this robot hiding a martingale?",
-      sous_titre: "Drop a MetaTrader 5 Strategy Tester report. In seconds: martingale, grid, stop-loss, ultra-short trades and prop-firm rules checked, with examples taken from the trades.",
+      sous_titre: "Drop a MetaTrader 5 Strategy Tester report. In seconds: martingale, grid and stop-loss checked, a safety and solidity score out of 100, and your odds on 6 prop-firm challenges (FTMO, FundedNext, The5ers).",
       depot_titre: "Drop a Strategy Tester report (.html)",
       depot_aide: "Drag the file here, or click to choose it.",
       exemples: "No report at hand? Try with:",
@@ -305,13 +392,13 @@
       etape3: "When the test ends, Backtest tab: right-click → Report → HTML (Internet Explorer).",
       etape4: "Drop that .html file above.",
       pied1: "This report describes the robot's observed behaviour in the test provided. It is not investment advice. Past results do not guarantee future results.",
-      pied2: "Thresholds calibrated on 10 reference robots tested by the MantaLab lab (martingales, grids, clean robots). A remark, a mistake? They help make the tool more reliable.",
+      pied2: "Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 209 tests of robots with known behaviour across 19 markets (96% correct verdicts). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.",
       offre_titre: "Thinking about buying a robot?",
       offre_texte: "The seller's report shows what the seller wants you to see. The MantaLab lab runs the robot itself and gives you an independent report:",
       offre_1: "martingale, grid, virtual stops: what the robot really does, not what its manual says;",
       offre_2: "the worst observed: losing streak, maximum exposure, drawdown;",
       offre_3: "4 scenarios: ideal execution, delays, real ticks, another year;",
-      offre_4: "prop-firm compatibility, as a PDF, within 48 h.",
+      offre_4: "safety and solidity scores, 6 prop-firm challenges simulated, as a PDF, within 48 h.",
       offre_commander: "Get a robot audited",
       offre_exemple: "See a sample report",
       analyse: "Analysing…",
@@ -330,6 +417,57 @@
       exemple_label: "Simulated example",
       avert: "Reading notes:",
       avertissements: { directions: (a) => `${a.n} deal(s) with an unrecognised in/out direction: inferred from profit.`, ordres: () => "Orders table not found: stop-loss cannot be checked.", depot: () => "Initial deposit not found: 10,000 assumed." },
+      note_nom: { securite: "Safety", solidite: "Solidity" },
+      note_sous: { securite: "Does the robot take hidden risks?", solidite: "Are its gains solid, or down to luck?" },
+      note_niveau: { bon: "good", moyen: "average", faible: "poor", inconnu: "not enough data" },
+      note_rien: "No points deducted.",
+      note_detail: {
+        martingale_alerte: "Martingale", martingale_attention: "Size increases after a loss",
+        grille_alerte: "Grid", grille_attention: "Adding to losing positions",
+        stop_manquant_alerte: "No stop-loss", stop_manquant_attention: "Positions sometimes without stop-loss", stop_virtuel: "“Virtual” stop only",
+        profil_alerte: "Small wins, large losses", latentes_alerte: "Hidden floating losses", latentes_attention: "Large floating losses",
+        drawdown_30: "Equity drawdown of 30% or more", drawdown_20: "Equity drawdown of 20% or more", serie_20: "Losing streak of 20% of deposit or more", compte_ruine: "Account wiped out during the test",
+        psr: "Edge probably real", dsr: "… even allowing for over-optimisation", historique: "Test long enough to conclude", stabilite: "Profitable in every period",
+        dependance: "Not reliant on a few big wins", bootstrap: "Holds up across history variants", plafond_risque_cache: "Cap: risk hidden in rare losses",
+        plafond_risque_eleve: "Cap: high risk", plafond_risque_moyen: "Cap: medium risk",
+      },
+      statut_sol: { ok: "Solid", attention: "Fragile", alerte: "Weak", inconnu: "Not enough data" },
+      sol_titre: "Solidity of the gains",
+      sol_intro: (s) => `Computed on ${s.jours} trading days. A robot's gains can come from a real edge, or from luck and settings fitted to the past.`,
+      sol_inconnu: (s) => `Not enough data to conclude: ${s.jours} days and ${s.positions} positions (at least 20 and 30 are needed).`,
+      sol_titres: { psr: "Real edge?", dsr: "Over-optimisation", historique: "Test length", stabilite: "Stability over time", dependance: "Reliance on big wins", bootstrap: "History variants" },
+      sol: {
+        psr: (s) => `Probability that the edge is real: ${pc(s.psr)}. This calculation (Bailey and López de Prado) accounts for the test length and extreme losses. Annual Sharpe: ${num(s.sharpeAnnuel, 2)}.`,
+        dsr: (s) => `If the seller tried ${s.essaisSupposes} settings and kept the best: ${pc(s.dsr)}. A high figure here guards against over-optimisation.`,
+        historique: (s) => s.minJours === null ? "The robot does not win on average: no test length could prove an edge." : s.historiqueSuffisant ? `Long enough: ${s.jours} days, ${s.minJours} were needed to conclude at 95%.` : `Too short: ${s.jours} days, ${s.minJours > 2520 ? "more than 10 years of trading" : num(s.minJours)} would be needed to conclude at 95%.`,
+        stabilite: (s) => `Profitable in ${s.tranchesPositives} of ${s.tranches.length} equal periods: ${s.tranches.map((t) => fmtSigne(t.net)).join(" · ")}.`,
+        dependance: (s) => `Total result ${fmtSigne(s.net)}. Without its 5 best trades: ${fmtSigne(s.sansTop5)}. Without its ${s.top5pctN} best (5%): ${fmtSigne(s.sansTop5pct)}.`,
+        bootstrap: (s) => `Across ${s.bootstrap.tirages} variants of the history (months drawn at random): ${pc(s.bootstrap.pPerte)} end in a loss. Median drawdown ${pc(s.bootstrap.ddMedian)}, ${pc(s.bootstrap.ddP95)} in the worst 5%.`,
+      },
+      integ_titre: "Test integrity",
+      integ_titres: { latentes: "Floating losses", trous: "Activity gaps", lisse: "Suspiciously smooth curve" },
+      integ: {
+        latentes: (c) => c.niveau === "inconnu" ? "The report does not give the equity drawdown." : c.niveau === "ok" ? `The worst equity decline (${pc(c.mesures.ddEquite, 1)}) matches the balance's (${pc(c.mesures.ddSolde, 1)}): no losses hidden in positions left open.` : `The worst equity decline (${pc(c.mesures.ddEquite, 1)}) is ${num(c.mesures.ratio, 1)} times the balance's (${pc(c.mesures.ddSolde, 1)}): the robot keeps losing positions open, invisible on the balance curve.`,
+        trous: (c) => c.niveau === "inconnu" ? "Not enough positions to judge." : c.niveau === "ok" ? "No long period without trading." : `${c.mesures.trous} period(s) with no position at all, the longest ${c.mesures.plusLong} days (${c.exemples.map((t) => E.fmtT(t.debut).slice(0, 10) + " → " + E.fmtT(t.fin).slice(0, 10)).join(", ")}), while it usually opens a position every ${num(c.mesures.ecartMedianHeures, 0)} h. Date filter, insufficient margin or a stuck robot: worth understanding before buying.`,
+        lisse: (c) => c.niveau === "ok" ? `Balance curve with no suspicious regularity (R² ${num(c.mesures.r2, 3)}).` : `Almost perfectly straight balance curve (R² ${num(c.mesures.r2, 3)}) with ${pc(c.mesures.taux)} winning trades: a common signature of a martingale or an edited test.`,
+      },
+      chal_titre: "Prop-firm challenge simulation",
+      chal_intro: (c) => `Official rules checked on 22/11/2026. Two measures: ${c.tirages} variants of the history (one-month blocks drawn at random), and the challenge started on every day of the real history, in the exact order of the trades. Never longer than the test.`,
+      chal_cols: ["Challenge", "Target · daily loss · max loss", "Pass rate", "Real history", "Best size"],
+      chal_regles: (r) => `${r.phases.map((x) => pc(x)).join(" then ")} · ${pc(r.jour)} · ${pc(r.max)}${r.suiveur ? " trailing" : ""}`,
+      chal_reussite: (t) => (t.joursMedian ? `in ${t.joursMedian} trading days (median)` : ""),
+      chal_reel: (r) => (r.reussite === null ? "inconclusive" : pc(r.reussite)),
+      chal_reel_sous: (r) => (r.reussite !== null ? `over ${r.departs} starts` : r.departs ? `too few starts (${r.departs})` : "test too short"),
+      chal_taille: (m) => `×${num(m.k, 2)}: ${pc(m.reussite)}`,
+      chal_inconnu: "Not enough trading days to simulate a challenge.",
+      chal_rem: {
+        base: "Computed on closed positions, day by day: a floating loss on a position still open is not seen.",
+        optimiste: "This robot carries large floating losses: in a real challenge it would do worse than this simulation.",
+        eleve: "High-risk robot: passing a challenge does not mean keeping the funded account. Martingales and grids often end in a large loss, and many prop firms ban them. No size is recommended.",
+        quick_strike: (c) => `FundedNext caps positions shorter than 30 seconds at 30%: this robot has ${pc(c.partMoins30s)}.`,
+        nonConfirme: "The5ers: their site does not state the daily-loss basis or the max-loss type; assumed identical to FTMO 2-Step.",
+        taille: "Size = position size relative to the test (×0.5 = half as large).",
+      },
       txt: {
         pas_assez: (d) => `Not enough trades to conclude (${d.n}).`,
         martingale_alerte: (d) => `After a loss, the robot increases the size of its next position in ${pc(d.part)} of cases (${d.hausses} times), up to ${d.chaineMax} times in a row. Its largest position is ${d.mult}× its smallest.`,
@@ -366,6 +504,61 @@
 
   function pc(x, dec = 0) { return (x * 100).toFixed(dec).replace(".", langue === "fr" ? "," : ".") + (langue === "fr" ? " %" : "%"); }
   function fmtArgent(v) { return v.toLocaleString(langue === "fr" ? "fr-FR" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function num(x, dec = 0) { return Number(x).toLocaleString(langue === "fr" ? "fr-FR" : "en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+  function fmtSigne(v) { return (v > 0 ? "+" : v < 0 ? "−" : "") + fmtArgent(Math.abs(v)); }
+  function classeTaux(x) { return x >= 0.6 ? "haut" : x >= 0.3 ? "milieu" : "bas"; }
+  function niveauSol(k, s) {
+    switch (k) {
+      case "psr": return s.psr >= 0.95 ? "ok" : s.psr >= 0.75 ? "attention" : "alerte";
+      case "dsr": return s.dsr >= 0.95 ? "ok" : s.dsr >= 0.5 ? "attention" : "alerte";
+      case "historique": return s.historiqueSuffisant ? "ok" : s.minJours === null ? "alerte" : "attention";
+      case "stabilite": return s.tranchesPositives === s.tranches.length ? "ok" : s.tranchesPositives * 2 >= s.tranches.length ? "attention" : "alerte";
+      case "dependance": return s.net <= 0 ? "alerte" : s.sansTop5pct > 0 ? "ok" : s.sansTop5 > 0 ? "attention" : "alerte";
+      case "bootstrap": return s.bootstrap.pPerte <= 0.05 ? "ok" : s.bootstrap.pPerte <= 0.25 ? "attention" : "alerte";
+    }
+    return "inconnu";
+  }
+  function ligneSimple(niveau, statutTxt, titre, texte) {
+    return `<li class="ligne"><div class="simple"><span class="statut ${niveau}">${esc(statutTxt)}</span><div><h3>${esc(titre)}</h3><p class="resume">${esc(texte)}</p></div></div></li>`;
+  }
+  function blocsAnalyses(a, risque) {
+    const L = T[langue], n = a.notes;
+    const note = (k) => {
+      const v = n[k], niv = n[k === "securite" ? "niveauSecurite" : "niveauSolidite"], det = n[k === "securite" ? "detailSecurite" : "detailSolidite"];
+      const lignes = det.length ? det.map((d) => `<li><span>${esc(L.note_detail[d.cle] || d.cle)}</span><b>${d.points > 0 ? "+" : d.points < 0 ? "−" : ""}${Math.abs(d.points)}${d.max ? " / " + d.max : ""}</b></li>`).join("") : `<li><span>${esc(L.note_rien)}</span></li>`;
+      return `<details class="note-bloc ${niv}"><summary><span class="note-chiffre">${v === null ? "–" : v}<small>/100</small></span>
+        <span class="note-nom">${esc(L.note_nom[k])} · ${esc(L.note_niveau[niv])}</span><span class="note-sous">${esc(L.note_sous[k])}</span></summary>
+        <ul class="note-detail">${lignes}</ul></details>`;
+    };
+    const s = a.solidite;
+    const sol = s.niveau !== "ok"
+      ? ligneSimple("inconnu", L.statut_sol.inconnu, L.sol_titre, L.sol_inconnu(s))
+      : ["psr", "dsr", "historique", "stabilite", "dependance", "bootstrap"].map((k) => { const nv = niveauSol(k, s); return ligneSimple(nv, L.statut_sol[nv], L.sol_titres[k], L.sol[k](s)); }).join("");
+    const integ = a.integrite.constats.map((c) => ligneSimple(c.niveau, L.statut[c.niveau], L.integ_titres[c.code], L.integ[c.code](c))).join("");
+    const ch = a.challenges;
+    let chal;
+    if (ch.niveau !== "ok") chal = `<p class="intro">${esc(L.chal_inconnu)}</p>`;
+    else {
+      const c = L.chal_cols;
+      const lignes = ch.firmes.map((f) => `<tr><td><b>${esc(f.nom)}</b>${f.regles.nonConfirme ? " *" : ""}</td><td>${esc(L.chal_regles(f.regles))}</td>
+        <td class="chiffre ${classeTaux(f.taille1.reussite)}" data-l="${esc(c[2])}">${pc(f.taille1.reussite)}<small>${esc(L.chal_reussite(f.taille1))}</small></td>
+        <td class="chiffre${f.reel.reussite === null ? "" : " " + classeTaux(f.reel.reussite)}" data-l="${esc(c[3])}">${esc(L.chal_reel(f.reel))}<small>${esc(L.chal_reel_sous(f.reel))}</small></td>
+        <td class="chiffre" data-l="${esc(c[4])}">${risque === "eleve" ? "—" : esc(L.chal_taille(f.meilleur))}</td></tr>`).join("");
+      const rem = [L.chal_rem.base, L.chal_rem.taille];
+      if (ch.optimiste) rem.unshift(L.chal_rem.optimiste);
+      if (risque === "eleve") rem.unshift(L.chal_rem.eleve);
+      if (ch.firmes.some((f) => f.interdit === "quick_strike")) rem.unshift(L.chal_rem.quick_strike(ch));
+      if (ch.firmes.some((f) => f.regles.nonConfirme)) rem.push("* " + L.chal_rem.nonConfirme);
+      chal = `<p class="intro">${esc(L.chal_intro(ch))}</p><div class="table-defile"><table class="challenges"><thead><tr>${L.chal_cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead><tbody>${lignes}</tbody></table></div>
+        <ul class="remarques">${rem.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    }
+    return {
+      notes: `<div class="notes-100">${note("securite")}${note("solidite")}</div>`,
+      parties: `<section class="partie"><h3>${esc(L.sol_titre)}</h3>${s.niveau === "ok" ? `<p class="intro">${esc(L.sol_intro(s))}</p>` : ""}<ul class="lignes">${sol}</ul></section>
+        <section class="partie"><h3>${esc(L.integ_titre)}</h3><ul class="lignes">${integ}</ul></section>
+        <section class="partie"><h3>${esc(L.chal_titre)}</h3>${chal}</section>`,
+    };
+  }
   function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
   function compter(evenement) {
@@ -380,7 +573,7 @@
     if (dernier) afficher(dernier, false);
   }
 
-  function afficher({ resultat: r, avertissements, exemple }, animer = true) {
+  function afficher({ resultat: r, analyses, avertissements, exemple }, animer = true) {
     const L = T[langue];
     const b = r.backtest;
     const ordre = ["martingale", "grille", "stop_loss", "trades_courts", "profil", "prop"];
@@ -396,6 +589,7 @@
     }).join("");
     const prop = r.compatibleProp === null ? L.indetermine : r.compatibleProp ? `<span class="oui">${L.oui}</span>`
       : `<span class="non">${L.non}</span> — ${esc(r.raisonsProp.map((k) => L.raisons[k]).join(", "))}`;
+    const bx = analyses ? blocsAnalyses(analyses, r.risque) : { notes: "", parties: "" };
     const notes = avertissements && avertissements.length ? `<div class="notes"><p>${esc(L.avert)}</p>${avertissements.map((a) => `<p>${esc(L.avertissements[a.code] ? L.avertissements[a.code](a) : a.code)}</p>`).join("")}</div>` : "";
     document.getElementById("resultat").innerHTML = `
       <article class="fiche" aria-labelledby="fiche-titre">
@@ -406,8 +600,10 @@
           </div>
           <div class="tampon ${r.risque}${animer ? " pose" : ""}" ${animer ? "" : 'style="opacity:.92"'} role="img" aria-label="${esc(L.risque[r.risque])}">${esc(L.risque[r.risque])}<small>${esc(L.tampon_sous)}</small></div>
         </div>
+        ${bx.notes}
         <p class="prop">${esc(L.prop_oui)} ${prop}</p>
         <ul class="lignes">${lignes}</ul>
+        ${bx.parties}
         ${notes}
       </article>`;
     if (animer) document.getElementById("resultat").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
@@ -425,7 +621,8 @@
     try {
       const html = E.decode(await f.arrayBuffer());
       const { backtest, avertissements } = E.parseMt5Report(html);
-      dernier = { resultat: E.auditer(backtest), avertissements, exemple: null };
+      const resultat = E.auditer(backtest);
+      dernier = { resultat, analyses: AN.analyser(resultat), avertissements, exemple: null };
       afficher(dernier);
       compter("rapport-analyse");
     } catch (e) {
@@ -444,7 +641,8 @@
   document.querySelectorAll("[data-exemple]").forEach((btn) => btn.addEventListener("click", () => {
     montrerErreur("");
     const nom = btn.dataset.exemple;
-    dernier = { resultat: E.auditer(window.LaboExemples[nom]()), avertissements: [], exemple: nom };
+    const resultat = E.auditer(window.LaboExemples[nom]());
+    dernier = { resultat, analyses: AN.analyser(resultat), avertissements: [], exemple: nom };
     afficher(dernier);
     compter("exemple-" + nom);
   }));
