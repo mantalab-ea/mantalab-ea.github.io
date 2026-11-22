@@ -247,10 +247,12 @@
   // ---------------------------------------------------------------- détecteurs
 
   const REGLAGES = {
-    ratioMartingale: 1.5, minEvenementsMartingale: 3, partMartingaleAlerte: 0.3, chaineMartingaleAlerte: 3,
+    ratioMartingale: 1.5, ratioGrilleMartingale: 1.25, minEvenementsMartingale: 3, partMartingaleAlerte: 0.3, chaineMartingaleAlerte: 3,
     maxPositionsGrilleAlerte: 3, minEntreesGrille: 3,
     partSansStopAlerte: 0.5, partSansStopAttention: 0.1,
     minPertesStopVirtuel: 10, toleranceStopVirtuel: 0.15, partStopVirtuel: 0.7,
+    partPlafondStop: 0.3, partAuDelaPlafond: 0.05, partRenfortsAttention: 0.02,
+    partRenfortsAlerte: 0.15, partStopPoseApres: 0.25, partPileStop: 0.1, densitePileStop: 2, partAuDelaGaps: 0.2,
     dureeCourteSecondes: 60, partCourteAlerte: 0.3, partCourteAttention: 0.05,
     tauxReussiteSuspect: 0.85, ratioPerteGainSuspect: 3.0,
     perteJourMax: 0.05, perteTotaleMax: 0.10, minPositions: 20,
@@ -294,9 +296,13 @@
   function detecterGrille(positions, r) {
     if (positions.length < r.minPositions) return pasAssez("grille", positions.length);
     const ev = [];
+    // À temps égal : fermetures, puis positions ouvertes ET fermées dans la même seconde (ouverture
+    // avant fermeture), puis ouvertures. Campagne 2026-11-21 : sans ça, une position de durée 0 n'était
+    // jamais retirée et un scalpeur passait pour une grille (NZDUSD : 5 positions « simultanées »).
     positions.forEach((p) => {
-      ev.push({ t: p.ouverture, o: 1, p });
-      if (fermee(p)) ev.push({ t: p.fermeture, o: 0, p });
+      const nulle = fermee(p) && p.fermeture === p.ouverture;
+      ev.push({ t: p.ouverture, o: nulle ? 0.5 : 1, ouvre: true, p });
+      if (fermee(p)) ev.push({ t: p.fermeture, o: nulle ? 0.75 : 0, ouvre: false, p });
     });
     ev.sort((a, b) => a.t - b.t || a.o - b.o);
     const ouvertes = new Map();
@@ -306,7 +312,7 @@
       const cle = e.p.symbole + "|" + e.p.sens;
       if (!ouvertes.has(cle)) ouvertes.set(cle, []);
       const deja = ouvertes.get(cle);
-      if (!e.o) {
+      if (!e.ouvre) {
         const k = deja.indexOf(e.p);
         if (k >= 0) deja.splice(k, 1);
         continue;
@@ -316,7 +322,8 @@
         const pire = e.p.sens === "buy" ? e.p.prixEntree < d.prixEntree : e.p.prixEntree > d.prixEntree;
         if (pire) {
           defav++;
-          if (e.p.volume >= d.volume * r.ratioMartingale - EPS) {
+          // ×1,25 et non ×1,5 : l'arrondi des lots transforme une grille ×1,5 en 0,15 → 0,22 (×1,47) ; une grille plate = ×1,00
+          if (e.p.volume >= d.volume * r.ratioGrilleMartingale - EPS) {
             hausses++;
             if (exemplesHausse.length < 3) exemplesHausse.push({ t: e.p.ouverture, rang: deja.length + 1, v0: d.volume, v1: e.p.volume, symbole: e.p.symbole });
           }
@@ -329,9 +336,13 @@
     const mesures = { simMax, defav, hausses };
     let niveau = "ok";
     if (simMax >= r.maxPositionsGrilleAlerte && defav >= r.minEntreesGrille) niveau = "alerte";
+    // Moyenne à la baisse SYSTÉMATIQUE même sans 3 positions empilées : le panier se ferme dès le 2e
+    // niveau (campagne 2026-11-21 : grilles LaboSynth sur actions, 35-45 % des positions sont des renforts).
+    else if (simMax >= 2 && defav >= r.minEntreesGrille && defav / positions.length >= r.partRenfortsAlerte) niveau = "alerte";
     // « à surveiller » : au moins minEntreesGrille renforts. Étalonnage 2026-11-21 : Crossing MA (robot propre,
     // lot fixe, SL) fait 2 renforts en 87 positions par simple répétition de signal → ne doit pas être signalé.
-    else if (simMax >= 2 && defav >= r.minEntreesGrille) niveau = "attention";
+    // + proportion : un scalpeur qui chevauche 374 positions sur 55 123 (0,7 %) n'est pas une grille.
+    else if (simMax >= 2 && defav >= r.minEntreesGrille && defav / positions.length >= r.partRenfortsAttention) niveau = "attention";
     return { code: "grille", niveau, cle: "grille_" + niveau, donnees: mesures, mesures, exemples, exemplesHausse };
   }
 
@@ -349,7 +360,9 @@
       // par le stop du courtier. Étalonnage 2026-11-21 : VR Overturn.
       const pertes = sans.filter((p) => fermee(p) && p.profit < 0);
       const parSL = pertes.filter((p) => p.fermeParSL).length;
-      if (pertes.length >= r.minPertesStopVirtuel && parSL / pertes.length >= r.partStopVirtuel) {
+      // Une clôture « sl » est impossible sans stop chez le courtier : un quart des pertes suffit (sur actions,
+      // beaucoup de pertes sortent au temps ; campagne 2026-11-21 : AAPL 106/183).
+      if (pertes.length >= r.minPertesStopVirtuel && parSL >= r.minPertesStopVirtuel && parSL / pertes.length >= r.partStopPoseApres) {
         Object.assign(mesures, { poseApres: true, pertesParSL: parSL, pertes: pertes.length, partParSL: +(parSL / pertes.length).toFixed(3) });
         return { code: "stop_loss", niveau: "ok", cle: "stop_pose_apres", donnees: mesures, mesures, exemples: [] };
       }
@@ -376,13 +389,36 @@
     const n = d.length;
     const med = n % 2 ? d[(n - 1) / 2] : (d[n / 2 - 1] + d[n / 2]) / 2;
     if (!(med > 0)) return null;
-    const proches = d.filter((x) => Math.abs(x - med) <= r.toleranceStopVirtuel * med).length;
+    // Signature d'un stop : un PLAFOND. Les pertes s'empilent à une distance maximale qu'elles ne
+    // dépassent (presque) jamais, même si d'autres pertes plus petites existent (sorties au temps,
+    // signal inverse…). Étalonnage 2026-11-21 : la règle « 70 % autour de la médiane » ratait ces robots.
+    // d est trié : nombre de y dans [x(1-t), x(1+t)] par recherche dichotomique (O(n log n)).
+    const borne = (v, strict) => { let lo = 0, hi = n; while (lo < hi) { const m = (lo + hi) >> 1; if (strict ? d[m] <= v : d[m] < v) lo = m + 1; else hi = m; } return lo; };
+    let plafond = 0, proches = 0;
+    for (const x of d) {
+      if (x <= 0) continue;
+      const t = r.toleranceStopVirtuel * x;
+      const k = borne(x + t, true) - borne(x - t, false);
+      if (k > proches || (k === proches && x > plafond)) { plafond = x; proches = k; }
+    }
+    const auDela = d.filter((y) => y > plafond * (1 + 2 * r.toleranceStopVirtuel)).length;
     const part = proches / n;
-    if (part < r.partStopVirtuel) return null;
+    const estPlafond = plafond >= med && part >= r.partPlafondStop && auDela / n <= r.partAuDelaPlafond;
+    // Pile au plafond : moins de pertes au plafond (beaucoup de sorties au temps), mais nettement plus
+    // dans la bande du plafond que juste en dessous — une queue de pertes sans stop décroît au contraire.
+    const t = r.toleranceStopVirtuel;
+    const dessous = borne(plafond * (1 - t), false) - borne(plafond * (1 - 3 * t), false);
+    const pile = proches >= r.minPertesStopVirtuel && proches >= r.densitePileStop * Math.max(dessous, 1);
+    const estPile = plafond >= med && pile && part >= r.partPileStop && auDela / n <= r.partAuDelaPlafond;
+    // Pile très nette mais dépassée par des écarts (gaps d'ouverture sur actions : le stop virtuel
+    // ne s'exécute qu'au prix suivant). Campagne 2026-11-21 : AAPL, MSFT, NVDA, AMZN à 300 points.
+    const estPileGaps = plafond >= med && pile && part >= r.partPlafondStop && auDela / n <= r.partAuDelaGaps;
+    if (part < r.partStopVirtuel && !(estPlafond && proches >= r.minPertesStopVirtuel) && !estPile && !estPileGaps) return null;
+    const ref = part >= r.partStopVirtuel ? med : plafond;
     // Points estimés d'après le niveau de prix (5 décimales < 10, 3 décimales < 1000, sinon 2).
     const prix = sansStop[0].prixEntree;
     const point = prix < 10 ? 1e-5 : prix < 1000 ? 1e-3 : 1e-2;
-    return { virtuel: true, distance: +med.toFixed(6), points: Math.round(med / point), pertesProches: proches, pertes: n, partProches: +part.toFixed(3) };
+    return { virtuel: true, distance: +ref.toFixed(6), points: Math.round(ref / point), pertesProches: proches, pertes: n, partProches: +part.toFixed(3) };
   }
 
   function detecterTradesCourts(positions, r) {
