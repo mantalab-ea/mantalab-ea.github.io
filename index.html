@@ -195,7 +195,8 @@
   .bloc-tete { margin-bottom: 2.2rem; max-width: calc(50% - 1.5rem); }
   @media (max-width: 52rem) { .bloc-tete { max-width: none; } }
   .bloc-tete h2 { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
-  .bloc-sous { margin: 2.2rem auto 0; max-width: 40rem; text-align: center; color: var(--encre-2); text-wrap: balance; }
+  .bloc-sous { margin: 2.2rem auto 0; text-align: center; color: var(--encre-2); text-wrap: balance; }
+  @media (min-width: 64rem) { .bloc-sous { white-space: nowrap; } }
 
   .exemples { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline; color: var(--encre-2); font-size: .875rem; }
   .exemples button { font: 500 .875rem/1.4 "Inter", sans-serif; background: none; border: 0; padding: 0; color: var(--encre); cursor: pointer;
@@ -523,7 +524,7 @@
           <div class="cmp-c partiel" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">Un outil qui lit le rapport</small><span data-t="cmp_c5_o">Seulement si vous faites le test vous-même</span></span></div>
           <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">Le labo MantaLab</small><span data-t="cmp_c5_m">Envoyez le fichier, le labo s'occupe du reste</span></span></div></div>
       </div>
-      <p class="bloc-sous" data-t="plus_sous">Le rapport du vendeur montre ce qu'il veut bien montrer. Un outil d'analyse ne voit que ce rapport. Le labo MantaLab teste le robot lui-même.</p>
+      <p class="bloc-sous" data-t="plus_sous">Un outil d'analyse ne lit que le rapport du vendeur. Le labo MantaLab teste le robot lui-même.</p>
     </div>
   </section>
 
@@ -634,7 +635,7 @@
       v4_ex: "Moving Average : 94 % de chances d'un vrai avantage… 17 % une fois la sur-optimisation comptée.",
       v5_ex: "GridPro Panel : 31 % perdus en une seule journée. FTMO en tolère 5 %.",
       v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres.",
-      plus_titre: "Ce que nous faisons, et que les autres ne font pas.", plus_sous: "Le rapport du vendeur montre ce qu'il veut bien montrer. Un outil d'analyse ne voit que ce rapport. Le labo MantaLab teste le robot lui-même.",
+      plus_titre: "Ce que nous faisons, et que les autres ne font pas.", plus_sous: "Un outil d'analyse ne lit que le rapport du vendeur. Le labo MantaLab teste le robot lui-même.",
       cmp_col_v: "Le rapport du vendeur", cmp_col_o: "Un outil qui lit le rapport", cmp_col_m: "Le labo MantaLab",
       cmp_c1: "Martingale, grille, stops absents", cmp_c1_v: "Rarement signalés", cmp_c1_o: "Détectés", cmp_c1_m: "Détectés, avec un taux d'erreur publié",
       cmp_c2: "Robot testé par un tiers indépendant", cmp_c2_v: "Non, c'est le vendeur", cmp_c2_o: "Non, il lit le rapport qu'on lui donne", cmp_c2_m: "Oui : la démo officielle, ou votre fichier",
@@ -810,7 +811,7 @@
       v4_ex: "Moving Average: 94% chance of a real edge… 17% once over-optimisation is counted.",
       v5_ex: "GridPro Panel: 31% lost in a single day. FTMO allows 5%.",
       v6_ex: "A gold signal: 212 of 575 entries placed as baskets of 2 to 7 orders.",
-      plus_titre: "What we do that others don't.", plus_sous: "The seller's report shows what the seller wants to show. An analysis tool only sees that report. The MantaLab lab tests the robot itself.",
+      plus_titre: "What we do that others don't.", plus_sous: "An analysis tool only reads the seller's report. The MantaLab lab tests the robot itself.",
       cmp_col_v: "The seller's report", cmp_col_o: "A tool that reads the report", cmp_col_m: "The MantaLab lab",
       cmp_c1: "Martingale, grid, missing stops", cmp_c1_v: "Rarely disclosed", cmp_c1_o: "Detected", cmp_c1_m: "Detected, with a published error rate",
       cmp_c2: "Robot tested by an independent third party", cmp_c2_v: "No, it's the seller", cmp_c2_o: "No, it reads the report it's given", cmp_c2_m: "Yes: the official demo, or your file",
