@@ -186,11 +186,16 @@
     }
 
     const stats = {};
-    const ddTxt = findStat(allRows, [/equity drawdown maximal/, /drawdown maximal.*(fonds|équité|equite)/, /drawdown.*équité.*maximal/]);
-    if (ddTxt) {
-      const m = /\(([\d.,\s]+)%\)/.exec(ddTxt);
-      if (m) stats.drawdownEquiteMaxPct = parseNum(m[1]) / 100;
-    }
+    // Drawdown d'équité : MT5 en donne DEUX. « Relative » = le plus grand recul EN POURCENTAGE ; « Maximal » = le plus
+    // grand recul en ARGENT (avec son %). On garde le pourcentage le plus grand : un compte déjà entamé qui perd encore
+    // la moitié de ce qui reste ne doit pas être noté sur le plus grand montant (LaboSynth XAUUSD sans stop : 54,7 %
+    // contre 38,4 % ; vérifié minute par minute le 22/11/2026). Le « Relative » commence par le %, le « Maximal » le met entre ().
+    const ddRel = findStat(allRows, [/equity drawdown relative/, /drawdown relatif.*(fonds|équité|equite)/, /drawdown.*(fonds|équité).*relatif/]);
+    const ddMax = findStat(allRows, [/equity drawdown maximal/, /drawdown maximal.*(fonds|équité|equite)/, /drawdown.*équité.*maximal/]);
+    const pcts = [];
+    if (ddRel) { const m = /^\s*([\d.,\s]+)%/.exec(ddRel); if (m) pcts.push(parseNum(m[1]) / 100); }
+    if (ddMax) { const m = /\(([\d.,\s]+)%\)/.exec(ddMax); if (m) pcts.push(parseNum(m[1]) / 100); }
+    if (pcts.length) stats.drawdownEquiteMaxPct = Math.max(...pcts);
 
     const temps = transactions.map((t) => t.temps);
     return {

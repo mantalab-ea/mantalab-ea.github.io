@@ -123,7 +123,7 @@
    * Un enregistrement par jour de cotation (lundi-vendredi, + week-ends où le robot a agi) :
    * résultat des positions FERMÉES ce jour-là, en fraction du solde du début de journée.
    */
-  function serieJours(positions, debut, fin, depot, mouvements) {
+  function serieJours(positions, debut, fin, depot, mouvements, creuxParJour) {
     const pnl = new Map(), ouv = new Map(), mvt = new Map();
     // dépôts / retraits en cours de route (signaux) : ils changent le solde, ce ne sont ni des gains ni des pertes
     for (const m of mouvements || []) { const k = Math.floor(m.temps / JOUR); mvt.set(k, (mvt.get(k) || 0) + m.montant); }
@@ -143,10 +143,92 @@
       const js = new Date(k * JOUR).getUTCDay();
       if ((js === 0 || js === 6) && !g && !o) continue;
       const r = solde > 0 ? Math.max(-1, g / solde) : 0;
-      jours.push({ k, pnl: g, r, ouvertes: o });
+      // creux : pire moment de la journée (équité) en fraction du solde de minuit ; à défaut, le résultat fermé
+      const creux = Math.min(0, r, creuxParJour && creuxParJour.has(k) ? creuxParJour.get(k) : 0);
+      jours.push({ k, pnl: g, r, ouvertes: o, creux });
       solde += g + (mvt.get(k) || 0);
     }
     return jours;
+  }
+
+  // ---------------------------------------------------------------- équité minute par minute (audits du labo)
+
+  /** CSV de LaboBarres : « time;open;high;low;close;spread », time = « 2026.11.18 23:57 » (heure du serveur). */
+  function lireBarres(texte) {
+    const L = String(texte).split(/\r?\n/), n = L.length;
+    const t = new Float64Array(n), h = new Float64Array(n), l = new Float64Array(n), c = new Float64Array(n), e = new Float64Array(n);
+    let m = 0, decimales = 0;
+    for (let i = 1; i < n; i++) {
+      const x = L[i].split(";");
+      if (x.length < 5) continue;
+      const d = /^(\d{4})\.(\d{2})\.(\d{2}) (\d{2}):(\d{2})/.exec(x[0]);
+      if (!d) continue;
+      t[m] = Date.UTC(+d[1], +d[2] - 1, +d[3], +d[4], +d[5]); h[m] = +x[2]; l[m] = +x[3]; c[m] = +x[4]; e[m] = +x[5] || 0; m++;
+      const dec = (x[4].split(".")[1] || "").length;
+      if (dec > decimales) decimales = dec;
+    }
+    // écart (spread) en points → en prix : un point = 10^-décimales du cours écrit par LaboBarres (_Digits)
+    const point = Math.pow(10, -decimales);
+    for (let i = 0; i < m; i++) e[i] *= point;
+    return { t: t.subarray(0, m), h: h.subarray(0, m), l: l.subarray(0, m), c: c.subarray(0, m), ecart: e.subarray(0, m) };
+  }
+
+  /**
+   * Équité minute par minute : solde (positions fermées, dépôts) + pertes LATENTES des positions encore ouvertes,
+   * évaluées au pire de chaque minute : TOUTES au plus bas, ou TOUTES au plus haut (le cours ne peut pas être aux deux
+   * à la fois : un robot qui couvre achats et ventes n'est pas pénalisé deux fois ; Zone Recovery, 22/11/2026).
+   * Les ventes se rachètent au prix demandé : cours + écart (spread). La valeur d'un point par
+   * lot est retrouvée dans les trades eux-mêmes (profit ÷ écart de prix ÷ volume), symbole par symbole.
+   * Rend, par jour, le creux d'équité en fraction du solde de minuit — ce que surveillent les prop firms.
+   */
+  function equiteMinute(positions, barres, depot, mouvements) {
+    const B = barres, n = B.t.length, MIN = 60000;
+    const valeurs = new Map();
+    for (const p of positions) {
+      if (p.fermeture === null || p.prixSortie === null || !(p.volume > 0)) continue;
+      const ecart = (p.sens === "buy" ? 1 : -1) * (p.prixSortie - p.prixEntree);
+      if (Math.abs(ecart) < 1e-9 || Math.abs(p.profit) < 1e-6) continue;
+      const v = p.profit / (ecart * p.volume);
+      if (v > 0) { if (!valeurs.has(p.symbole)) valeurs.set(p.symbole, []); valeurs.get(p.symbole).push(v); }
+    }
+    const valeurPoint = new Map();
+    for (const [sym, v] of valeurs) { v.sort((a, b) => a - b); valeurPoint.set(sym, v[Math.floor(v.length / 2)]); }
+    // un seul jeu de barres : celui du symbole principal (robots du labo = un symbole)
+    const tri = positions.slice().sort((a, b) => a.ouverture - b.ouverture);
+    const fermetures = positions.filter((p) => p.fermeture !== null).sort((a, b) => a.fermeture - b.fermeture);
+    const mvts = (mouvements || []).slice().sort((a, b) => a.temps - b.temps);
+    let io = 0, ifm = 0, im = 0, solde = depot, pic = depot, ddMax = 0, quand = null;
+    const ouvertes = [], parJour = new Map();
+    let jourCourant = null, soldeMinuit = depot, creux = 0;
+    for (let i = 0; i < n; i++) {
+      const debutBarre = B.t[i], finBarre = debutBarre + MIN;
+      const jour = Math.floor(debutBarre / JOUR);
+      if (jour !== jourCourant) {
+        if (jourCourant !== null) parJour.set(jourCourant, creux);
+        jourCourant = jour; soldeMinuit = solde; creux = 0;
+      }
+      while (io < tri.length && tri[io].ouverture < finBarre) ouvertes.push(tri[io++]);
+      while (ifm < fermetures.length && fermetures[ifm].fermeture <= finBarre) solde += fermetures[ifm++].profit;
+      while (im < mvts.length && mvts[im].temps <= finBarre) { solde += mvts[im].montant; pic += mvts[im].montant; im++; }
+      let auPlusBas = 0, auPlusHaut = 0, flotFin = 0;
+      const ec = B.ecart ? B.ecart[i] : 0;
+      for (let k = ouvertes.length - 1; k >= 0; k--) {
+        const p = ouvertes[k];
+        if (p.fermeture !== null && p.fermeture <= finBarre) { ouvertes.splice(k, 1); continue; }
+        const vp = valeurPoint.get(p.symbole);
+        if (!vp) continue;
+        const q = p.volume * vp;
+        if (p.sens === "buy") { auPlusBas += (B.l[i] - p.prixEntree) * q; auPlusHaut += (B.h[i] - p.prixEntree) * q; flotFin += (B.c[i] - p.prixEntree) * q; }
+        else { auPlusBas += (p.prixEntree - B.l[i] - ec) * q; auPlusHaut += (p.prixEntree - B.h[i] - ec) * q; flotFin += (p.prixEntree - B.c[i] - ec) * q; }
+      }
+      const bas = solde + Math.min(auPlusBas, auPlusHaut);
+      if (soldeMinuit > 0) creux = Math.min(creux, (bas - soldeMinuit) / soldeMinuit);
+      if (pic > 0 && 1 - bas / pic > ddMax) { ddMax = 1 - bas / pic; quand = debutBarre; }
+      pic = Math.max(pic, solde + flotFin);
+    }
+    if (jourCourant !== null) parJour.set(jourCourant, creux);
+    const couvertes = positions.filter((p) => valeurPoint.has(p.symbole)).length;
+    return { parJour, ddEquite: arr(ddMax), quand, couverture: arr(couvertes / Math.max(1, positions.length), 3), barres: n };
   }
 
   // ---------------------------------------------------------------- 1. solidité
@@ -309,10 +391,12 @@
       if (d.ouvertes > 0) joursTrades++;
       if (f.seuilJourGagnant !== undefined && g >= f.seuilJourGagnant) joursGagnants++;
       if (g > meilleurJour) meilleurJour = g;
+      // pire moment de la journée : creux d'équité (minute par minute) quand on l'a, sinon le résultat fermé
+      const bas = debut + k * Math.min(d.creux === undefined ? 0 : d.creux, d.r, 0) * debut;
       const limiteJour = f.jourSurSoldeDuJour ? f.jour * debut : f.jour; // en fraction du capital initial
-      if (solde <= debut - limiteJour) return { issue: "echec", raison: "jour", jours };
+      if (bas <= debut - limiteJour) return { issue: "echec", raison: "jour", jours };
       const plancher = f.suiveur ? Math.max(plusHautFinJour, 1) - f.max : 1 - f.max;
-      if (solde <= plancher) return { issue: "echec", raison: "max", jours };
+      if (bas <= plancher || solde <= plancher) return { issue: "echec", raison: "max", jours };
       if (solde > plusHautFinJour) plusHautFinJour = solde;
       const gain = solde - 1;
       if (gain >= cible && joursTrades >= f.minJours && joursGagnants >= (f.minJoursGagnants || 0) &&
@@ -430,18 +514,22 @@
   // ---------------------------------------------------------------- point d'entrée
 
   /** audit = résultat de LaboEngine.auditer(backtest). */
-  function analyser(audit, parametres) {
+  /** barres (facultatif) : cours minute par minute du symbole (lireBarres) → challenges simulés sur l'ÉQUITÉ. */
+  function analyser(audit, parametres, barres) {
     const P = Object.assign({}, PARAMS, parametres || {});
     const b = audit.backtest, positions = audit.positions;
     const graine = graineDe(positions);
-    const jours = serieJours(positions, b.debut, b.fin, b.depot, b.mouvements);
+    const eq = barres && barres.t.length ? equiteMinute(positions, barres, b.depot, b.mouvements) : null;
+    const jours = serieJours(positions, b.debut, b.fin, b.depot, b.mouvements, eq && eq.parJour);
     const solid = solidite(jours, positions, b, P, alea(graine));
     const integ = integrite(positions, b, audit, P);
     const prop = challenges(jours, positions, integ, P, alea(graine ^ 0x9e3779b9));
-    return { version: 1, graine, solidite: solid, integrite: integ, challenges: prop, notes: notes(audit, solid, integ) };
+    if (eq) Object.assign(prop, { equiteMinute: true, optimiste: false, ddEquiteMinute: eq.ddEquite, couverture: eq.couverture });
+    return { version: 1, graine, solidite: solid, integrite: integ, challenges: prop, notes: notes(audit, solid, integ),
+      equite: eq ? { ddEquite: eq.ddEquite, quand: eq.quand, couverture: eq.couverture, barres: eq.barres } : null };
   }
 
-  const api = { analyser, serieJours, moments, statsSharpe, Phi, PhiInv, alea, jouerPhase, jouerChallenge, FIRMES, PARAMS };
+  const api = { analyser, lireBarres, equiteMinute, serieJours, moments, statsSharpe, Phi, PhiInv, alea, jouerPhase, jouerChallenge, FIRMES, PARAMS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LaboAnalyses = api;
 })(typeof window !== "undefined" ? window : globalThis);

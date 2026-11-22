@@ -16,247 +16,460 @@
 <meta name="description" content="Déposez le rapport du testeur MetaTrader 5 d'un robot : martingale, grille, stop-loss et règles de prop firm vérifiés en quelques secondes, sans que le fichier quitte votre ordinateur.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
 <style>
+  /* Direction : un labo, pas une startup. Noir et blanc, une seule famille (Inter, coupe « display » aux grandes
+     tailles), alignement à gauche, filets fins. Le rouge n'apparaît QUE pour le danger : la perte cachée, le tampon. */
   :root {
-    --papier: #e9eeec;
-    --fiche: #f7f9f8;
-    --encre: #1b2a41;
-    --encre-douce: #4a5a6e;
-    --trait: #c5d0cd;
-    --ok: #2f7d5b;
-    --attention: #b7790c;
-    --alerte: #b5372b;
-    --inconnu: #6b7685;
-    --focus: #2563eb;
+    --fond: #ffffff; --fond-2: #f7f7f8; --encre: #0c0d10; --encre-2: #5d6068; --encre-3: #8a8d95;
+    --filet: rgba(12, 13, 16, .09); --filet-fort: rgba(12, 13, 16, .16);
+    --danger: #d2261a; --danger-doux: rgba(210, 38, 26, .09);
+    --ok: #137a3e; --attention: #a8620a; --alerte: #c4231a; --inconnu: #6b6f78; --focus: #2b6cf6;
+    --rouge: #d62917; --rouge-fonce: #b51f12;
+    --fiche: var(--fond); --surface: var(--fond); --surface-2: var(--fond-2); --trait: var(--filet); --encre-douce: var(--encre-2);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --papier: #121a24; --fiche: #1a2431; --encre: #e6ecf2; --encre-douce: #a9b6c4;
-      --trait: #33414f; --ok: #4fb38a; --attention: #e0a537; --alerte: #ec6a5c; --inconnu: #93a0ae;
+      --fond: #0b0c0e; --fond-2: #121317; --encre: #f2f3f5; --encre-2: #9a9ca3; --encre-3: #6c6f77;
+      --filet: rgba(255, 255, 255, .08); --filet-fort: rgba(255, 255, 255, .15);
+      --danger: #ff5b4b; --danger-doux: rgba(255, 91, 75, .12); --ok: #3ccb7f; --attention: #f0b03f; --alerte: #ff6b5c; --inconnu: #8b8f98;
     }
   }
   :root[data-theme="dark"] {
-    --papier: #121a24; --fiche: #1a2431; --encre: #e6ecf2; --encre-douce: #a9b6c4;
-    --trait: #33414f; --ok: #4fb38a; --attention: #e0a537; --alerte: #ec6a5c; --inconnu: #93a0ae;
+    --fond: #0b0c0e; --fond-2: #121317; --encre: #f2f3f5; --encre-2: #9a9ca3; --encre-3: #6c6f77;
+    --filet: rgba(255, 255, 255, .08); --filet-fort: rgba(255, 255, 255, .15);
+    --danger: #ff5b4b; --danger-doux: rgba(255, 91, 75, .12); --ok: #3ccb7f; --attention: #f0b03f; --alerte: #ff6b5c; --inconnu: #8b8f98;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0; background: var(--papier); color: var(--encre);
-    font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 1.0625rem; line-height: 1.55;
-  }
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 4.5rem; }
+  body { margin: 0; background: var(--fond); color: var(--encre); font: 400 1rem/1.55 "Inter", system-ui, sans-serif;
+    font-optical-sizing: auto; font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
-  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-  .page { max-width: 58rem; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+  .contenu { max-width: 70rem; margin: 0 auto; padding: 0 1.5rem; }
+  .chiffres-tab, .nb { font-variant-numeric: tabular-nums; }
 
-  header.barre { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--trait); }
-  .marque { font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 125%; font-size: 1.15rem; letter-spacing: .01em; }
-  .marque { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
-  .marque span { font-weight: 400; color: var(--encre-douce); font-stretch: 100%; font-size: .9rem; }
-  .logo { height: 1.9rem; width: auto; display: block; }
-  .logo-sombre { display: none; }
+  /* ----- En-tête ----- */
+  header.barre { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--fond) 82%, transparent);
+    backdrop-filter: saturate(180%) blur(16px); -webkit-backdrop-filter: saturate(180%) blur(16px); border-bottom: 1px solid var(--filet); }
+  .barre .contenu { display: flex; align-items: center; gap: 2rem; height: 3.75rem; }
+  .marque { display: flex; flex: none; }
+  .logo { height: 1.45rem; width: auto; display: block; } .logo-sombre { display: none; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display: none; } :root:not([data-theme="light"]) .logo-sombre { display: block; } }
+  :root[data-theme="dark"] .logo-clair { display: none; } :root[data-theme="dark"] .logo-sombre { display: block; }
+  nav.liens { display: flex; gap: 1.75rem; font-size: .875rem; color: var(--encre-2); }
+  nav.liens a { text-decoration: none; transition: color .15s; } nav.liens a:hover { color: var(--encre); }
+  .barre .droite { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+  .langue { display: flex; gap: .15rem; font-size: .8rem; }
+  .langue button { font: 500 .8rem/1 "Inter", sans-serif; background: none; border: 0; color: var(--encre-3); padding: .35rem .3rem; cursor: pointer; }
+  .langue button[aria-pressed="true"] { color: var(--encre); }
+  .bouton { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; white-space: nowrap; text-decoration: none; cursor: pointer;
+    font: 500 .9375rem/1 "Inter", sans-serif; letter-spacing: -.005em; padding: .78rem 1.15rem; border-radius: 9px;
+    background: var(--rouge); color: #fff; border: 1px solid var(--rouge); transition: background-color .15s, opacity .15s; }
+  .bouton:hover { background: var(--rouge-fonce); border-color: var(--rouge-fonce); }
+  .bouton.second { background: transparent; color: var(--encre); border-color: var(--filet-fort); }
+  .bouton.second:hover { background: transparent; border-color: var(--encre-2); }
+  .bouton.petit { padding: .55rem .85rem; font-size: .85rem; border-radius: 8px; }
+  .bouton .court { display: none; }
+  @media (max-width: 58rem) { nav.liens { display: none; } }
+  @media (max-width: 30rem) { .bouton .long { display: none; } .bouton .court { display: inline; } .barre .contenu { gap: 1rem; } }
 
-  /* ----- Offre payante ----- */
-  .offre { margin-top: 3.5rem; background: var(--fiche); border: 1px solid var(--trait); border-top: 4px solid #D62917; padding: 1.5rem 1.25rem; display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; }
-  .offre h2 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.4rem; margin: 0 0 .5rem; }
-  .offre p { margin: 0 0 .6rem; color: var(--encre-douce); }
-  .offre ul { margin: 0 0 .5rem; padding-left: 1.1rem; }
-  .offre li { margin-bottom: .25rem; }
-  .offre .actions { display: flex; flex-direction: column; gap: .6rem; min-width: 14rem; }
-  .bouton { display: inline-block; text-align: center; font-family: "Archivo", sans-serif; font-weight: 700; font-stretch: 105%; text-decoration: none; padding: .75rem 1.1rem; border: 2px solid var(--encre); }
-  .bouton.plein { background: var(--encre); color: var(--fiche); }
-  .bouton:hover { text-decoration: underline; text-underline-offset: 3px; }
-  @media (max-width: 40rem) { .offre { grid-template-columns: 1fr; } .offre .actions { min-width: 0; } }
-  .langue button { font: inherit; font-size: .9rem; background: none; border: 1px solid var(--trait); color: var(--encre); padding: .25rem .6rem; cursor: pointer; }
-  .langue button[aria-pressed="true"] { background: var(--encre); color: var(--fiche); border-color: var(--encre); }
+  /* ----- Héros ----- */
+  .heros { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 3.5rem; align-items: center; padding: 5.5rem 0 4.5rem; }
+  .heros h1 { font-weight: 600; font-size: clamp(2.5rem, 5.4vw, 4.35rem); line-height: 1.02; letter-spacing: -.045em; margin: 0 0 1.4rem; text-wrap: balance; }
+  .heros .sous { font-size: clamp(1.05rem, 1.5vw, 1.2rem); line-height: 1.5; color: var(--encre-2); margin: 0 0 1rem; max-width: 34rem; text-wrap: pretty; }
+  .heros .ia { font-size: .95rem; color: var(--encre-2); margin: 0 0 2rem; max-width: 34rem; }
+  .heros .ia b { color: var(--encre); font-weight: 500; }
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .heros .bouton { padding: .78rem 1rem; }
+  @media (max-width: 62rem) { .heros { grid-template-columns: 1fr; gap: 3rem; padding: 3.5rem 0 3rem; } }
 
-  .accroche { padding: 2.5rem 0 1.5rem; max-width: 40rem; }
-  h1 {
-    font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 112%;
-    font-size: clamp(2rem, 5.5vw, 3.4rem); line-height: 1.02; margin: 0 0 1rem; letter-spacing: -.01em;
-  }
-  .accroche p { margin: 0; color: var(--encre-douce); max-width: 34rem; }
+  /* Le visuel : une vraie courbe d'audit */
+  .preuve { margin: 0; border: 1px solid var(--filet); border-radius: 14px; background: var(--fond); overflow: hidden;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02), 0 24px 48px -28px rgba(0,0,0,.28); }
+  .preuve-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: .85rem 1.1rem; border-bottom: 1px solid var(--filet); font-size: .8rem; color: var(--encre-2); }
+  .preuve-tete b { font-weight: 500; color: var(--encre); }
+  .preuve-chiffres { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--filet); }
+  .preuve-chiffres div { padding: .9rem 1.1rem; border-right: 1px solid var(--filet); }
+  .preuve-chiffres div:last-child { border-right: 0; }
+  .preuve-chiffres span { display: block; font-size: .75rem; color: var(--encre-2); margin-bottom: .2rem; }
+  .preuve-chiffres b { font-weight: 600; font-size: 1.35rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 30rem) { .preuve-chiffres div { padding: .75rem .8rem; } .preuve-chiffres b { font-size: 1.1rem; } .preuve-tete { flex-direction: column; gap: .15rem; } }
+  .preuve-chiffres .rouge b { color: var(--danger); }
+  .graphe { position: relative; padding: .9rem .6rem .4rem; }
+  .graphe svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .graphe .base { stroke: var(--filet-fort); stroke-dasharray: 2 4; }
+  .graphe .solde { fill: none; stroke: var(--encre); stroke-width: 1.6; }
+  .graphe .equite { fill: none; stroke: var(--danger); stroke-width: 1.1; }
+  .graphe .zone-cachee { fill: var(--danger-doux); }
+  .graphe text { font: 500 10.5px "Inter", sans-serif; fill: var(--encre-2); }
+  .graphe .t-rouge { fill: var(--danger); }
+  .graphe .repere { stroke: var(--danger); stroke-width: 1; }
+  .graphe .trace { stroke-dasharray: 1; stroke-dashoffset: 1; animation: tracer 1.6s cubic-bezier(.6,.05,.2,1) .2s forwards; }
+  .graphe .equite.trace { animation-delay: .7s; }
+  .graphe .apparait { opacity: 0; animation: apparaitre .5s ease 1.8s forwards; }
+  @keyframes tracer { to { stroke-dashoffset: 0; } }
+  @keyframes apparaitre { to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .graphe .trace { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; } .graphe .apparait { animation: none; opacity: 1; } }
+  .preuve figcaption { padding: .75rem 1.1rem .95rem; font-size: .8rem; color: var(--encre-2); border-top: 1px solid var(--filet); }
+  .legende { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; padding: .8rem 1.1rem 0; font-size: .78rem; color: var(--encre-2); }
+  .legende span::before { content: ""; display: inline-block; width: 1.1rem; height: 0; border-top: 2px solid var(--encre); vertical-align: middle; margin-right: .45rem; }
+  .legende .l-equite::before { border-top: 1.5px solid var(--danger); }
+  .preuve .tampon-mini { position: absolute; top: 1.3rem; left: 1.2rem; font: 700 .68rem/1 "Inter", sans-serif; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--danger); border: 1.5px solid var(--danger); border-radius: 5px; padding: .3rem .45rem; transform: rotate(-4deg); background: var(--fond); }
 
-  .depot {
-    display: block; border: 2px dashed var(--encre-douce); background: var(--fiche);
-    padding: 2rem 1.25rem; text-align: left; cursor: pointer; position: relative;
-  }
-  .depot.survol { border-color: var(--focus); border-style: solid; }
-  .depot strong { display: block; font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.25rem; }
-  .depot small { color: var(--encre-douce); }
+
+  /* ----- Le haut de page : une machine (déposer à gauche, verdict à droite) ----- */
+  .machine { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 3.5rem; align-items: center;
+    min-height: calc(100svh - 3.75rem); padding: 2.5rem 0 3rem; }
+  .machine h1 { font-size: clamp(2.3rem, 4.5vw, 3.85rem); margin-bottom: 1rem; }
+  .machine .sous { margin-bottom: 1.6rem; }
+  .depot { position: relative; display: grid; justify-items: start; gap: .3rem; cursor: pointer; color: #fff; background: var(--rouge);
+    border: 0; border-radius: 16px; padding: 1.5rem 1.6rem 1.6rem; box-shadow: 0 22px 44px -26px rgba(214, 41, 23, .75);
+    transition: transform .18s ease, box-shadow .18s ease, background-color .18s; }
+  .depot:hover, .depot.survol { transform: translateY(-2px); box-shadow: 0 28px 52px -26px rgba(214, 41, 23, .85); }
+  .depot.survol { background: var(--rouge-fonce); }
+  .depot .icone { width: 2.6rem; height: 2.6rem; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.16); margin-bottom: .5rem; }
+  .depot strong { font-weight: 600; font-size: 1.15rem; letter-spacing: -.015em; line-height: 1.3; }
+  .depot small { color: rgba(255,255,255,.82); font-size: .9rem; }
+  .depot .faux-bouton { margin-top: .9rem; background: #fff; color: var(--rouge); font: 600 .9rem/1 "Inter", sans-serif; padding: .7rem 1rem; border-radius: 9px; }
   .depot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .exemples { margin-top: .85rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; color: var(--encre-douce); font-size: .95rem; }
-  .exemples button { font: inherit; font-size: .95rem; background: transparent; color: var(--encre); border: 1px solid var(--encre-douce); padding: .3rem .75rem; cursor: pointer; }
-  .exemples button:hover { background: var(--fiche); }
-  .confidentiel { margin-top: .75rem; font-size: .9rem; color: var(--encre-douce); }
+  .depot .tactile { display: none; }
+  @media (hover: none) { .depot .bureau { display: none; } .depot .tactile { display: inline; } }
+  .depot:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .machine .exemples { margin-top: 1rem; }
+  .etiquette { margin: 0 0 .6rem; font-size: .8rem; color: var(--encre-3); }
+  @media (max-width: 62rem) { .machine { grid-template-columns: 1fr; gap: 2.5rem; min-height: 0; padding: 2.5rem 0 3rem; } }
 
-  .erreur { margin-top: 1.25rem; border-left: 4px solid var(--alerte); background: var(--fiche); padding: .9rem 1rem; }
+  /* Verdict du fichier déposé, à la place de l'exemple */
+  .verdict { border: 1px solid var(--filet); border-radius: 14px; background: var(--fond); overflow: hidden; box-shadow: 0 1px 1px rgba(0,0,0,.02), 0 24px 48px -28px rgba(0,0,0,.28); }
+  .verdict-tete { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; padding: 1.2rem 1.2rem 1rem; border-bottom: 1px solid var(--filet); }
+  .verdict-tete h2 { margin: 0 0 .2rem; font-weight: 600; font-size: 1.3rem; letter-spacing: -.025em; overflow-wrap: anywhere; }
+  .verdict-tete .meta { font-size: .8rem; color: var(--encre-2); }
+  .verdict .tampon { opacity: 1; font-size: .95rem; }
+  .verdict .tampon.pose { opacity: 0; }
+  .verdict-notes { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--filet); }
+  .verdict-notes div { padding: .9rem 1.2rem; }
+  .verdict-notes div + div { border-left: 1px solid var(--filet); }
+  .verdict-notes span { display: block; font-size: .75rem; color: var(--encre-2); }
+  .verdict-notes b { font-weight: 600; font-size: 1.9rem; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .verdict-notes b small { font-size: .45em; color: var(--encre-2); font-weight: 500; letter-spacing: 0; }
+  .verdict-notes .bon b { color: var(--ok); } .verdict-notes .moyen b { color: var(--attention); } .verdict-notes .faible b { color: var(--alerte); }
+  .verdict ul { list-style: none; margin: 0; padding: .4rem 1.2rem; }
+  .verdict li { display: grid; grid-template-columns: 7.5rem 1fr; gap: .8rem; padding: .65rem 0; border-bottom: 1px solid var(--filet); font-size: .88rem; align-items: baseline; }
+  .verdict li:last-child { border-bottom: 0; }
+  .verdict li b { font-weight: 600; }
+  .verdict-pied { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: space-between; padding: .9rem 1.2rem; background: var(--fond-2); border-top: 1px solid var(--filet); font-size: .85rem; color: var(--encre-2); }
+  @media (max-width: 30rem) { .verdict li { grid-template-columns: 1fr; gap: .1rem; } .verdict-tete { grid-template-columns: 1fr; } }
+
+  /* Déposer n'importe où sur la page */
+  #voile { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(214, 41, 23, .93); color: #fff;
+    font-weight: 600; font-size: clamp(1.5rem, 4vw, 2.4rem); letter-spacing: -.03em; text-align: center; padding: 2rem; }
+  #voile[hidden] { display: none; }
+  #voile span { border: 2px dashed rgba(255,255,255,.7); border-radius: 22px; padding: 2.5rem 3rem; }
+
+  /* Bandeau rouge */
+  .bandeau { background: var(--rouge); color: #fff; }
+  .bandeau .contenu { padding-top: 1.15rem; padding-bottom: 1.15rem; font-size: 1.02rem; }
+  .bandeau b { font-weight: 600; }
+  #audit { padding-top: 2.5rem; } #audit .fiche { margin-top: 0; }
+  .precision .grand { color: var(--rouge); }
+
+  /* ----- Essai ----- */
+  .bloc { border-top: 1px solid var(--filet); padding: 4.5rem 0; }
+  .bloc-tete { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; align-items: end; margin-bottom: 2.2rem; }
+  .bloc-tete h2 { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
+  .bloc-tete p { margin: 0; color: var(--encre-2); max-width: 30rem; }
+  @media (max-width: 52rem) { .bloc-tete { grid-template-columns: 1fr; gap: .8rem; } }
+  .exemples { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline; color: var(--encre-2); font-size: .875rem; }
+  .exemples button { font: 500 .875rem/1.4 "Inter", sans-serif; background: none; border: 0; padding: 0; color: var(--encre); cursor: pointer;
+    text-decoration: underline; text-decoration-color: var(--filet-fort); text-underline-offset: 3px; }
+  .exemples button:hover { text-decoration-color: var(--encre); }
+  .confidentiel { margin: .6rem 0 0; font-size: .8rem; color: var(--encre-3); }
+  .erreur { margin-top: 1.25rem; border: 1px solid color-mix(in srgb, var(--alerte) 35%, transparent); background: color-mix(in srgb, var(--alerte) 6%, var(--fond)); padding: .9rem 1rem; border-radius: 10px; font-size: .95rem; }
+
+  /* ----- Vérifications : un tableau, pas des cartes ----- */
+  .verifs { border-top: 1px solid var(--encre); }
+  .verif { display: grid; grid-template-columns: 11rem minmax(0, 1.25fr) minmax(0, 1fr); gap: 2rem; padding: 1.35rem 0; border-bottom: 1px solid var(--filet); align-items: baseline; }
+  .verif h3 { margin: 0; font-weight: 600; font-size: 1.05rem; letter-spacing: -.015em; }
+  .verif p { margin: 0; color: var(--encre-2); font-size: .95rem; }
+  .verif .constat { font-size: .85rem; color: var(--encre); display: flex; gap: .55rem; align-items: baseline; }
+  .verif .constat::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: var(--danger); transform: translateY(-.05rem); }
+  @media (max-width: 52rem) { .verif { grid-template-columns: 1fr; gap: .35rem; } }
+
+  /* ----- Précision ----- */
+  .precision { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: end; }
+  .precision .grand { font-weight: 600; font-size: clamp(4.5rem, 12vw, 9rem); letter-spacing: -.06em; line-height: .9; font-variant-numeric: tabular-nums; }
+  .precision .grand + p { margin: 1rem 0 0; color: var(--encre-2); max-width: 28rem; }
+  .faits { border-top: 1px solid var(--encre); }
+  .fait { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--filet); align-items: baseline; }
+  .fait b { font-weight: 600; font-size: 1.3rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .fait span { color: var(--encre-2); font-size: .9rem; }
+  @media (max-width: 52rem) { .precision { grid-template-columns: 1fr; gap: 2rem; } }
+
+  /* ----- Étapes ----- */
+  .etapes { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+  .etapes h3 { font-weight: 600; font-size: 1.05rem; letter-spacing: -.015em; margin: 0 0 1rem; padding-bottom: .8rem; border-bottom: 1px solid var(--encre); }
+  .etapes ol { list-style: none; counter-reset: e; margin: 0; padding: 0; }
+  .etapes li { counter-increment: e; display: grid; grid-template-columns: 1.6rem 1fr; padding: .7rem 0; border-bottom: 1px solid var(--filet); color: var(--encre-2); font-size: .93rem; }
+  .etapes li::before { content: counter(e); color: var(--encre); font-weight: 500; font-variant-numeric: tabular-nums; }
+  @media (max-width: 52rem) { .etapes { grid-template-columns: 1fr; gap: 2.5rem; } }
+
+  /* ----- Offre ----- */
+  .offre { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: start; }
+  .offre h2 { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0 0 1rem; text-wrap: balance; }
+  .offre .texte > p { color: var(--encre-2); margin: 0 0 1.6rem; max-width: 30rem; }
+  .offre .prix { display: flex; align-items: baseline; gap: .6rem; margin-bottom: 1.4rem; }
+  .offre .prix b { font-weight: 600; font-size: 3.25rem; letter-spacing: -.05em; line-height: 1; }
+  .offre .prix span { color: var(--encre-2); font-size: .95rem; }
+  .offre ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--encre); }
+  .offre li { padding: .85rem 0; border-bottom: 1px solid var(--filet); font-size: .95rem; }
+  @media (max-width: 52rem) { .offre { grid-template-columns: 1fr; gap: 2rem; } }
+
+  .titre-bloc { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0 0 1.5rem; text-wrap: balance; }
+  footer { border-top: 1px solid var(--filet); padding: 2.5rem 0 3.5rem; font-size: .8rem; color: var(--encre-3); }
+  footer .contenu { display: grid; grid-template-columns: 10rem 1fr; gap: 1rem 3rem; }
+  footer .logo { height: 1.2rem; opacity: .9; }
+  footer p { margin: 0 0 .6rem; max-width: 50rem; }
+  @media (max-width: 40rem) { footer .contenu { grid-template-columns: 1fr; } }
 
   /* ----- La fiche de résultat ----- */
-  .fiche { margin-top: 2.5rem; background: var(--fiche); border: 1px solid var(--trait); padding: 1.5rem 1.25rem 2rem; position: relative; overflow: hidden; }
+  #resultat:empty { display: none; }
+  .fiche { margin-top: 2rem; border: 1px solid var(--filet); border-radius: 14px; background: var(--fond); padding: 1.6rem 1.5rem 1.8rem; position: relative; overflow: hidden;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02), 0 24px 48px -32px rgba(0,0,0,.25); }
   .fiche-tete { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; }
-  .fiche-tete h2 { font-family: "Archivo", sans-serif; font-stretch: 100%; font-size: 1.5rem; margin: 0 0 .25rem; overflow-wrap: anywhere; }
-  .fiche-tete .meta { color: var(--encre-douce); font-size: .95rem; }
-  .tampon {
-    --c: var(--inconnu);
-    font-family: "Archivo", sans-serif; font-weight: 900; font-stretch: 125%;
-    color: var(--c); border: 4px solid var(--c); padding: .35rem .8rem .3rem; text-align: center;
-    transform: rotate(-6deg); line-height: 1.05; font-size: clamp(1.1rem, 3.4vw, 1.7rem);
-    box-shadow: inset 0 0 0 2px var(--fiche), inset 0 0 0 4px var(--c);
-    margin: .5rem .25rem 0 0; white-space: nowrap; opacity: 0;
-  }
-  .tampon small { display: block; font-weight: 600; font-stretch: 100%; font-size: .45em; margin-top: .2rem; }
-  .tampon.pose { animation: poser .42s cubic-bezier(.2,1.6,.4,1) forwards; }
-  @keyframes poser { from { opacity: 0; transform: rotate(-14deg) scale(1.6); } to { opacity: .92; transform: rotate(-6deg) scale(1); } }
-  @media (prefers-reduced-motion: reduce) { .tampon.pose { animation: none; opacity: .92; } }
+  .fiche-tete h2 { font-weight: 600; letter-spacing: -.03em; font-size: 1.6rem; margin: 0 0 .25rem; overflow-wrap: anywhere; }
+  .fiche-tete .meta { color: var(--encre-2); font-size: .875rem; font-variant-numeric: tabular-nums; }
+  .tampon { --c: var(--inconnu); font: 700 clamp(.95rem, 2.4vw, 1.2rem)/1.05 "Inter", sans-serif; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--c); border: 2px solid var(--c); border-radius: 7px; padding: .45rem .75rem .4rem; text-align: center;
+    transform: rotate(-4deg); margin: .4rem .2rem 0 0; white-space: nowrap; opacity: 0; }
+  .tampon small { display: block; font-weight: 500; text-transform: none; letter-spacing: 0; font-size: .58em; margin-top: .2rem; opacity: .8; }
+  .tampon.pose { animation: poser .4s cubic-bezier(.2,1.5,.4,1) forwards; }
+  @keyframes poser { from { opacity: 0; transform: rotate(-10deg) scale(1.4); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .tampon.pose { animation: none; opacity: 1; } }
   .tampon.eleve { --c: var(--alerte); } .tampon.moyen { --c: var(--attention); } .tampon.faible { --c: var(--ok); }
-
-  .prop { margin: 1.25rem 0 1.5rem; padding: .75rem 1rem; border: 1px solid var(--trait); font-weight: 700; }
+  .prop { margin: 1.25rem 0 1.5rem; padding: .8rem 1rem; border-radius: 9px; background: var(--fond-2); font-weight: 500; font-size: .92rem; }
   .prop .oui { color: var(--ok); } .prop .non { color: var(--alerte); }
-
-  .lignes { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--encre); }
-  .ligne { border-bottom: 1px solid var(--trait); }
-  .ligne details summary {
-    list-style: none; cursor: pointer; display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; padding: .9rem .25rem; align-items: baseline;
-  }
+  .lignes { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--encre); }
+  .ligne { border-bottom: 1px solid var(--filet); }
+  .ligne details summary, .ligne .simple { list-style: none; display: grid; grid-template-columns: 8.5rem 1fr; gap: 1rem; padding: .95rem 0; align-items: baseline; }
+  .ligne details summary { cursor: pointer; }
   .ligne details summary::-webkit-details-marker { display: none; }
-  .statut { font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 110%; font-size: .85rem; }
-  .statut::before { content: ""; display: inline-block; width: .65rem; height: .65rem; margin-right: .45rem; border-radius: 50%; background: currentColor; vertical-align: .05rem; }
+  .statut { font: 500 .8rem/1.3 "Inter", sans-serif; display: inline-flex; align-items: baseline; gap: .45rem; }
+  .statut::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; transform: translateY(-.05rem); }
   .statut.ok { color: var(--ok); } .statut.attention { color: var(--attention); } .statut.alerte { color: var(--alerte); } .statut.inconnu { color: var(--inconnu); }
-  .ligne h3 { margin: 0; font-size: 1rem; }
-  .ligne .resume { margin: .15rem 0 0; color: var(--encre-douce); }
-  .ligne .detail { padding: 0 .25rem 1rem 8.75rem; font-size: .95rem; }
+  .ligne h3 { margin: 0; font: 600 .95rem/1.35 "Inter", sans-serif; letter-spacing: -.01em; }
+  .ligne .resume { margin: .2rem 0 0; color: var(--encre-2); font-size: .9rem; }
+  .ligne .detail { padding: 0 0 1rem 9.5rem; font-size: .88rem; color: var(--encre-2); }
   .ligne .detail ul { margin: .25rem 0; padding-left: 1.1rem; }
-  .ligne summary:hover h3 { text-decoration: underline; text-underline-offset: 3px; }
-  .ligne .simple { display: grid; grid-template-columns: 7.5rem 1fr; gap: 1rem; padding: .9rem .25rem; align-items: baseline; }
-
-  .notes-100 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--trait); border: 1px solid var(--trait); margin: 1.25rem 0 0; }
-  .note-bloc { background: var(--fiche); padding: .85rem 1rem; --c: var(--inconnu); }
+  .ligne summary:hover h3 { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--filet-fort); }
+  .notes-100 { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 1.4rem 0 0; border-top: 1px solid var(--filet); border-bottom: 1px solid var(--filet); }
+  .note-bloc { padding: 1rem 0; --c: var(--inconnu); }
+  .note-bloc + .note-bloc { border-left: 1px solid var(--filet); padding-left: 1.25rem; }
   .note-bloc.bon { --c: var(--ok); } .note-bloc.moyen { --c: var(--attention); } .note-bloc.faible { --c: var(--alerte); }
   .note-bloc summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto 1fr; gap: .1rem .9rem; align-items: baseline; }
   .note-bloc summary::-webkit-details-marker { display: none; }
-  .note-chiffre { grid-row: span 2; font-family: "Archivo", sans-serif; font-weight: 900; font-stretch: 112%; font-size: 2.6rem; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
-  .note-chiffre small { font-size: .38em; font-weight: 700; color: var(--encre-douce); margin-left: .1rem; }
-  .note-nom { font-family: "Archivo", sans-serif; font-weight: 800; font-stretch: 110%; }
-  .note-sous { color: var(--encre-douce); font-size: .9rem; line-height: 1.35; }
-  .note-bloc summary:hover .note-nom { text-decoration: underline; text-underline-offset: 3px; }
-  .note-detail { margin: .75rem 0 0; padding: 0; list-style: none; font-size: .9rem; }
-  .note-detail li { display: flex; justify-content: space-between; gap: 1rem; padding: .2rem 0; border-top: 1px dotted var(--trait); }
-  .note-detail b { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .partie { margin-top: 2rem; }
-  .partie > h3 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.15rem; margin: 0 0 .35rem; }
-  .partie > p.intro { margin: 0 0 .75rem; color: var(--encre-douce); font-size: .92rem; }
-  .table-defile { overflow-x: auto; border-top: 2px solid var(--encre); }
-  table.challenges { width: 100%; border-collapse: collapse; font-size: .92rem; font-variant-numeric: tabular-nums; }
-  table.challenges th, table.challenges td { text-align: left; padding: .55rem .5rem; border-bottom: 1px solid var(--trait); vertical-align: top; }
-  table.challenges th { font-family: "Archivo", sans-serif; font-weight: 700; font-size: .82rem; color: var(--encre-douce); }
-  table.challenges td.chiffre { font-family: "Archivo", sans-serif; font-weight: 800; font-size: 1.05rem; white-space: nowrap; }
-  table.challenges td small { display: block; font-family: "Atkinson Hyperlegible", sans-serif; font-weight: 400; font-size: .8rem; color: var(--encre-douce); }
+  .note-chiffre { grid-row: span 2; font-weight: 600; letter-spacing: -.05em; font-size: 2.6rem; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
+  .note-chiffre small { font-size: .34em; font-weight: 500; color: var(--encre-2); margin-left: .1rem; letter-spacing: 0; }
+  .note-nom { font: 600 .95rem/1.3 "Inter", sans-serif; }
+  .note-sous { color: var(--encre-2); font-size: .82rem; line-height: 1.35; }
+  .note-detail { margin: .8rem 1rem 0 0; padding: 0; list-style: none; font-size: .82rem; }
+  .note-detail li { display: flex; justify-content: space-between; gap: 1rem; padding: .3rem 0; border-top: 1px solid var(--filet); }
+  .note-detail b { font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .partie { margin-top: 2.2rem; }
+  .partie > h3 { font-weight: 600; letter-spacing: -.02em; font-size: 1.15rem; margin: 0 0 .35rem; }
+  .partie > p.intro { margin: 0 0 .8rem; color: var(--encre-2); font-size: .88rem; }
+  .table-defile { overflow-x: auto; border-top: 1px solid var(--encre); }
+  table.challenges { width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
+  table.challenges th, table.challenges td { text-align: left; padding: .65rem .5rem .65rem 0; border-bottom: 1px solid var(--filet); vertical-align: top; }
+  table.challenges th { font: 500 .75rem/1.3 "Inter", sans-serif; color: var(--encre-2); }
+  table.challenges td.chiffre { font-weight: 600; font-size: 1rem; white-space: nowrap; }
+  table.challenges td small { display: block; font: 400 .75rem/1.35 "Inter", sans-serif; color: var(--encre-2); }
   .haut { color: var(--ok); } .milieu { color: var(--attention); } .bas { color: var(--alerte); }
-  .remarques { margin: .6rem 0 0; padding-left: 1.1rem; font-size: .88rem; color: var(--encre-douce); }
-  .remarques li { margin-bottom: .2rem; }
+  .remarques { margin: .8rem 0 0; padding-left: 1.1rem; font-size: .82rem; color: var(--encre-2); }
+  .remarques li { margin-bottom: .25rem; }
+  .notes { margin-top: 1.5rem; font-size: .85rem; color: var(--encre-2); }
+  .notes p { margin: .3rem 0; }
+  .depot-signal { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .5rem; }
+  .depot-signal input { font: inherit; width: 9rem; padding: .45rem .65rem; border: 1px solid var(--filet-fort); border-radius: 8px; background: var(--fond); color: var(--encre); }
+  .depot-signal button { font: 500 .85rem/1 "Inter", sans-serif; padding: .55rem .9rem; border: 0; border-radius: 8px; background: var(--encre); color: var(--fond); cursor: pointer; }
   @media (max-width: 40rem) {
-    .notes-100 { grid-template-columns: 1fr; }
+    .fiche { padding: 1.2rem 1rem 1.4rem; }
+    .fiche-tete { grid-template-columns: 1fr; } .tampon { justify-self: start; }
+    .ligne details summary, .ligne .simple { grid-template-columns: 1fr; gap: .25rem; }
+    .ligne .detail { padding-left: 0; }
+    .notes-100 { grid-template-columns: 1fr; } .note-bloc + .note-bloc { border-left: 0; padding-left: 0; border-top: 1px solid var(--filet); }
     table.challenges thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-    table.challenges tr { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem 1rem; padding: .75rem .25rem; border-bottom: 1px solid var(--trait); }
+    table.challenges tr { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem 1rem; padding: .8rem 0; border-bottom: 1px solid var(--filet); }
     table.challenges td { display: block; padding: 0; border: 0; }
     table.challenges td:first-child, table.challenges td:nth-child(2) { grid-column: 1 / -1; }
-    table.challenges td[data-l]::before { content: attr(data-l); display: block; font-family: "Atkinson Hyperlegible", sans-serif; font-weight: 400; font-size: .78rem; color: var(--encre-douce); }
-  }
-  .notes { margin-top: 1.5rem; font-size: .9rem; color: var(--encre-douce); }
-  .notes p { margin: .3rem 0; }
-
-  section.comment { margin-top: 3.5rem; max-width: 40rem; }
-  section.comment h2 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.4rem; }
-  section.comment h3 { font-family: "Archivo", sans-serif; font-stretch: 110%; font-size: 1.1rem; margin-top: 1.5rem; }
-  .depot-signal { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .4rem; }
-  .depot-signal input { font: inherit; width: 9rem; padding: .3rem .5rem; border: 1px solid var(--encre-douce); background: var(--fiche); color: var(--encre); }
-  .depot-signal button { font: inherit; padding: .3rem .8rem; border: 2px solid var(--encre); background: var(--encre); color: var(--fiche); cursor: pointer; }
-  section.comment ol { padding-left: 1.3rem; }
-  section.comment li { margin-bottom: .45rem; }
-  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--trait); font-size: .88rem; color: var(--encre-douce); max-width: 46rem; }
-
-  @media (max-width: 40rem) {
-    .fiche-tete { grid-template-columns: 1fr; }
-    .tampon { justify-self: start; }
-    .ligne details summary, .ligne .simple { grid-template-columns: 1fr; gap: .2rem; }
-    .ligne .detail { padding-left: .25rem; }
+    table.challenges td[data-l]::before { content: attr(data-l); display: block; font: 400 .74rem/1.3 "Inter", sans-serif; color: var(--encre-2); }
   }
 </style>
 </head>
 <body>
-<div class="page">
-  <header class="barre">
-    <div class="marque"><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"><span data-t="marque_sous"></span></div>
-    <div class="langue" role="group" aria-label="Langue / Language">
-      <button type="button" data-lang="fr" aria-pressed="true">FR</button>
-      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+<div id="voile" hidden><span data-t="voile"></span></div>
+<header class="barre">
+  <div class="contenu">
+    <a class="marque" href="#haut" aria-label="MantaLab"><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"></a>
+    <nav class="liens" aria-label="Sections">
+      <a href="#haut" data-t="nav_essai"></a>
+      <a href="#verifs" data-t="nav_verifs"></a>
+      <a href="#precision" data-t="nav_precision"></a>
+      <a href="#offre" data-t="nav_offre"></a>
+    </nav>
+    <div class="droite">
+      <div class="langue" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <a class="bouton petit" href="commande.html"><span class="long" data-t="nav_cta"></span><span class="court" data-t="nav_cta_court"></span></a>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main>
-    <div class="accroche">
-      <h1 data-t="titre"></h1>
-      <p data-t="sous_titre"></p>
+<main id="haut">
+  <div class="contenu">
+    <section class="heros machine">
+      <div class="gauche">
+        <h1 data-t="titre"></h1>
+        <p class="sous" data-t="sous_titre"></p>
+        <label class="depot" id="depot">
+          <span class="icone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"/></svg></span>
+          <strong data-t="depot_titre"></strong>
+          <small><span class="bureau" data-t="depot_aide"></span><span class="tactile" data-t="depot_aide_tactile"></span></small>
+          <span class="faux-bouton" aria-hidden="true" data-t="depot_bouton"></span>
+          <input type="file" id="fichier" accept=".htm,.html,.csv" aria-describedby="confidentiel">
+        </label>
+        <div class="exemples">
+          <span data-t="exemples"></span>
+          <button type="button" data-exemple="martingale" data-t="ex_martingale"></button>
+          <button type="button" data-exemple="grille" data-t="ex_grille"></button>
+          <button type="button" data-exemple="propre" data-t="ex_propre"></button>
+        </div>
+        <p class="confidentiel" id="confidentiel" data-t="confidentiel"></p>
+        <div id="erreur" class="erreur" role="alert" hidden></div>
+      </div>
+      <div class="droite" id="apercu" aria-live="polite">
+        <div id="apercu-exemple">
+          <p class="etiquette" data-t="apercu_exemple"></p>
+          <figure class="preuve">
+            <div class="preuve-tete"><span data-h="g_tete"></span><span data-t="g_periode"></span></div>
+            <div class="preuve-chiffres">
+              <div><span data-t="g_l1"></span><b data-t="g_v1"></b></div>
+              <div><span data-t="g_l2"></span><b data-t="g_v2"></b></div>
+              <div class="rouge"><span data-t="g_l3"></span><b data-t="g_v3"></b></div>
+            </div>
+            <div class="legende"><span class="l-solde" data-t="g_solde"></span><span class="l-equite" data-t="g_equite"></span></div>
+            <div class="graphe">
+              <span class="tampon-mini" data-t="g_tampon"></span>
+              <svg viewBox="0 0 560 268" role="img" aria-labelledby="graphe-titre">
+              <title id="graphe-titre" data-t="g_alt"></title>
+              <line class="base" x1="8" x2="552" y1="201.2" y2="201.2"/>
+              <text x="552" y="215.2" text-anchor="end" data-t="g_depot"></text>
+              <path class="zone-cachee apparait" d="M8.0 199.0 L10.1 198.1 L12.2 198.3 L14.3 219.2 L16.4 185.1 L18.5 185.8 L20.6 183.6 L22.6 183.1 L24.7 182.2 L26.8 179.8 L28.9 177.9 L31.0 177.7 L33.1 181.4 L35.2 178.1 L37.3 176.6 L39.4 175.8 L41.5 177.7 L43.6 175.6 L45.7 180.5 L47.8 174.3 L49.8 195.5 L51.9 168.2 L54.0 167.8 L56.1 165.5 L58.2 168.2 L60.3 168.2 L62.4 168.2 L64.5 169.8 L66.6 167.7 L68.7 166.0 L70.8 166.0 L72.9 165.7 L75.0 164.2 L77.0 162.2 L79.1 161.3 L81.2 160.8 L83.3 160.1 L85.4 161.3 L87.5 167.7 L89.6 163.8 L91.7 165.8 L93.8 173.1 L95.9 161.4 L98.0 160.7 L100.1 159.8 L102.2 159.8 L104.2 160.1 L106.3 156.5 L108.4 151.8 L110.5 150.1 L112.6 150.5 L114.7 146.3 L116.8 150.0 L118.9 144.8 L121.0 142.6 L123.1 140.5 L125.2 139.7 L127.3 137.4 L129.4 136.4 L131.4 134.7 L133.5 136.8 L135.6 135.6 L137.7 135.8 L139.8 128.9 L141.9 126.2 L144.0 125.7 L146.1 123.9 L148.2 124.4 L150.3 129.3 L152.4 133.5 L154.5 119.1 L156.6 119.5 L158.6 115.3 L160.7 112.8 L162.8 112.9 L164.9 114.0 L167.0 120.3 L169.1 110.4 L171.2 107.2 L173.3 114.1 L175.4 124.0 L177.5 107.3 L179.6 106.5 L181.7 104.5 L183.8 104.4 L185.8 99.8 L187.9 101.0 L190.0 96.3 L192.1 95.1 L194.2 94.8 L196.3 91.3 L198.4 89.3 L200.5 87.4 L202.6 85.1 L204.7 84.6 L206.8 84.6 L208.9 83.7 L211.0 81.7 L213.0 82.5 L215.1 77.3 L217.2 74.4 L219.3 74.8 L221.4 73.2 L223.5 70.3 L225.6 70.5 L227.7 69.1 L229.8 67.9 L231.9 65.3 L234.0 65.7 L236.1 63.9 L238.2 61.8 L240.2 60.7 L242.3 60.6 L244.4 58.4 L246.5 58.0 L248.6 58.1 L250.7 63.7 L252.8 49.6 L254.9 51.7 L257.0 48.6 L259.1 46.8 L261.2 45.9 L263.3 44.5 L265.4 43.4 L267.4 46.4 L269.5 39.1 L271.6 40.8 L273.7 44.9 L275.8 40.9 L277.9 40.1 L280.0 38.2 L282.1 38.4 L284.2 41.6 L286.3 46.6 L288.4 57.2 L290.5 38.3 L292.6 42.4 L294.6 42.4 L296.7 41.8 L298.8 41.3 L300.9 43.3 L303.0 39.2 L305.1 40.0 L307.2 39.5 L309.3 39.6 L311.4 35.4 L313.5 35.4 L315.6 34.1 L317.7 33.4 L319.8 31.7 L321.8 29.2 L323.9 30.1 L326.0 28.3 L328.1 27.9 L330.2 28.8 L332.3 25.9 L334.4 26.0 L336.5 25.0 L338.6 25.9 L340.7 36.0 L342.8 22.5 L344.9 22.1 L347.0 26.0 L349.0 19.3 L351.1 17.0 L353.2 16.4 L355.3 15.2 L357.4 14.3 L359.5 14.2 L361.6 11.2 L363.7 13.9 L365.8 10.8 L367.9 9.7 L370.0 11.7 L372.1 11.5 L374.2 10.2 L376.2 10.0 L378.3 21.0 L380.4 21.0 L382.5 20.1 L384.6 20.2 L386.7 26.1 L388.8 24.0 L390.9 26.3 L393.0 39.5 L395.1 17.4 L397.2 18.0 L399.3 21.9 L401.4 18.1 L403.4 17.4 L405.5 15.5 L407.6 14.4 L409.7 13.1 L411.8 14.8 L413.9 11.3 L416.0 11.1 L418.1 10.1 L420.2 8.0 L422.3 8.3 L424.4 22.3 L426.5 19.8 L428.6 19.1 L430.6 21.0 L432.7 18.3 L434.8 17.4 L436.9 15.0 L439.0 15.8 L441.1 17.2 L443.2 16.0 L445.3 14.2 L447.4 14.1 L449.5 12.0 L451.6 30.0 L453.7 55.3 L455.8 54.4 L457.8 56.2 L459.9 53.5 L462.0 54.3 L464.1 54.7 L466.2 53.1 L468.3 52.9 L470.4 52.6 L472.5 56.3 L474.6 49.7 L476.7 47.8 L478.8 46.6 L480.9 45.4 L483.0 44.6 L485.0 43.3 L487.1 42.5 L489.2 44.3 L491.3 44.2 L493.4 46.0 L495.5 45.5 L497.6 45.1 L499.7 44.2 L501.8 44.1 L503.9 45.4 L506.0 42.2 L508.1 44.7 L510.2 33.7 L512.2 32.1 L514.3 29.7 L516.4 30.4 L518.5 32.0 L520.6 37.6 L522.7 22.8 L524.8 22.3 L526.9 22.8 L529.0 22.4 L531.1 21.5 L533.2 21.0 L535.3 20.9 L537.4 17.1 L539.4 17.6 L541.5 16.2 L543.6 15.8 L545.7 16.0 L547.8 15.5 L549.9 12.4 L552.0 13.1 L552.0 16.4 L549.9 26.9 L547.8 16.1 L545.7 17.1 L543.6 16.6 L541.5 17.6 L539.4 20.7 L537.4 20.9 L535.3 22.4 L533.2 25.0 L531.1 23.5 L529.0 24.6 L526.9 24.1 L524.8 23.3 L522.7 67.1 L520.6 50.0 L518.5 37.4 L516.4 32.7 L514.3 32.1 L512.2 33.9 L510.2 74.1 L508.1 51.7 L506.0 49.5 L503.9 48.9 L501.8 44.9 L499.7 45.9 L497.6 45.6 L495.5 50.6 L493.4 46.5 L491.3 60.1 L489.2 46.6 L487.1 48.5 L485.0 44.6 L483.0 48.1 L480.9 46.9 L478.8 49.1 L476.7 50.5 L474.6 58.4 L472.5 62.8 L470.4 53.5 L468.3 53.7 L466.2 61.7 L464.1 55.0 L462.0 55.2 L459.9 57.3 L457.8 57.0 L455.8 56.0 L453.7 55.6 L451.6 47.9 L449.5 15.2 L447.4 14.3 L445.3 16.6 L443.2 18.0 L441.1 19.7 L439.0 17.0 L436.9 17.8 L434.8 18.6 L432.7 21.6 L430.6 21.6 L428.6 20.7 L426.5 39.5 L424.4 24.0 L422.3 8.6 L420.2 12.3 L418.1 13.9 L416.0 11.7 L413.9 16.9 L411.8 16.3 L409.7 15.2 L407.6 16.1 L405.5 17.4 L403.4 18.8 L401.4 21.9 L399.3 23.4 L397.2 19.1 L395.1 39.5 L393.0 43.6 L390.9 26.8 L388.8 26.1 L386.7 27.6 L384.6 21.1 L382.5 21.4 L380.4 28.8 L378.3 23.4 L376.2 10.7 L374.2 12.0 L372.1 13.6 L370.0 12.2 L367.9 12.4 L365.8 15.6 L363.7 15.1 L361.6 19.6 L359.5 14.8 L357.4 17.3 L355.3 17.3 L353.2 17.4 L351.1 19.5 L349.0 27.7 L347.0 26.6 L344.9 23.4 L342.8 54.0 L340.7 48.1 L338.6 28.6 L336.5 26.6 L334.4 26.5 L332.3 28.8 L330.2 29.6 L328.1 31.7 L326.0 33.5 L323.9 30.9 L321.8 32.7 L319.8 34.5 L317.7 34.6 L315.6 39.0 L313.5 36.3 L311.4 39.6 L309.3 40.1 L307.2 43.6 L305.1 40.4 L303.0 43.3 L300.9 43.4 L298.8 43.1 L296.7 43.7 L294.6 43.2 L292.6 44.2 L290.5 68.4 L288.4 70.2 L286.3 48.0 L284.2 43.9 L282.1 39.7 L280.0 40.7 L277.9 41.6 L275.8 50.3 L273.7 51.8 L271.6 41.9 L269.5 46.4 L267.4 50.7 L265.4 45.2 L263.3 46.7 L261.2 47.3 L259.1 53.2 L257.0 55.7 L254.9 54.5 L252.8 78.5 L250.7 64.4 L248.6 59.7 L246.5 59.7 L244.4 63.4 L242.3 61.6 L240.2 62.5 L238.2 64.8 L236.1 65.9 L234.0 66.9 L231.9 71.6 L229.8 69.3 L227.7 71.7 L225.6 70.7 L223.5 73.9 L221.4 75.0 L219.3 75.6 L217.2 77.7 L215.1 85.0 L213.0 82.5 L211.0 84.6 L208.9 88.9 L206.8 86.1 L204.7 88.2 L202.6 89.5 L200.5 89.3 L198.4 92.0 L196.3 96.7 L194.2 96.2 L192.1 96.4 L190.0 101.2 L187.9 103.3 L185.8 106.8 L183.8 106.4 L181.7 107.2 L179.6 111.2 L177.5 129.6 L175.4 127.8 L173.3 114.8 L171.2 110.4 L169.1 120.3 L167.0 124.0 L164.9 117.7 L162.8 114.2 L160.7 119.2 L158.6 119.5 L156.6 121.5 L154.5 133.5 L152.4 134.3 L150.3 134.1 L148.2 125.9 L146.1 126.0 L144.0 127.7 L141.9 130.0 L139.8 156.1 L137.7 137.7 L135.6 141.2 L133.5 139.7 L131.4 137.1 L129.4 138.3 L127.3 140.0 L125.2 141.0 L123.1 144.4 L121.0 146.7 L118.9 150.0 L116.8 153.1 L114.7 154.1 L112.6 153.3 L110.5 152.3 L108.4 156.5 L106.3 160.1 L104.2 160.2 L102.2 160.1 L100.1 163.7 L98.0 162.5 L95.9 202.9 L93.8 175.0 L91.7 168.1 L89.6 174.6 L87.5 174.1 L85.4 164.2 L83.3 161.7 L81.2 161.8 L79.1 162.5 L77.0 164.4 L75.0 172.6 L72.9 166.8 L70.8 166.0 L68.7 168.7 L66.6 169.9 L64.5 176.4 L62.4 173.7 L60.3 168.2 L58.2 169.9 L56.1 168.5 L54.0 182.8 L51.9 195.8 L49.8 205.4 L47.8 183.4 L45.7 186.1 L43.6 187.7 L41.5 180.1 L39.4 176.9 L37.3 178.3 L35.2 192.6 L33.1 185.6 L31.0 178.5 L28.9 180.4 L26.8 182.3 L24.7 183.5 L22.6 184.4 L20.6 185.8 L18.5 186.3 L16.4 241.4 L14.3 252.0 L12.2 199.9 L10.1 199.8 L8.0 201.8 Z"/>
+              <path class="equite trace" pathLength="1" d="M8.0 201.8L10.1 199.8L12.2 199.9L14.3 252.0L16.4 241.4L18.5 186.3L20.6 185.8L22.6 184.4L24.7 183.5L26.8 182.3L28.9 180.4L31.0 178.5L33.1 185.6L35.2 192.6L37.3 178.3L39.4 176.9L41.5 180.1L43.6 187.7L45.7 186.1L47.8 183.4L49.8 205.4L51.9 195.8L54.0 182.8L56.1 168.5L58.2 169.9L60.3 168.2L62.4 173.7L64.5 176.4L66.6 169.9L68.7 168.7L70.8 166.0L72.9 166.8L75.0 172.6L77.0 164.4L79.1 162.5L81.2 161.8L83.3 161.7L85.4 164.2L87.5 174.1L89.6 174.6L91.7 168.1L93.8 175.0L95.9 202.9L98.0 162.5L100.1 163.7L102.2 160.1L104.2 160.2L106.3 160.1L108.4 156.5L110.5 152.3L112.6 153.3L114.7 154.1L116.8 153.1L118.9 150.0L121.0 146.7L123.1 144.4L125.2 141.0L127.3 140.0L129.4 138.3L131.4 137.1L133.5 139.7L135.6 141.2L137.7 137.7L139.8 156.1L141.9 130.0L144.0 127.7L146.1 126.0L148.2 125.9L150.3 134.1L152.4 134.3L154.5 133.5L156.6 121.5L158.6 119.5L160.7 119.2L162.8 114.2L164.9 117.7L167.0 124.0L169.1 120.3L171.2 110.4L173.3 114.8L175.4 127.8L177.5 129.6L179.6 111.2L181.7 107.2L183.8 106.4L185.8 106.8L187.9 103.3L190.0 101.2L192.1 96.4L194.2 96.2L196.3 96.7L198.4 92.0L200.5 89.3L202.6 89.5L204.7 88.2L206.8 86.1L208.9 88.9L211.0 84.6L213.0 82.5L215.1 85.0L217.2 77.7L219.3 75.6L221.4 75.0L223.5 73.9L225.6 70.7L227.7 71.7L229.8 69.3L231.9 71.6L234.0 66.9L236.1 65.9L238.2 64.8L240.2 62.5L242.3 61.6L244.4 63.4L246.5 59.7L248.6 59.7L250.7 64.4L252.8 78.5L254.9 54.5L257.0 55.7L259.1 53.2L261.2 47.3L263.3 46.7L265.4 45.2L267.4 50.7L269.5 46.4L271.6 41.9L273.7 51.8L275.8 50.3L277.9 41.6L280.0 40.7L282.1 39.7L284.2 43.9L286.3 48.0L288.4 70.2L290.5 68.4L292.6 44.2L294.6 43.2L296.7 43.7L298.8 43.1L300.9 43.4L303.0 43.3L305.1 40.4L307.2 43.6L309.3 40.1L311.4 39.6L313.5 36.3L315.6 39.0L317.7 34.6L319.8 34.5L321.8 32.7L323.9 30.9L326.0 33.5L328.1 31.7L330.2 29.6L332.3 28.8L334.4 26.5L336.5 26.6L338.6 28.6L340.7 48.1L342.8 54.0L344.9 23.4L347.0 26.6L349.0 27.7L351.1 19.5L353.2 17.4L355.3 17.3L357.4 17.3L359.5 14.8L361.6 19.6L363.7 15.1L365.8 15.6L367.9 12.4L370.0 12.2L372.1 13.6L374.2 12.0L376.2 10.7L378.3 23.4L380.4 28.8L382.5 21.4L384.6 21.1L386.7 27.6L388.8 26.1L390.9 26.8L393.0 43.6L395.1 39.5L397.2 19.1L399.3 23.4L401.4 21.9L403.4 18.8L405.5 17.4L407.6 16.1L409.7 15.2L411.8 16.3L413.9 16.9L416.0 11.7L418.1 13.9L420.2 12.3L422.3 8.6L424.4 24.0L426.5 39.5L428.6 20.7L430.6 21.6L432.7 21.6L434.8 18.6L436.9 17.8L439.0 17.0L441.1 19.7L443.2 18.0L445.3 16.6L447.4 14.3L449.5 15.2L451.6 47.9L453.7 55.6L455.8 56.0L457.8 57.0L459.9 57.3L462.0 55.2L464.1 55.0L466.2 61.7L468.3 53.7L470.4 53.5L472.5 62.8L474.6 58.4L476.7 50.5L478.8 49.1L480.9 46.9L483.0 48.1L485.0 44.6L487.1 48.5L489.2 46.6L491.3 60.1L493.4 46.5L495.5 50.6L497.6 45.6L499.7 45.9L501.8 44.9L503.9 48.9L506.0 49.5L508.1 51.7L510.2 74.1L512.2 33.9L514.3 32.1L516.4 32.7L518.5 37.4L520.6 50.0L522.7 67.1L524.8 23.3L526.9 24.1L529.0 24.6L531.1 23.5L533.2 25.0L535.3 22.4L537.4 20.9L539.4 20.7L541.5 17.6L543.6 16.6L545.7 17.1L547.8 16.1L549.9 26.9L552.0 16.4"/>
+              <path class="solde trace" pathLength="1" d="M8.0 199.0L10.1 198.1L12.2 198.3L14.3 219.2L16.4 185.1L18.5 185.8L20.6 183.6L22.6 183.1L24.7 182.2L26.8 179.8L28.9 177.9L31.0 177.7L33.1 181.4L35.2 178.1L37.3 176.6L39.4 175.8L41.5 177.7L43.6 175.6L45.7 180.5L47.8 174.3L49.8 195.5L51.9 168.2L54.0 167.8L56.1 165.5L58.2 168.2L60.3 168.2L62.4 168.2L64.5 169.8L66.6 167.7L68.7 166.0L70.8 166.0L72.9 165.7L75.0 164.2L77.0 162.2L79.1 161.3L81.2 160.8L83.3 160.1L85.4 161.3L87.5 167.7L89.6 163.8L91.7 165.8L93.8 173.1L95.9 161.4L98.0 160.7L100.1 159.8L102.2 159.8L104.2 160.1L106.3 156.5L108.4 151.8L110.5 150.1L112.6 150.5L114.7 146.3L116.8 150.0L118.9 144.8L121.0 142.6L123.1 140.5L125.2 139.7L127.3 137.4L129.4 136.4L131.4 134.7L133.5 136.8L135.6 135.6L137.7 135.8L139.8 128.9L141.9 126.2L144.0 125.7L146.1 123.9L148.2 124.4L150.3 129.3L152.4 133.5L154.5 119.1L156.6 119.5L158.6 115.3L160.7 112.8L162.8 112.9L164.9 114.0L167.0 120.3L169.1 110.4L171.2 107.2L173.3 114.1L175.4 124.0L177.5 107.3L179.6 106.5L181.7 104.5L183.8 104.4L185.8 99.8L187.9 101.0L190.0 96.3L192.1 95.1L194.2 94.8L196.3 91.3L198.4 89.3L200.5 87.4L202.6 85.1L204.7 84.6L206.8 84.6L208.9 83.7L211.0 81.7L213.0 82.5L215.1 77.3L217.2 74.4L219.3 74.8L221.4 73.2L223.5 70.3L225.6 70.5L227.7 69.1L229.8 67.9L231.9 65.3L234.0 65.7L236.1 63.9L238.2 61.8L240.2 60.7L242.3 60.6L244.4 58.4L246.5 58.0L248.6 58.1L250.7 63.7L252.8 49.6L254.9 51.7L257.0 48.6L259.1 46.8L261.2 45.9L263.3 44.5L265.4 43.4L267.4 46.4L269.5 39.1L271.6 40.8L273.7 44.9L275.8 40.9L277.9 40.1L280.0 38.2L282.1 38.4L284.2 41.6L286.3 46.6L288.4 57.2L290.5 38.3L292.6 42.4L294.6 42.4L296.7 41.8L298.8 41.3L300.9 43.3L303.0 39.2L305.1 40.0L307.2 39.5L309.3 39.6L311.4 35.4L313.5 35.4L315.6 34.1L317.7 33.4L319.8 31.7L321.8 29.2L323.9 30.1L326.0 28.3L328.1 27.9L330.2 28.8L332.3 25.9L334.4 26.0L336.5 25.0L338.6 25.9L340.7 36.0L342.8 22.5L344.9 22.1L347.0 26.0L349.0 19.3L351.1 17.0L353.2 16.4L355.3 15.2L357.4 14.3L359.5 14.2L361.6 11.2L363.7 13.9L365.8 10.8L367.9 9.7L370.0 11.7L372.1 11.5L374.2 10.2L376.2 10.0L378.3 21.0L380.4 21.0L382.5 20.1L384.6 20.2L386.7 26.1L388.8 24.0L390.9 26.3L393.0 39.5L395.1 17.4L397.2 18.0L399.3 21.9L401.4 18.1L403.4 17.4L405.5 15.5L407.6 14.4L409.7 13.1L411.8 14.8L413.9 11.3L416.0 11.1L418.1 10.1L420.2 8.0L422.3 8.3L424.4 22.3L426.5 19.8L428.6 19.1L430.6 21.0L432.7 18.3L434.8 17.4L436.9 15.0L439.0 15.8L441.1 17.2L443.2 16.0L445.3 14.2L447.4 14.1L449.5 12.0L451.6 30.0L453.7 55.3L455.8 54.4L457.8 56.2L459.9 53.5L462.0 54.3L464.1 54.7L466.2 53.1L468.3 52.9L470.4 52.6L472.5 56.3L474.6 49.7L476.7 47.8L478.8 46.6L480.9 45.4L483.0 44.6L485.0 43.3L487.1 42.5L489.2 44.3L491.3 44.2L493.4 46.0L495.5 45.5L497.6 45.1L499.7 44.2L501.8 44.1L503.9 45.4L506.0 42.2L508.1 44.7L510.2 33.7L512.2 32.1L514.3 29.7L516.4 30.4L518.5 32.0L520.6 37.6L522.7 22.8L524.8 22.3L526.9 22.8L529.0 22.4L531.1 21.5L533.2 21.0L535.3 20.9L537.4 17.1L539.4 17.6L541.5 16.2L543.6 15.8L545.7 16.0L547.8 15.5L549.9 12.4L552.0 13.1"/>
+              <line class="repere apparait" x1="16.4" x2="16.4" y1="185.1" y2="241.4"/>
+              <text class="t-rouge apparait" x="24.4" y="244.4" data-t="g_repere"></text>
+            </svg>
+            </div>
+            <figcaption data-t="g_legende"></figcaption>
+          </figure>
+        </div>
+        <div id="apercu-verdict" hidden></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="bandeau"><div class="contenu" data-h="ia"></div></div>
+
+  <section class="bloc" id="audit" hidden aria-label="Audit complet">
+    <div class="contenu"><div id="resultat"></div></div>
+  </section>
+
+  <section class="bloc" id="verifs" aria-labelledby="verifs-titre">
+    <div class="contenu">
+      <div class="bloc-tete">
+        <h2 id="verifs-titre" data-t="verifs_titre"></h2>
+        <p data-t="verifs_sous"></p>
+      </div>
+      <div class="verifs">
+        <div class="verif"><h3 data-t="v1_t"></h3><p data-t="v1_p"></p><span class="constat" data-t="v1_ex"></span></div>
+        <div class="verif"><h3 data-t="v2_t"></h3><p data-t="v2_p"></p><span class="constat" data-t="v2_ex"></span></div>
+        <div class="verif"><h3 data-t="v3_t"></h3><p data-t="v3_p"></p><span class="constat" data-t="v3_ex"></span></div>
+        <div class="verif"><h3 data-t="v4_t"></h3><p data-t="v4_p"></p><span class="constat" data-t="v4_ex"></span></div>
+        <div class="verif"><h3 data-t="v5_t"></h3><p data-t="v5_p"></p><span class="constat" data-t="v5_ex"></span></div>
+        <div class="verif"><h3 data-t="v6_t"></h3><p data-t="v6_p"></p><span class="constat" data-t="v6_ex"></span></div>
+      </div>
     </div>
+  </section>
 
-    <label class="depot" id="depot">
-      <strong data-t="depot_titre"></strong>
-      <small data-t="depot_aide"></small>
-      <input type="file" id="fichier" accept=".htm,.html,.csv" aria-describedby="confidentiel">
-    </label>
-    <div class="exemples">
-      <span data-t="exemples"></span>
-      <button type="button" data-exemple="martingale" data-t="ex_martingale"></button>
-      <button type="button" data-exemple="grille" data-t="ex_grille"></button>
-      <button type="button" data-exemple="propre" data-t="ex_propre"></button>
-    </div>
-    <p class="confidentiel" id="confidentiel" data-t="confidentiel"></p>
-
-    <div id="erreur" class="erreur" role="alert" hidden></div>
-    <div id="resultat" aria-live="polite"></div>
-
-    <section class="offre" aria-labelledby="offre-titre">
+  <section class="bloc" id="precision" aria-labelledby="precision-titre">
+    <div class="contenu precision">
       <div>
+        <h2 class="titre-bloc" id="precision-titre" data-t="precision_titre"></h2>
+        <div class="grand" data-t="c1_v"></div>
+        <p data-t="c1_l"></p>
+      </div>
+      <div class="faits">
+        <div class="fait"><b data-t="c2_v"></b><span data-t="c2_l"></span></div>
+        <div class="fait"><b data-t="c3_v"></b><span data-t="c3_l"></span></div>
+        <div class="fait"><b data-t="c4_v"></b><span data-t="c4_l"></span></div>
+        <div class="fait"><b data-t="c5_v"></b><span data-t="c5_l"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc" id="comment" aria-labelledby="comment-titre">
+    <div class="contenu">
+      <div class="bloc-tete">
+        <h2 id="comment-titre" data-t="comment_titre"></h2>
+        <p data-t="comment_sous"></p>
+      </div>
+      <div class="etapes">
+        <div>
+          <h3 data-t="rapport_titre"></h3>
+          <ol><li data-t="etape1"></li><li data-t="etape2"></li><li data-t="etape3"></li><li data-t="etape4"></li></ol>
+        </div>
+        <div>
+          <h3 data-t="signal_titre"></h3>
+          <ol><li data-t="signal1"></li><li data-t="signal2"></li><li data-t="signal3"></li></ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc" id="offre" aria-labelledby="offre-titre">
+    <div class="contenu offre">
+      <div class="texte">
         <h2 id="offre-titre" data-t="offre_titre"></h2>
         <p data-t="offre_texte"></p>
-        <ul>
-          <li data-t="offre_1"></li>
-          <li data-t="offre_2"></li>
-          <li data-t="offre_3"></li>
-          <li data-t="offre_4"></li>
-        </ul>
+        <div class="prix"><b data-t="offre_prix"></b><span data-t="offre_prix_sous"></span></div>
+        <div class="actions">
+          <a class="bouton" href="commande.html" data-t="offre_commander"></a>
+          <a class="bouton second" href="exemple/multimartin.html" data-t="offre_exemple"></a>
+        </div>
       </div>
-      <div class="actions">
-        <a class="bouton plein" href="commande.html" data-t="offre_commander"></a>
-        <a class="bouton" href="exemple/multimartin.html" data-t="offre_exemple"></a>
-      </div>
-    </section>
+      <ul>
+        <li data-t="offre_1"></li>
+        <li data-t="offre_2"></li>
+        <li data-t="offre_3"></li>
+        <li data-t="offre_4"></li>
+      </ul>
+    </div>
+  </section>
+</main>
 
-    <section class="comment" aria-labelledby="comment-titre">
-      <h2 id="comment-titre" data-t="comment_titre"></h2>
-      <ol>
-        <li data-t="etape1"></li>
-        <li data-t="etape2"></li>
-        <li data-t="etape3"></li>
-        <li data-t="etape4"></li>
-      </ol>
-      <h3 data-t="signal_titre"></h3>
-      <ol>
-        <li data-t="signal1"></li>
-        <li data-t="signal2"></li>
-        <li data-t="signal3"></li>
-      </ol>
-    </section>
-  </main>
-
-  <footer>
-    <p data-t="pied1"></p>
-    <p data-t="pied2"></p>
-  </footer>
-</div>
+<footer>
+  <div class="contenu">
+    <div><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"></div>
+    <div>
+      <p data-t="pied1"></p>
+      <p data-t="pied2"></p>
+    </div>
+  </div>
+</footer>
 
 <script src="engine.js"></script>
 <script src="analyses.js"></script>
@@ -270,14 +483,51 @@
   const T = {
     fr: {
       marque_sous: "— test indépendant de robots MT5",
-      titre: "Ce robot cache-t-il une martingale ?",
-      sous_titre: "Déposez le rapport du testeur de stratégie MetaTrader 5. En quelques secondes : martingale, grille et stop-loss vérifiés, une note de sécurité et de solidité sur 100, et vos chances sur 6 challenges de prop firms (FTMO, FundedNext, The5ers).",
-      depot_titre: "Déposer un rapport du testeur (.html) ou l'historique d'un signal (.csv)",
-      depot_aide: "Glissez le fichier ici, ou cliquez pour le choisir.",
-      exemples: "Pas de rapport sous la main ? Essayer avec :",
+      titre: "Ce robot cache‑t‑il une martingale ?",
+      sous_titre: "Déposez son rapport de test ou l'historique de son signal. En quelques secondes, vous savez ce qu'il fait vraiment : martingale, grille, stops, pertes cachées.",
+      ia: "Vous avez créé votre robot avec ChatGPT ou Claude ? <b>Personne ne l'a vérifié avant vous.</b> Testez-le dans MetaTrader et déposez son rapport ici.",
+      depot_titre: "Déposez un rapport de test (.html) ou l'historique d'un signal (.csv)",
+      depot_aide: "Glissez-le n'importe où sur la page, ou choisissez-le.", depot_aide_tactile: "Touchez pour choisir le fichier sur votre téléphone.",
+      exemples: "Pas de fichier sous la main ? Voir un exemple :",
       ex_martingale: "un robot à martingale", ex_grille: "un robot à grille", ex_propre: "un robot propre",
-      confidentiel: "Le fichier est analysé dans votre navigateur. Il n'est envoyé nulle part.",
-      comment_titre: "Obtenir le rapport d'un robot",
+      confidentiel: "Gratuit, sans inscription. Le fichier est lu dans votre navigateur : il n'est envoyé nulle part.",
+      apercu_exemple: "Exemple : ce que l'audit voit et que le vendeur ne montre pas", apercu_votre: "Votre verdict",
+      apercu_voir: "Voir l'audit complet", apercu_pied: "Notes, solidité, 6 challenges, exemples datés.", apercu_rien: "Aucun comportement dangereux repéré dans ce fichier.",
+      voile: "Lâchez le fichier pour l'analyser",
+      nav_essai: "Vérifier un robot", nav_precision: "Précision", nav_verifs: "Vérifications", nav_offre: "Tarif",
+      cta_essai: "Analyser un rapport gratuitement", cta_audit: "Audit complet, 29 €",
+      g_tete: "<b>Robot de laboratoire à martingale</b>, GBPUSD", g_periode: "nov. 2025 – nov. 2026",
+      g_l1: "Résultat sur un an", g_v1: "+69,7 %", g_l2: "Pire recul du solde", g_v2: "−10,9 %", g_l3: "Pire recul de l'équité", g_v3: "−20,0 %",
+      g_depot: "dépôt", g_solde: "Solde : ce que montre le vendeur", g_equite: "Équité : l'argent réellement exposé", g_repere: "pertes encore ouvertes",
+      g_tampon: "Risque élevé", g_alt: "Courbe d'un robot à martingale : le solde monte régulièrement, l'équité plonge à −20 % pendant que des pertes restent ouvertes.",
+      g_legende: "Test du labo MantaLab, équité recalculée minute par minute. Un rapport de vendeur montre le solde ; l'audit mesure aussi ce qui reste ouvert.",
+      essai_titre: "Vérifiez un robot en quelques secondes.", essai_sous: "Martingale, grille, stop-loss, notes sur 100 et six challenges de prop firms. Gratuit, sans inscription.",
+      depot_bouton: "Choisir un fichier",
+      v1_ex: "VR Overturn : mise augmentée après 41 pertes sur 41, jusqu'à 43,8 fois la mise de départ.",
+      v2_ex: "GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros que le précédent.",
+      v3_ex: "MultiMartin : aucun stop chez le courtier ; 97 % des pertes coupées par le robot vers 509 points.",
+      v4_ex: "Moving Average : 94 % de chances d'un vrai avantage, 17 % une fois la sur-optimisation prise en compte.",
+      v5_ex: "GridPro Panel : jusqu'à 31 % de perte en une seule journée. FTMO en tolère 5 %.",
+      v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres, comptés comme une seule décision.",
+      precision_titre: "Nous publions notre taux d'erreur.",
+      c5_v: "226", c5_l: "tests dans la base du labo, réanalysés à chaque évolution du moteur",
+      nav_verifs_ancien: "", nav_comment: "Comment ça marche", nav_cta: "Faire auditer un robot", nav_cta_court: "Audit · 29 €",
+      pastille: "Audit indépendant de robots MetaTrader 5",
+      c1_v: "96,4 %", c1_l: "de verdicts justes sur 209 tests de robots dont nous connaissons exactement le comportement, sur 19 marchés. Les erreurs restantes sont connues et documentées, une par une.",
+      c2_v: "29 / 29", c2_l: "verdicts conformes sur 10 vrais robots de référence",
+      c3_v: "0,05 pt", c3_l: "d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute",
+      c4_v: "6", c4_l: "challenges de prop firms simulés avec leurs règles officielles",
+      verifs_titre: "Ce que l'audit vérifie.", verifs_sous: "Chaque constat s'appuie sur les trades eux-mêmes. Exemples tirés de robots publics de la bibliothèque MQL5.",
+      v1_t: "Martingale", v1_p: "Le robot augmente-t-il sa mise après une perte pour se refaire ? Même cachée dans une grille ou un panier d'ordres.",
+      v2_t: "Grille", v2_p: "Ouvre-t-il de nouvelles positions pendant que le prix va contre lui, au lieu de couper la perte ?",
+      v3_t: "Stop-loss", v3_p: "Un vrai stop chez le courtier, un stop posé après l'entrée, un stop « virtuel » qui disparaît si MetaTrader plante… ou rien du tout.",
+      v4_t: "Solidité des gains", v4_p: "Avantage réel ou coup de chance ? Sharpe probabiliste, sur-optimisation, stabilité, 1 000 variantes de l'historique.",
+      v5_t: "Challenges de prop firms", v5_p: "FTMO, FundedNext, The5ers : vos chances de réussite, rejouées sur l'historique réel et sur 1 000 variantes.",
+      v6_t: "Signaux MQL5", v6_p: "Un compte réel que vous comptez copier ? Déposez l'historique du signal : mêmes vérifications, sur de l'argent réel.",
+      comment_sous: "Deux fichiers possibles. Tous deux sont lus dans votre navigateur et ne quittent pas votre ordinateur.",
+      rapport_titre: "Le rapport de test d'un robot",
+      offre_prix: "29 €", offre_prix_sous: "par robot · fiche PDF sous 48 h",
+      comment_titre: "Comment ça marche.",
       etape1: "Dans MetaTrader 5, ouvrez le testeur de stratégie (Ctrl+R) et choisissez le robot, même une version démo du Market.",
       etape2: "Testez au moins 1 à 3 ans, en modélisation « Chaque tick basé sur des ticks réels ».",
       etape3: "À la fin du test, onglet Backtest : clic droit → Rapport → HTML (Internet Explorer).",
@@ -400,13 +650,50 @@
     en: {
       marque_sous: "— independent MT5 robot testing",
       titre: "Is this robot hiding a martingale?",
-      sous_titre: "Drop a MetaTrader 5 Strategy Tester report. In seconds: martingale, grid and stop-loss checked, a safety and solidity score out of 100, and your odds on 6 prop-firm challenges (FTMO, FundedNext, The5ers).",
-      depot_titre: "Drop a Strategy Tester report (.html) or a signal history (.csv)",
-      depot_aide: "Drag the file here, or click to choose it.",
-      exemples: "No report at hand? Try with:",
+      sous_titre: "Drop its test report or its signal history. In seconds you know what it really does: martingale, grid, stops, hidden losses.",
+      ia: "Built your robot with ChatGPT or Claude? <b>Nobody has checked it before you.</b> Test it in MetaTrader and drop its report here.",
+      depot_titre: "Drop a test report (.html) or a signal history (.csv)",
+      depot_aide: "Drop it anywhere on the page, or pick it.", depot_aide_tactile: "Tap to pick the file on your phone.",
+      exemples: "No file at hand? See an example:",
       ex_martingale: "a martingale robot", ex_grille: "a grid robot", ex_propre: "a clean robot",
-      confidentiel: "The file is analysed in your browser. It is not sent anywhere.",
-      comment_titre: "Getting a robot's report",
+      confidentiel: "Free, no sign-up. The file is read in your browser: it is not sent anywhere.",
+      apercu_exemple: "Example: what the audit sees and the seller doesn't show", apercu_votre: "Your verdict",
+      apercu_voir: "See the full audit", apercu_pied: "Scores, solidity, 6 challenges, dated examples.", apercu_rien: "No dangerous behaviour found in this file.",
+      voile: "Drop the file to analyse it",
+      nav_essai: "Check a robot", nav_precision: "Accuracy", nav_verifs: "Checks", nav_offre: "Pricing",
+      cta_essai: "Analyse a report for free", cta_audit: "Full audit, €29",
+      g_tete: "<b>Lab martingale robot</b>, GBPUSD", g_periode: "Nov 2025 – Nov 2026",
+      g_l1: "One-year result", g_v1: "+69.7%", g_l2: "Worst balance drop", g_v2: "−10.9%", g_l3: "Worst equity drop", g_v3: "−20.0%",
+      g_depot: "deposit", g_solde: "Balance: what the seller shows", g_equite: "Equity: money actually at risk", g_repere: "losses still open",
+      g_tampon: "High risk", g_alt: "A martingale robot's curve: the balance rises steadily while equity drops to −20% with losses left open.",
+      g_legende: "MantaLab lab test, equity recomputed minute by minute. A seller's report shows the balance; the audit also measures what is still open.",
+      essai_titre: "Check a robot in seconds.", essai_sous: "Martingale, grid, stop-loss, scores out of 100 and six prop-firm challenges. Free, no sign-up.",
+      depot_bouton: "Choose a file",
+      v1_ex: "VR Overturn: size raised after 41 losses out of 41, up to 43.8 times the starting size.",
+      v2_ex: "GridPro Panel: up to 7 positions open against the market, each addition larger than the last.",
+      v3_ex: "MultiMartin: no stop at the broker; 97% of losses cut by the robot around 509 points.",
+      v4_ex: "Moving Average: 94% chance of a real edge, 17% once over-optimisation is accounted for.",
+      v5_ex: "GridPro Panel: up to 31% lost in a single day. FTMO allows 5%.",
+      v6_ex: "A gold signal: 212 of 575 entries placed as baskets of 2 to 7 orders, counted as one decision.",
+      precision_titre: "We publish our error rate.",
+      c5_v: "226", c5_l: "tests in the lab database, re-analysed every time the engine changes",
+      nav_verifs_ancien: "", nav_comment: "How it works", nav_cta: "Get a robot audited", nav_cta_court: "Audit · €29",
+      pastille: "Independent audit of MetaTrader 5 robots",
+      c1_v: "96.4%", c1_l: "correct verdicts over 209 tests of robots whose behaviour we know exactly, across 19 markets. The remaining errors are known and documented, one by one.",
+      c2_v: "29 / 29", c2_l: "verdicts confirmed on 10 real reference robots",
+      c3_v: "0.05 pt", c3_l: "average gap with MetaTrader on drawdown, recomputed minute by minute",
+      c4_v: "6", c4_l: "prop-firm challenges simulated with their official rules",
+      verifs_titre: "What the audit checks.", verifs_sous: "Every finding comes from the trades themselves. Examples from public robots in the MQL5 library.",
+      v1_t: "Martingale", v1_p: "Does the robot raise its size after a loss to win it back? Even when hidden in a grid or a basket of orders.",
+      v2_t: "Grid", v2_p: "Does it open new positions while price moves against it, instead of cutting the loss?",
+      v3_t: "Stop-loss", v3_p: "A real broker stop, a stop placed after entry, a “virtual” stop that vanishes if MetaTrader crashes… or none at all.",
+      v4_t: "Solidity of gains", v4_p: "Real edge or luck? Probabilistic Sharpe, over-optimisation, stability, 1,000 variants of the history.",
+      v5_t: "Prop-firm challenges", v5_p: "FTMO, FundedNext, The5ers: your odds of passing, replayed on the real history and on 1,000 variants.",
+      v6_t: "MQL5 signals", v6_p: "A live account you plan to copy? Drop the signal history: same checks, on real money.",
+      comment_sous: "Two possible files. Both are read in your browser and never leave your computer.",
+      rapport_titre: "A robot's test report",
+      offre_prix: "€29", offre_prix_sous: "per robot · PDF report within 48 h",
+      comment_titre: "How it works.",
       etape1: "In MetaTrader 5, open the Strategy Tester (Ctrl+R) and pick the robot — a Market demo works too.",
       etape2: "Test at least 1 to 3 years, with “Every tick based on real ticks” modelling.",
       etape3: "When the test ends, Backtest tab: right-click → Report → HTML (Internet Explorer).",
@@ -599,6 +886,8 @@
   function appliquerLangue() {
     document.documentElement.lang = langue;
     document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = T[langue][el.dataset.t]; });
+    // data-h : textes du site contenant une mise en valeur (<em>) — jamais de contenu venant d'un fichier déposé
+    document.querySelectorAll("[data-h]").forEach((el) => { el.innerHTML = T[langue][el.dataset.h]; });
     document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === langue)));
     if (dernier) afficher(dernier, false);
   }
@@ -648,7 +937,32 @@
       dernier = { resultat, analyses: AN.analyser(resultat), avertissements: avertissements.filter((a) => a.code !== "depot"), exemple: null };
       afficher(dernier, false);
     });
-    if (animer) document.getElementById("resultat").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    document.getElementById("audit").hidden = false;
+    apercu({ resultat: r, analyses, exemple }, animer);
+  }
+
+  /** Le verdict du fichier déposé prend la place de l'exemple, en haut de page (pas besoin de défiler). */
+  function apercu({ resultat: r, analyses, exemple }, animer) {
+    const L = T[langue], b = r.backtest, n = analyses ? analyses.notes : null;
+    const graves = ["martingale", "grille", "stop_loss", "trades_courts", "profil", "prop"].map((k) => [k, r.constats[k]])
+      .filter(([, c]) => c.niveau === "alerte" || c.niveau === "attention").sort((x, y) => (x[1].niveau === "alerte" ? 0 : 1) - (y[1].niveau === "alerte" ? 0 : 1));
+    const lignes = (graves.length ? graves.slice(0, 4) : [["rien", { niveau: "ok" }]]).map(([k, c]) =>
+      `<li><span class="statut ${c.niveau}">${esc(L.statut[c.niveau])}</span><span>${k === "rien" ? esc(L.apercu_rien) : `<b>${esc(L.titres[k])}</b> · ${esc(L.txt[c.cle] ? L.txt[c.cle](c.donnees).split(/(?<=\.)\s/)[0] : "")}`}</span></li>`).join("");
+    const note = (cle, niv, v) => `<div class="${niv}"><span>${esc(L.note_nom[cle] + (v === null ? " · " + L.note_niveau.inconnu : ""))}</span><b>${v === null ? "–" : v}<small>/100</small></b></div>`;
+    const el = document.getElementById("apercu-verdict");
+    el.innerHTML = `<p class="etiquette">${esc(exemple ? L.exemple_label : L.apercu_votre)}</p>
+      <article class="verdict">
+        <div class="verdict-tete"><div><h2>${esc(exemple ? L["ex_" + exemple] : b.robot)}</h2><div class="meta">${esc(L.meta(b, r))}</div></div>
+          <div class="tampon ${r.risque}${animer ? " pose" : ""}">${esc(L.risque[r.risque])}</div></div>
+        ${n ? `<div class="verdict-notes">${note("securite", n.niveauSecurite, n.securite)}${note("solidite", n.niveauSolidite, n.solidite)}</div>` : ""}
+        <ul>${lignes}</ul>
+        <div class="verdict-pied"><span>${esc(L.apercu_pied)}</span><a class="bouton petit" href="#audit">${esc(L.apercu_voir)}</a></div>
+      </article>`;
+    el.hidden = false;
+    document.getElementById("apercu-exemple").hidden = true;
+    // sur téléphone, le verdict est sous la zone de dépôt : on l'amène à l'écran
+    const haut = el.getBoundingClientRect().top;
+    if (animer && (haut < 0 || haut > innerHeight * 0.7)) el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   }
 
   function montrerErreur(msg) {
@@ -676,12 +990,21 @@
     }
   }
 
-  const depot = document.getElementById("depot");
   const input = document.getElementById("fichier");
   input.addEventListener("change", () => { if (input.files[0]) lireFichier(input.files[0]); input.value = ""; });
-  ["dragenter", "dragover"].forEach((ev) => depot.addEventListener(ev, (e) => { e.preventDefault(); depot.classList.add("survol"); }));
-  ["dragleave", "drop"].forEach((ev) => depot.addEventListener(ev, (e) => { e.preventDefault(); depot.classList.remove("survol"); }));
-  depot.addEventListener("drop", (e) => { const f = e.dataTransfer.files[0]; if (f) lireFichier(f); });
+  // Le fichier peut être lâché N'IMPORTE OÙ sur la page : un voile rouge l'indique.
+  const voile = document.getElementById("voile");
+  let profondeur = 0;
+  const avecFichier = (e) => e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+  document.addEventListener("dragenter", (e) => { if (!avecFichier(e)) return; e.preventDefault(); profondeur++; voile.hidden = false; });
+  document.addEventListener("dragover", (e) => { if (avecFichier(e)) e.preventDefault(); });
+  document.addEventListener("dragleave", (e) => { if (!avecFichier(e)) return; if (--profondeur <= 0) { profondeur = 0; voile.hidden = true; } });
+  document.addEventListener("drop", (e) => {
+    if (!avecFichier(e)) return;
+    e.preventDefault(); profondeur = 0; voile.hidden = true;
+    const f = e.dataTransfer.files[0];
+    if (f) lireFichier(f);
+  });
 
   document.querySelectorAll("[data-exemple]").forEach((btn) => btn.addEventListener("click", () => {
     montrerErreur("");
