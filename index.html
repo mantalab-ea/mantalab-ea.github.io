@@ -144,7 +144,7 @@
   .depot.en-cours::after { animation: progression var(--duree-analyse, 1.2s) cubic-bezier(.4,.1,.2,1) forwards; }
   .depot.en-cours .faux-bouton { opacity: .55; }
   @keyframes progression { to { width: 100%; } }
-  .depot.fait .icone { background: #fff; color: var(--rouge); }
+  .depot.analyse-faite .icone { background: #fff; color: var(--rouge); }
   /* Le verdict arrive : glisse, puis un liseré rouge s'éteint */
   .verdict.arrive { animation: arrivee .5s cubic-bezier(.2,.8,.2,1) both, liseré 1.6s ease .35s both; }
   @keyframes arrivee { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
@@ -996,8 +996,8 @@
   let fichierAnalyse = null; // nom affiché dans le bloc une fois l'analyse faite
   async function etatAnalyse(nom) {
     const L = T[langue], titre = blocDepot.querySelector("strong"), aide = blocDepot.querySelector("small");
-    blocDepot.classList.remove("fait");
-    const pas = lent ? 300 : 0;
+    blocDepot.classList.remove("analyse-faite");
+    const pas = lent ? 450 : 0;
     blocDepot.style.setProperty("--duree-analyse", (pas * L.analyse_etapes.length) / 1000 + "s");
     blocDepot.classList.add("en-cours");
     aide.textContent = nom;
@@ -1007,13 +1007,13 @@
     blocDepot.classList.remove("en-cours");
     if (!fichierAnalyse) return;
     const L = T[langue];
-    blocDepot.classList.add("fait");
+    blocDepot.classList.add("analyse-faite");
     blocDepot.querySelector("strong").textContent = L.depot_fait;
     blocDepot.querySelector("small").textContent = fichierAnalyse;
     blocDepot.querySelector(".faux-bouton").textContent = L.depot_autre;
   }
   function etatRepos() {
-    blocDepot.classList.remove("en-cours", "fait");
+    blocDepot.classList.remove("en-cours", "analyse-faite");
     fichierAnalyse = null;
     appliquerLangue();
   }
