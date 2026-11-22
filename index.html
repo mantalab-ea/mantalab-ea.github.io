@@ -192,10 +192,11 @@
 
   /* ----- Essai ----- */
   .bloc { border-top: 1px solid var(--filet); padding: 4.5rem 0; }
-  .bloc-tete { text-align: center; margin: 0 auto 2.6rem; max-width: 46rem; }
+  .bloc-tete { margin-bottom: 2.2rem; max-width: calc(50% - 1.5rem); }
+  @media (max-width: 52rem) { .bloc-tete { max-width: none; } }
   .bloc-tete h2 { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
-  .bloc-tete p { margin: .9rem auto 0; color: var(--encre-2); max-width: 40rem; font-size: 1.05rem; text-wrap: balance; }
-  @media (max-width: 52rem) { .bloc-tete { text-align: left; } .bloc-tete p { margin-left: 0; } }
+  .bloc-sous { margin: 2.2rem auto 0; max-width: 40rem; text-align: center; color: var(--encre-2); text-wrap: balance; }
+
   .exemples { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline; color: var(--encre-2); font-size: .875rem; }
   .exemples button { font: 500 .875rem/1.4 "Inter", sans-serif; background: none; border: 0; padding: 0; color: var(--encre); cursor: pointer;
     text-decoration: underline; text-decoration-color: var(--filet-fort); text-underline-offset: 3px; }
@@ -204,7 +205,7 @@
   .erreur { margin-top: 1.25rem; border: 1px solid color-mix(in srgb, var(--alerte) 35%, transparent); background: color-mix(in srgb, var(--alerte) 6%, var(--fond)); padding: .9rem 1rem; border-radius: 10px; font-size: .95rem; }
 
   /* ----- Vérifications : un tableau, pas des cartes ----- */
-  .onglets { display: flex; justify-content: safe center; gap: 2rem; border-bottom: 1px solid var(--filet-fort); overflow-x: auto; scrollbar-width: none; }
+  .onglets { display: flex; gap: 2rem; border-bottom: 1px solid var(--filet-fort); overflow-x: auto; scrollbar-width: none; }
   .onglets::-webkit-scrollbar { display: none; }
   .onglets button { flex: none; font: 500 .95rem/1 "Inter", sans-serif; color: var(--encre-2); background: none; border: 0; padding: 1rem 0 .95rem; cursor: pointer;
     border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
@@ -455,7 +456,6 @@
     <div class="contenu">
       <div class="bloc-tete">
         <h2 id="verifs-titre" data-t="verifs_titre">Ce que l'audit vérifie.</h2>
-        <p data-t="verifs_sous">Chaque constat s'appuie sur les trades eux-mêmes. Exemples tirés de robots publics de la bibliothèque MQL5.</p>
       </div>
       <div class="onglets" role="tablist" aria-labelledby="verifs-titre">
         <button type="button" role="tab" id="og-1" aria-controls="pv-1" aria-selected="true" tabindex="0" data-t="v1_t">Martingale</button>
@@ -489,6 +489,7 @@
         <div class="pv-texte"><b class="pv-n" data-compte data-t="v6_n">212</b><p class="pv-ex" data-t="v6_ex">Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres.</p><p class="pv-q" data-t="v6_p">Un compte réel à copier ? Mêmes vérifications, sur de l'argent réel.</p></div>
         <figure class="pv-schema"><svg viewBox="0 0 480 240" role="img" aria-label="Schéma : des ordres groupés en paniers de 2 à 7"><line class="s-axe" x1="16" x2="464" y1="200" y2="200"/><rect class="s-gris" x="22" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="34" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="34" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="34" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="34" y="149" width="7" height="10" rx="2"/><rect class="s-rouge" x="34" y="136" width="7" height="10" rx="2"/><rect class="s-rouge" x="34" y="123" width="7" height="10" rx="2"/><rect class="s-rouge" x="34" y="110" width="7" height="10" rx="2"/><rect class="s-rouge" x="50" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="50" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="50" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="50" y="149" width="7" height="10" rx="2"/><rect class="s-rouge" x="50" y="136" width="7" height="10" rx="2"/><rect class="s-rouge" x="50" y="123" width="7" height="10" rx="2"/><rect class="s-rouge" x="66" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="66" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="66" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="66" y="149" width="7" height="10" rx="2"/><rect class="s-rouge" x="66" y="136" width="7" height="10" rx="2"/><rect class="s-rouge" x="66" y="123" width="7" height="10" rx="2"/><rect class="s-rouge" x="82" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="82" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="82" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="82" y="149" width="7" height="10" rx="2"/><rect class="s-rouge" x="82" y="136" width="7" height="10" rx="2"/><rect class="s-rouge" x="82" y="123" width="7" height="10" rx="2"/><rect class="s-rouge" x="98" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="98" y="175" width="7" height="10" rx="2"/><rect class="s-gris" x="114" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="126" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="126" y="175" width="7" height="10" rx="2"/><rect class="s-gris" x="142" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="154" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="154" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="154" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="154" y="149" width="7" height="10" rx="2"/><rect class="s-rouge" x="154" y="136" width="7" height="10" rx="2"/><rect class="s-rouge" x="154" y="123" width="7" height="10" rx="2"/><rect class="s-rouge" x="170" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="170" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="170" y="162" width="7" height="10" rx="2"/><rect class="s-gris" x="186" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="198" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="210" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="210" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="210" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="210" y="149" width="7" height="10" rx="2"/><rect class="s-rouge" x="210" y="136" width="7" height="10" rx="2"/><rect class="s-rouge" x="210" y="123" width="7" height="10" rx="2"/><rect class="s-gris" x="226" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="238" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="250" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="250" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="250" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="266" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="266" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="266" y="162" width="7" height="10" rx="2"/><rect class="s-gris" x="282" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="294" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="306" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="318" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="330" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="330" y="175" width="7" height="10" rx="2"/><rect class="s-rouge" x="330" y="162" width="7" height="10" rx="2"/><rect class="s-rouge" x="330" y="149" width="7" height="10" rx="2"/><rect class="s-rouge" x="330" y="136" width="7" height="10" rx="2"/><rect class="s-rouge" x="330" y="123" width="7" height="10" rx="2"/><rect class="s-gris" x="346" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="358" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="370" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="382" y="188" width="7" height="10" rx="2"/><rect class="s-rouge" x="382" y="175" width="7" height="10" rx="2"/><rect class="s-gris" x="398" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="410" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="422" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="434" y="188" width="7" height="10" rx="2"/><rect class="s-gris" x="446" y="188" width="7" height="10" rx="2"/><text class="s-txt" x="16" y="20" data-t="sch_18">Chaque ordre du compte, dans le temps</text><text class="s-rouge-t" x="16" y="40" data-t="sch_19">En rouge : 2 à 7 ordres passés ensemble</text><text class="s-txt" x="16" y="58" data-t="sch_20">comptés comme une seule décision</text><text class="s-txt s-petit" x="16" y="220" data-t="sch_21">temps →</text></svg><figcaption data-t="sch_legende">Schéma simplifié, d'après l'exemple cité.</figcaption></figure>
       </div>
+      <p class="bloc-sous" data-t="verifs_sous">Chaque constat s'appuie sur les trades eux-mêmes. Exemples tirés de robots publics de la bibliothèque MQL5.</p>
     </div>
   </section>
 
@@ -496,7 +497,6 @@
     <div class="contenu">
       <div class="bloc-tete">
         <h2 id="plus-titre" data-t="plus_titre">Ce que nous faisons, et que les autres ne font pas.</h2>
-        <p data-t="plus_sous">Le rapport du vendeur montre ce qu'il veut bien montrer. Un outil d'analyse ne voit que ce rapport. Le labo MantaLab teste le robot lui-même.</p>
       </div>
       <div class="cmp" role="table" aria-labelledby="plus-titre">
         <div class="cmp-l cmp-tete" role="row"><div role="columnheader"></div>
@@ -523,6 +523,7 @@
           <div class="cmp-c partiel" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">Un outil qui lit le rapport</small><span data-t="cmp_c5_o">Seulement si vous faites le test vous-même</span></span></div>
           <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">Le labo MantaLab</small><span data-t="cmp_c5_m">Envoyez le fichier, le labo s'occupe du reste</span></span></div></div>
       </div>
+      <p class="bloc-sous" data-t="plus_sous">Le rapport du vendeur montre ce qu'il veut bien montrer. Un outil d'analyse ne voit que ce rapport. Le labo MantaLab teste le robot lui-même.</p>
     </div>
   </section>
 
@@ -547,7 +548,6 @@
     <div class="contenu">
       <div class="bloc-tete">
         <h2 id="comment-titre" data-t="comment_titre">Comment ça marche.</h2>
-        <p data-t="comment_sous">Deux fichiers possibles. Tous deux sont lus dans votre navigateur et ne quittent pas votre ordinateur.</p>
       </div>
       <div class="etapes">
         <div>
@@ -559,6 +559,7 @@
           <ol><li data-t="signal1">Connectez-vous sur mql5.com (compte gratuit) et ouvrez la page du signal.</li><li data-t="signal2">Le plus complet : ouvrez l'adresse du signal suivie de /export/history (par exemple mql5.com/fr/signals/2265877/export/history). Le bouton « History » de l'onglet Historique marche aussi, mais sans le stop-loss.</li><li data-t="signal3">Déposez ce fichier .csv ci-dessus. Il est analysé dans votre navigateur, comme un rapport de test.</li></ol>
         </div>
       </div>
+      <p class="bloc-sous" data-t="comment_sous">Deux fichiers possibles. Tous deux sont lus dans votre navigateur et ne quittent pas votre ordinateur.</p>
     </div>
   </section>
 
