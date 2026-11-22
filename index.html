@@ -137,6 +137,19 @@
   .depot .tactile { display: none; }
   @media (hover: none) { .depot .bureau { display: none; } .depot .tactile { display: inline; } }
   .depot:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
+  /* Analyse en cours : barre de progression au pied du bloc, texte des étapes */
+  .depot { overflow: hidden; }
+  .depot::after { content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: rgba(255,255,255,.9); }
+  .depot.en-cours { pointer-events: none; }
+  .depot.en-cours::after { animation: progression var(--duree-analyse, 1.2s) cubic-bezier(.4,.1,.2,1) forwards; }
+  .depot.en-cours .faux-bouton { opacity: .55; }
+  @keyframes progression { to { width: 100%; } }
+  .depot.fait .icone { background: #fff; color: var(--rouge); }
+  /* Le verdict arrive : glisse, puis un liseré rouge s'éteint */
+  .verdict.arrive { animation: arrivee .5s cubic-bezier(.2,.8,.2,1) both, liseré 1.6s ease .35s both; }
+  @keyframes arrivee { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+  @keyframes liseré { from { box-shadow: 0 0 0 3px var(--rouge), 0 24px 48px -28px rgba(0,0,0,.28); } to { box-shadow: 0 0 0 0 transparent, 0 24px 48px -28px rgba(0,0,0,.28); } }
+  @media (prefers-reduced-motion: reduce) { .verdict.arrive { animation: none; } .depot.en-cours::after { animation-duration: .01s; } }
   .machine .exemples { margin-top: 1rem; }
   .etiquette { margin: 0 0 .6rem; font-size: .8rem; color: var(--encre-3); }
   @media (max-width: 62rem) { .machine { grid-template-columns: 1fr; gap: 2.5rem; min-height: 0; padding: 2.5rem 0 3rem; } }
@@ -492,6 +505,8 @@
       ex_martingale: "un robot à martingale", ex_grille: "un robot à grille", ex_propre: "un robot propre",
       confidentiel: "Gratuit, sans inscription. Le fichier est lu dans votre navigateur : il n'est envoyé nulle part.",
       apercu_exemple: "Exemple : ce que l'audit voit et que le vendeur ne montre pas", apercu_votre: "Votre verdict",
+      analyse_etapes: ["Lecture des trades…", "Martingale et grille…", "Stop-loss…", "Solidité et challenges…"],
+      depot_fait: "✓ Fichier analysé", depot_autre: "Analyser un autre fichier",
       apercu_voir: "Voir l'audit complet", apercu_pied: "Notes, solidité, 6 challenges, exemples datés.", apercu_rien: "Aucun comportement dangereux repéré dans ce fichier.",
       voile: "Lâchez le fichier pour l'analyser",
       nav_essai: "Vérifier un robot", nav_precision: "Précision", nav_verifs: "Vérifications", nav_offre: "Tarif",
@@ -658,6 +673,8 @@
       ex_martingale: "a martingale robot", ex_grille: "a grid robot", ex_propre: "a clean robot",
       confidentiel: "Free, no sign-up. The file is read in your browser: it is not sent anywhere.",
       apercu_exemple: "Example: what the audit sees and the seller doesn't show", apercu_votre: "Your verdict",
+      analyse_etapes: ["Reading the trades…", "Martingale and grid…", "Stop-loss…", "Solidity and challenges…"],
+      depot_fait: "✓ File analysed", depot_autre: "Analyse another file",
       apercu_voir: "See the full audit", apercu_pied: "Scores, solidity, 6 challenges, dated examples.", apercu_rien: "No dangerous behaviour found in this file.",
       voile: "Drop the file to analyse it",
       nav_essai: "Check a robot", nav_precision: "Accuracy", nav_verifs: "Checks", nav_offre: "Pricing",
@@ -889,6 +906,7 @@
     // data-h : textes du site contenant une mise en valeur (<em>) — jamais de contenu venant d'un fichier déposé
     document.querySelectorAll("[data-h]").forEach((el) => { el.innerHTML = T[langue][el.dataset.h]; });
     document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === langue)));
+    if (typeof etatFait === "function" && fichierAnalyse) etatFait();
     if (dernier) afficher(dernier, false);
   }
 
@@ -951,7 +969,7 @@
     const note = (cle, niv, v) => `<div class="${niv}"><span>${esc(L.note_nom[cle] + (v === null ? " · " + L.note_niveau.inconnu : ""))}</span><b>${v === null ? "–" : v}<small>/100</small></b></div>`;
     const el = document.getElementById("apercu-verdict");
     el.innerHTML = `<p class="etiquette">${esc(exemple ? L.exemple_label : L.apercu_votre)}</p>
-      <article class="verdict">
+      <article class="verdict${animer ? " arrive" : ""}">
         <div class="verdict-tete"><div><h2>${esc(exemple ? L["ex_" + exemple] : b.robot)}</h2><div class="meta">${esc(L.meta(b, r))}</div></div>
           <div class="tampon ${r.risque}${animer ? " pose" : ""}">${esc(L.risque[r.risque])}</div></div>
         ${n ? `<div class="verdict-notes">${note("securite", n.niveauSecurite, n.securite)}${note("solidite", n.niveauSolidite, n.solidite)}</div>` : ""}
@@ -971,9 +989,39 @@
     el.hidden = !msg;
   }
 
+  // ----- états du bloc de dépôt : on MONTRE que l'analyse a lieu (sinon le résultat instantané passe inaperçu)
+  const blocDepot = document.getElementById("depot");
+  const lent = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
+  let fichierAnalyse = null; // nom affiché dans le bloc une fois l'analyse faite
+  async function etatAnalyse(nom) {
+    const L = T[langue], titre = blocDepot.querySelector("strong"), aide = blocDepot.querySelector("small");
+    blocDepot.classList.remove("fait");
+    const pas = lent ? 300 : 0;
+    blocDepot.style.setProperty("--duree-analyse", (pas * L.analyse_etapes.length) / 1000 + "s");
+    blocDepot.classList.add("en-cours");
+    aide.textContent = nom;
+    for (const etape of L.analyse_etapes) { titre.textContent = etape; await attendre(pas); }
+  }
+  function etatFait() {
+    blocDepot.classList.remove("en-cours");
+    if (!fichierAnalyse) return;
+    const L = T[langue];
+    blocDepot.classList.add("fait");
+    blocDepot.querySelector("strong").textContent = L.depot_fait;
+    blocDepot.querySelector("small").textContent = fichierAnalyse;
+    blocDepot.querySelector(".faux-bouton").textContent = L.depot_autre;
+  }
+  function etatRepos() {
+    blocDepot.classList.remove("en-cours", "fait");
+    fichierAnalyse = null;
+    appliquerLangue();
+  }
+
   async function lireFichier(f) {
     montrerErreur("");
     if (!/\.(html?|csv)$/i.test(f.name)) { montrerErreur(T[langue].erreur_html); return; }
+    const attente = etatAnalyse(f.name);
     try {
       const texte = E.decode(await f.arrayBuffer());
       const signal = /\.csv$/i.test(f.name);
@@ -982,9 +1030,14 @@
       if (signal) { const id = /(\d{4,})/.exec(f.name); if (id) backtest.robot = `Signal MQL5 n° ${id[1]}`; }
       const resultat = E.auditer(backtest);
       dernier = { resultat, analyses: AN.analyser(resultat), avertissements, exemple: null };
+      await attente;
+      fichierAnalyse = f.name;
+      etatFait();
       afficher(dernier);
       compter(signal ? "signal-analyse" : "rapport-analyse");
     } catch (e) {
+      await attente;
+      etatRepos();
       montrerErreur(T[langue].erreur_lecture + (e.code === "aucune_transaction" ? T[langue].erreur_aucune : e.code === "csv_inconnu" ? T[langue].erreur_html : e.message));
       compter("rapport-erreur");
     }
@@ -992,6 +1045,26 @@
 
   const input = document.getElementById("fichier");
   input.addEventListener("change", () => { if (input.files[0]) lireFichier(input.files[0]); input.value = ""; });
+  // Liens internes (« Voir l'audit complet », menu) : défilement doux, accélération puis freinage (~0,7 s).
+  function defilerVers(cible) {
+    const depart = scrollY, haut = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const arrivee = Math.max(0, cible.getBoundingClientRect().top + scrollY - haut);
+    if (!lent) { scrollTo(0, arrivee); return; }
+    const duree = Math.min(900, 450 + Math.abs(arrivee - depart) * 0.25), t0 = performance.now();
+    const doux = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+    const pas = (t) => { const x = Math.min(1, (t - t0) / duree); scrollTo(0, depart + (arrivee - depart) * doux(x)); if (x < 1) requestAnimationFrame(pas); };
+    requestAnimationFrame(pas);
+  }
+  document.addEventListener("click", (e) => {
+    const lien = e.target.closest('a[href^="#"]');
+    if (!lien) return;
+    const cible = document.getElementById(lien.getAttribute("href").slice(1));
+    if (!cible || cible.hidden) return;
+    e.preventDefault();
+    defilerVers(cible);
+    history.replaceState(null, "", lien.getAttribute("href"));
+  });
+
   // Le fichier peut être lâché N'IMPORTE OÙ sur la page : un voile rouge l'indique.
   const voile = document.getElementById("voile");
   let profondeur = 0;
@@ -1006,11 +1079,14 @@
     if (f) lireFichier(f);
   });
 
-  document.querySelectorAll("[data-exemple]").forEach((btn) => btn.addEventListener("click", () => {
+  document.querySelectorAll("[data-exemple]").forEach((btn) => btn.addEventListener("click", async () => {
     montrerErreur("");
     const nom = btn.dataset.exemple;
+    await etatAnalyse(T[langue]["ex_" + nom]);
     const resultat = E.auditer(window.LaboExemples[nom]());
     dernier = { resultat, analyses: AN.analyser(resultat), avertissements: [], exemple: nom };
+    fichierAnalyse = T[langue]["ex_" + nom];
+    etatFait();
     afficher(dernier);
     compter("exemple-" + nom);
   }));
