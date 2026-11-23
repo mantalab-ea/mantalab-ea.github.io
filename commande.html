@@ -52,6 +52,18 @@
     background:var(--rouge); color:#fff; border:1px solid var(--rouge); transition:background-color .15s; }
   .bouton:hover { background:var(--rouge-fonce); }
   .bouton[aria-disabled="true"] { background:var(--fond-2); color:var(--encre-2); border-color:var(--filet); cursor:default; }
+  .form-commande { display:grid; gap:.75rem; margin:0 0 .9rem; }
+  .form-commande[hidden] { display:none; }
+  .form-commande label.champ { display:grid; gap:.35rem; font-size:.88rem; font-weight:500; }
+  .form-commande input[type="url"], .form-commande input[type="text"] { font:inherit; font-size:.95rem; font-weight:400; color:var(--encre); background:var(--fond);
+    border:1px solid var(--filet-fort); border-radius:10px; padding:.75rem .85rem; width:100%; }
+  .form-commande input[aria-invalid="true"] { border-color:var(--rouge); }
+  .erreur-lien { color:var(--rouge); font-size:.82rem; margin:0; min-height:0; }
+  .erreur-lien:empty { display:none; }
+  .ok-lien { color:var(--encre-2); font-size:.82rem; margin:0; }
+  .ok-lien:empty { display:none; }
+  .renonce { display:flex; gap:.6rem; align-items:flex-start; font-size:.82rem; color:var(--encre-2); line-height:1.45; cursor:pointer; }
+  .renonce input { margin:.15rem 0 0; width:1.05rem; height:1.05rem; accent-color:var(--rouge); flex:none; }
   .garanties { list-style:none; margin:1.1rem 0 0; padding:0; font-size:.9rem; color:var(--encre-2); display:grid; gap:.45rem; }
   .garanties li { display:flex; gap:.55rem; align-items:baseline; }
   .garanties li::before { content:"✓"; color:var(--rouge); font-weight:700; }
@@ -134,6 +146,14 @@
         <div class="achat">
           <p class="prix"><b id="prix"></b><span data-t="par_robot">par robot</span></p>
           <p class="delai" data-t="delai">Fiche en PDF, livrée par e-mail sous 48 h.</p>
+          <div class="form-commande" id="form-commande" hidden>
+            <label class="champ"><span data-t="lien_label">Lien du robot sur le Market MQL5</span>
+              <input type="url" id="lien-robot" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://www.mql5.com/fr/market/product/…" aria-describedby="erreur-lien ok-lien">
+            </label>
+            <p class="erreur-lien" id="erreur-lien" role="alert"></p>
+            <p class="ok-lien" id="ok-lien"></p>
+            <label class="renonce"><input type="checkbox" id="renonce"><span><span data-t="renonce">Je demande que l'audit soit réalisé tout de suite et je reconnais perdre mon droit de rétractation une fois la fiche livrée. J'accepte les</span> <a href="legal.html#cgv" data-t="cgv_lien">conditions de vente.</a></span></label>
+          </div>
           <a id="commander" class="bouton" href="#"></a>
           <ul class="garanties"><li data-t="g1">Testé par le labo, dans 4 scénarios</li><li data-t="g2">Indépendant des vendeurs de robots</li></ul>
           <p class="note" id="note-commande"></p>
@@ -191,7 +211,9 @@
   // ---- RÉGLAGES DE LA BOUTIQUE ----------------------------------------------------------
   // Tant que LIEN_PAIEMENT est vide, le bouton affiche « commandes bientôt ouvertes » et ne
   // collecte rien. Coller ici le lien de paiement Stripe une fois créé.
-  const LIEN_PAIEMENT = "";
+  const LIEN_PAIEMENT = "https://buy.stripe.com/5kQ8w0fJT3601NN10YdAk00";
+  // VENTES_OUVERTES : passer à true seulement quand les conditions de vente sont complètes (médiateur).
+  const VENTES_OUVERTES = false;
   const PRIX = "29 €";
   // ----------------------------------------------------------------------------------------
   const T = {
@@ -205,7 +227,14 @@
       bientot: "Commandes bientôt ouvertes",
       g1: "Testé par le labo, dans 4 scénarios", g2: "Indépendant des vendeurs de robots", g3: "Remboursé si le robot ne peut pas être testé",
       note_bientot: "En attendant, la vérification d'un rapport est gratuite sur la page d'accueil.",
-      note_paiement: "Paiement sécurisé par Stripe. Vous indiquez le robot à la commande.",
+      note_paiement: "Paiement sécurisé par Stripe. Fiche envoyée par e-mail sous 48 h ouvrées.",
+      lien_label: "Lien du robot sur le Market MQL5",
+      renonce: "Je demande que l'audit soit réalisé tout de suite et je reconnais perdre mon droit de rétractation une fois la fiche livrée. J'accepte les",
+      cgv_lien: "conditions de vente.",
+      err_vide: "Collez le lien de la page du robot.",
+      err_format: "Ce n'est pas un lien de robot du Market MQL5 (il ressemble à mql5.com/fr/market/product/123456).",
+      ok_robot: "Robot n° {id} : le labo vérifie qu'il est testable avant de lancer l'audit.",
+      remplir: "Indiquez le robot et cochez la case",
       voir_exemple: "Voir une fiche complète ↗",
       alt_apercu: "Exemple de fiche MantaLab : verdict risque élevé, courbe du solde et de l'équité minute par minute",
       inclus_titre: "Ce que contient la fiche.",
@@ -246,7 +275,14 @@
       bientot: "Orders opening soon",
       g1: "Tested by the lab, in 4 scenarios", g2: "Independent of robot sellers", g3: "Refunded if the robot can't be tested",
       note_bientot: "Meanwhile, checking a report is free on the home page.",
-      note_paiement: "Secure payment by Stripe. You name the robot when ordering.",
+      note_paiement: "Secure payment by Stripe. Report sent by email within 2 business days.",
+      lien_label: "Link to the robot on the MQL5 Market",
+      renonce: "I ask for the audit to be carried out right away and acknowledge that I lose my right of withdrawal once the report is delivered. I accept the",
+      cgv_lien: "terms of sale (in French).",
+      err_vide: "Paste the link to the robot's page.",
+      err_format: "This is not an MQL5 Market robot link (it looks like mql5.com/en/market/product/123456).",
+      ok_robot: "Robot no. {id}: the lab checks it can be tested before starting the audit.",
+      remplir: "Enter the robot and tick the box",
       voir_exemple: "See a full report ↗",
       alt_apercu: "Sample MantaLab report: high-risk verdict, balance and minute-by-minute equity curve",
       inclus_titre: "What the report contains.",
@@ -290,14 +326,46 @@
     document.querySelectorAll("[data-h]").forEach((el) => { el.innerHTML = L[el.dataset.h] || ""; });
     document.querySelectorAll("[data-alt]").forEach((el) => { el.alt = L[el.dataset.alt] || el.alt; });
     document.getElementById("prix").textContent = PRIX;
-    const b = document.getElementById("commander"), note = document.getElementById("note-commande");
-    if (LIEN_PAIEMENT) {
-      b.href = LIEN_PAIEMENT; b.textContent = L.commander; b.removeAttribute("aria-disabled"); note.textContent = L.note_paiement;
-    } else {
-      b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.bientot; note.textContent = L.note_bientot;
-    }
+    majCommande();
     document.querySelectorAll("[data-lang]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.lang === langue)));
   }
+  // ---- Commande : lien du robot + renonciation, puis paiement Stripe ----
+  // Le numéro du robot part chez Stripe dans client_reference_id (visible dans chaque paiement).
+  function idRobot(v) {
+    v = (v || "").trim();
+    const m = v.match(/^(?:https?:\/\/)?(?:www\.)?mql5\.com\/(?:[a-z]{2}\/)?market\/product\/(\d{3,7})(?:[\/?#].*)?$/i) || v.match(/^(\d{3,7})$/);
+    return m ? m[1] : null;
+  }
+  let touche = false;
+  function majCommande() {
+    const L = T[langue], b = document.getElementById("commander"), note = document.getElementById("note-commande");
+    const form = document.getElementById("form-commande"), champ = document.getElementById("lien-robot");
+    const err = document.getElementById("erreur-lien"), ok = document.getElementById("ok-lien");
+    if (!(LIEN_PAIEMENT && VENTES_OUVERTES)) {
+      form.hidden = true;
+      b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.bientot; note.textContent = L.note_bientot;
+      return;
+    }
+    form.hidden = false; note.textContent = L.note_paiement;
+    const id = idRobot(champ.value), coche = document.getElementById("renonce").checked;
+    err.textContent = touche && !id ? (champ.value.trim() ? L.err_format : L.err_vide) : "";
+    champ.setAttribute("aria-invalid", String(touche && !id));
+    ok.textContent = id ? L.ok_robot.replace("{id}", id) : "";
+    if (id && coche) {
+      b.href = LIEN_PAIEMENT + "?client_reference_id=mql5-" + id;
+      b.textContent = L.commander; b.removeAttribute("aria-disabled");
+    } else {
+      b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.remplir;
+    }
+  }
+  document.getElementById("lien-robot").addEventListener("input", majCommande);
+  document.getElementById("lien-robot").addEventListener("blur", () => { touche = true; majCommande(); });
+  document.getElementById("renonce").addEventListener("change", majCommande);
+  document.getElementById("commander").addEventListener("click", (e) => {
+    if (e.currentTarget.getAttribute("aria-disabled") === "true") { e.preventDefault(); touche = true; majCommande(); return; }
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: "evt-paiement", title: "paiement", event: true }); } catch (x) {}
+  });
+
   document.querySelectorAll("[data-lang]").forEach((x) => x.addEventListener("click", () => {
     langue = x.dataset.lang; try { localStorage.setItem("labo-langue", langue); } catch (e) {} appliquer();
   }));
