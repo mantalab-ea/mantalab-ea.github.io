@@ -291,6 +291,11 @@
       err_vide: "Collez le lien de la page du robot.",
       err_format: "Ce n'est pas un lien de robot du Market MQL5 (il ressemble à mql5.com/fr/market/product/123456).",
       ok_robot: "Robot n° {id} : le labo vérifie qu'il est testable avant de lancer l'audit.",
+      bloque: "Ce robot ne peut pas être audité", verif_cours: "Vérification du robot…", verif_ok: "✓ {nom} : testable par le labo.",
+      non_pas_robot_mt5: "Ce produit n'est pas un robot MetaTrader 5 (indicateur, utilitaire ou robot MT4) : le labo ne peut pas l'auditer.",
+      non_pas_de_demo: "Le vendeur ne propose pas de version de démonstration : le labo ne peut pas tester ce robot.",
+      non_marche_indisponible: "Ce robot trade {marche}, un marché que le labo ne peut pas encore tester.",
+      non_introuvable: "Ce robot n'existe pas (ou plus) sur le Market MQL5.",
       remplir: "Indiquez le robot et cochez la case",
       mode_test: "Mode test : les ventes ne sont pas encore ouvertes. Un paiement ici serait réel.",
       choix_legende: "Comment indiquer le robot",
@@ -352,6 +357,11 @@
       err_vide: "Paste the link to the robot's page.",
       err_format: "This is not an MQL5 Market robot link (it looks like mql5.com/en/market/product/123456).",
       ok_robot: "Robot no. {id}: the lab checks it can be tested before starting the audit.",
+      bloque: "This robot cannot be audited", verif_cours: "Checking the robot…", verif_ok: "✓ {nom}: the lab can test it.",
+      non_pas_robot_mt5: "This product is not a MetaTrader 5 robot (indicator, utility or MT4 robot): the lab cannot audit it.",
+      non_pas_de_demo: "The seller offers no demo version: the lab cannot test this robot.",
+      non_marche_indisponible: "This robot trades {marche}, a market the lab cannot test yet.",
+      non_introuvable: "This robot does not exist (any more) on the MQL5 Market.",
       remplir: "Enter the robot and tick the box",
       mode_test: "Test mode: orders are not open yet. A payment here would be real.",
       choix_legende: "How to name the robot",
@@ -419,6 +429,18 @@
     const m = v.match(/^(?:https?:\/\/)?(?:www\.)?mql5\.com\/(?:[a-z]{2}\/)?market\/product\/(\d{3,7})(?:[\/?#].*)?$/i) || v.match(/^(\d{3,7})$/);
     return m ? m[1] : null;
   }
+  // Vérification avant paiement : liste des robots déjà vérifiés par le labo (serveur Cloudflare)
+  const verifs = {};  // id → { etat: "cours" | "ok" | "non" | "inconnu", nom, raison, marche }
+  async function verifier(id) {
+    if (verifs[id]) return;
+    verifs[id] = { etat: "cours" };
+    try {
+      const r = await fetch(SERVEUR + "/verifier?produit=" + id), d = await r.json();
+      verifs[id] = d.compatible === true ? { etat: "ok", nom: d.nom } : d.compatible === false
+        ? { etat: "non", raison: d.raison, marche: d.marche } : { etat: "inconnu" };
+    } catch (e) { verifs[id] = { etat: "inconnu" }; }
+    majCommande();
+  }
   let touche = false, envoiEnCours = false, fichierEtat = { ok: false, err: "err_fichier_vide", nom: "" };
   function source() { return document.querySelector('input[name="source"]:checked').value; }
   async function lireFichier() {
@@ -449,7 +471,7 @@
     const parFichier = source() === "fichier", coche = document.getElementById("renonce").checked;
     document.getElementById("mode-lien").hidden = parFichier;
     document.getElementById("mode-fichier").hidden = !parFichier;
-    let ref = null;
+    let ref = null, bloque = false;
     const depot = document.getElementById("depot");
     depot.classList.toggle("rempli", fichierEtat.ok);
     document.getElementById("depot-titre").textContent = fichierEtat.ok ? fichierEtat.nom : L.depot_titre;
@@ -461,18 +483,23 @@
       champ.setAttribute("aria-invalid", "false");
       if (fichierEtat.ok) ref = "fichier";  // le numéro est donné par le serveur au moment du clic
     } else {
-      const id = idRobot(champ.value);
-      err.textContent = touche && !id ? (champ.value.trim() ? L.err_format : L.err_vide) : "";
-      champ.setAttribute("aria-invalid", String(touche && !id));
-      ok.textContent = id ? L.ok_robot.replace("{id}", id) : "";
-      if (id) ref = "mql5-" + id;
+      const id = idRobot(champ.value), v = id ? verifs[id] : null;
+      if (id && !v) verifier(id);
+      const refuse = v && v.etat === "non";
+      bloque = !!refuse;
+      err.textContent = touche && !id ? (champ.value.trim() ? L.err_format : L.err_vide)
+        : refuse ? (L["non_" + v.raison] || L.non_pas_robot_mt5).replace("{marche}", v.marche || "") : "";
+      champ.setAttribute("aria-invalid", String((touche && !id) || !!refuse));
+      ok.textContent = !id || refuse ? "" : !v || v.etat === "cours" ? L.verif_cours
+        : v.etat === "ok" ? L.verif_ok.replace("{nom}", v.nom || ("n° " + id)) : L.ok_robot.replace("{id}", id);
+      if (id && v && v.etat !== "cours" && !refuse) ref = "mql5-" + id;
     }
     if (envoiEnCours) { b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.envoi; return; }
     if (ref && coche) {
       b.href = ref === "fichier" ? "#" : LIEN_PAIEMENT + "?client_reference_id=" + encodeURIComponent(ref);
       b.textContent = L.commander; b.removeAttribute("aria-disabled");
     } else {
-      b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.remplir;
+      b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = bloque ? L.bloque : L.remplir;
     }
   }
   document.getElementById("lien-robot").addEventListener("input", majCommande);
