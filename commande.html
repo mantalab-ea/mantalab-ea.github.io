@@ -43,11 +43,17 @@
   .haut { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.05fr); gap:4rem; align-items:center; padding:4.5rem 0 5rem; }
   h1 { font-weight:600; font-size:clamp(2.3rem,4.6vw,3.6rem); line-height:1.03; letter-spacing:-.045em; margin:0 0 1.1rem; text-wrap:balance; }
   .intro { color:var(--encre-2); font-size:1.12rem; margin:0 0 2rem; max-width:30rem; }
-  .achat { border:1px solid var(--filet-fort); border-radius:16px; padding:1.5rem; max-width:27rem; }
-  .prix { display:flex; align-items:baseline; gap:.6rem; margin:0 0 .25rem; }
-  .prix b { font-weight:600; letter-spacing:-.05em; font-size:3.2rem; line-height:1; }
-  .prix span { color:var(--encre-2); }
-  .delai { color:var(--encre-2); margin:0 0 1.2rem; font-size:.95rem; }
+  /* Carte d'achat : la bande rouge reprend celle du verdict de la fiche PDF (même geste de marque) */
+  .achat { border:1px solid var(--filet-fort); border-radius:18px; max-width:28rem; overflow:hidden; background:var(--fond);
+    box-shadow:0 1px 2px rgba(0,0,0,.05), 0 24px 48px -28px rgba(0,0,0,.35); }
+  .achat-tete { position:relative; background:var(--rouge); color:#fff; padding:1.5rem 1.6rem 1.35rem; overflow:hidden; isolation:isolate; }
+  .achat-tete::after { content:""; position:absolute; z-index:-1; right:-3.2rem; top:50%; width:15rem; height:15rem; transform:translateY(-50%) rotate(-8deg);
+    background:#fff; opacity:.14; -webkit-mask:url(marque/mantalab-icone.svg) center/contain no-repeat; mask:url(marque/mantalab-icone.svg) center/contain no-repeat; }
+  .prix { display:flex; align-items:baseline; gap:.6rem; margin:0 0 .35rem; }
+  .prix b { font-weight:600; letter-spacing:-.05em; font-size:3.6rem; line-height:1; }
+  .prix span { color:rgba(255,255,255,.82); }
+  .delai { color:rgba(255,255,255,.88); margin:0; font-size:.95rem; }
+  .achat-corps { padding:1.4rem 1.6rem 1.5rem; }
   .bouton { display:flex; align-items:center; justify-content:center; text-align:center; font:500 1rem/1.2 "Inter",sans-serif; text-decoration:none; padding:.95rem 1.1rem; border-radius:10px;
     background:var(--rouge); color:#fff; border:1px solid var(--rouge); transition:background-color .15s; }
   .bouton:hover { background:var(--rouge-fonce); }
@@ -62,14 +68,26 @@
   .erreur-lien:empty { display:none; }
   .ok-lien { color:var(--encre-2); font-size:.82rem; margin:0; }
   .ok-lien:empty { display:none; }
-  .choix { display:grid; grid-template-columns:1fr 1fr; gap:.3rem; padding:.25rem; background:var(--fond-2); border-radius:11px; border:0; margin:0; }
+  .choix { display:grid; grid-template-columns:1fr 1fr; border:0; border-bottom:1px solid var(--filet-fort); margin:0 0 .3rem; padding:0; }
   .choix legend { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
-  .choix label { position:relative; text-align:center; font-size:.86rem; font-weight:500; color:var(--encre-2); padding:.55rem .4rem; border-radius:8px; cursor:pointer; }
+  .choix label { position:relative; text-align:center; font-size:.92rem; font-weight:500; color:var(--encre-3); padding:.2rem .4rem .75rem; cursor:pointer; transition:color .15s; }
+  .choix label::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--rouge); transform:scaleX(0); transition:transform .2s ease; }
   .choix input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
-  .choix label:has(input:checked) { background:var(--fond); color:var(--encre); box-shadow:0 1px 2px rgba(0,0,0,.12); }
-  .choix label:has(input:focus-visible) { outline:2px solid var(--focus); outline-offset:2px; }
+  .choix label:hover { color:var(--encre-2); }
+  .choix label:has(input:checked) { color:var(--encre); }
+  .choix label:has(input:checked)::after { transform:scaleX(1); }
+  .choix label:has(input:focus-visible) { outline:2px solid var(--focus); outline-offset:-2px; }
+  .depot { position:relative; display:grid; justify-items:center; gap:.25rem; text-align:center; padding:1.5rem 1rem 1.35rem; border:1.5px dashed var(--filet-fort);
+    border-radius:14px; background:var(--fond-2); cursor:pointer; transition:border-color .15s, background-color .15s; }
+  .depot input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+  .depot svg { width:2rem; height:2rem; color:var(--rouge); margin-bottom:.35rem; }
+  .depot-titre { font-weight:600; font-size:.98rem; color:var(--encre); word-break:break-word; }
+  .depot-sous { font-size:.82rem; color:var(--encre-3); }
+  .depot:hover, .depot.survol { border-color:var(--rouge); background:color-mix(in srgb, var(--rouge) 6%, var(--fond)); }
+  .depot:has(input:focus-visible) { outline:2px solid var(--focus); outline-offset:3px; }
+  .depot.rempli { border-style:solid; border-color:var(--rouge); background:color-mix(in srgb, var(--rouge) 5%, var(--fond)); }
+  .mode { display:grid; gap:.6rem; }
   .mode[hidden] { display:none; }
-  .form-commande input[type="file"] { font:inherit; font-size:.88rem; color:var(--encre-2); width:100%; }
   .aide { font-size:.8rem; color:var(--encre-3); margin:0; line-height:1.45; }
   .bandeau-test { background:#fff3c4; color:#5a4500; font-size:.8rem; padding:.45rem .7rem; border-radius:8px; margin:0 0 .9rem; }
   .bandeau-test[hidden] { display:none; }
@@ -155,8 +173,11 @@
         <h1 data-t="titre">Avant d'acheter un robot, faites-le tester.</h1>
         <p class="intro" data-t="intro">Le labo fait tourner le robot lui-même et vous remet sa fiche d'audit. Pas le rapport du vendeur : le nôtre.</p>
         <div class="achat">
-          <p class="prix"><b id="prix"></b><span data-t="par_robot">par robot</span></p>
-          <p class="delai" data-t="delai">Fiche en PDF, livrée par e-mail sous 48 h.</p>
+          <div class="achat-tete">
+            <p class="prix"><b id="prix"></b><span data-t="par_robot">par robot</span></p>
+            <p class="delai" data-t="delai">Fiche en PDF, livrée par e-mail sous 48 h.</p>
+          </div>
+          <div class="achat-corps">
           <p class="bandeau-test" id="bandeau-test" data-t="mode_test" hidden>Mode test : les ventes ne sont pas encore ouvertes. Un paiement ici serait réel.</p>
           <div class="form-commande" id="form-commande" hidden>
             <fieldset class="choix">
@@ -170,8 +191,11 @@
               </label>
             </div>
             <div class="mode" id="mode-fichier" hidden>
-              <label class="champ"><span data-t="fichier_label">Fichier du robot (.ex5 ou code .mq5)</span>
+              <label class="depot" id="depot">
                 <input type="file" id="fichier-robot" accept=".ex5,.mq5" aria-describedby="erreur-lien ok-lien aide-fichier">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9.5 13.5 2.5-2.5 2.5 2.5"/></svg>
+                <span class="depot-titre" id="depot-titre"></span>
+                <span class="depot-sous" id="depot-sous"></span>
               </label>
               <p class="aide" id="aide-fichier" data-t="fichier_aide">Robot acheté sur le Market ? Utilisez plutôt l'onglet « Lien du Market ».</p>
             </div>
@@ -182,6 +206,7 @@
           <a id="commander" class="bouton" href="#"></a>
           <ul class="garanties"><li data-t="g1">Testé par le labo sur 2 ans de marché, ticks réels compris</li><li data-t="g2">Indépendant des vendeurs de robots</li></ul>
           <p class="note" id="note-commande"></p>
+          </div>
         </div>
       </div>
       <a class="apercu" href="exemple/multimartin.html" target="_blank" rel="noopener">
@@ -268,6 +293,7 @@
       choix_legende: "Comment indiquer le robot",
       choix_lien: "Lien du Market", choix_fichier: "Fichier du robot",
       fichier_label: "Fichier du robot (.ex5 ou code .mq5)",
+      depot_titre: "Déposez le fichier du robot ici", depot_sous: "ou cliquez pour le choisir · .ex5 ou .mq5", depot_changer: "Cliquez ou déposez un autre fichier pour le remplacer",
       fichier_aide: "Robot acheté sur le Market ? Utilisez plutôt l'onglet « Lien du Market ».",
       err_fichier_vide: "Choisissez le fichier du robot.",
       err_fichier_type: "Il faut un fichier .ex5 (robot compilé) ou .mq5 (code source).",
@@ -328,6 +354,7 @@
       choix_legende: "How to name the robot",
       choix_lien: "Market link", choix_fichier: "Robot file",
       fichier_label: "Robot file (.ex5 or .mq5 source)",
+      depot_titre: "Drop the robot file here", depot_sous: "or click to choose it · .ex5 or .mq5", depot_changer: "Click or drop another file to replace it",
       fichier_aide: "Bought the robot on the Market? Use the “Market link” tab instead.",
       err_fichier_vide: "Choose the robot file.",
       err_fichier_type: "A .ex5 (compiled robot) or .mq5 (source code) file is needed.",
@@ -420,9 +447,14 @@
     document.getElementById("mode-lien").hidden = parFichier;
     document.getElementById("mode-fichier").hidden = !parFichier;
     let ref = null;
+    const depot = document.getElementById("depot");
+    depot.classList.toggle("rempli", fichierEtat.ok);
+    document.getElementById("depot-titre").textContent = fichierEtat.ok ? fichierEtat.nom : L.depot_titre;
+    document.getElementById("depot-sous").textContent = fichierEtat.ok ? L.depot_changer : L.depot_sous;
+    document.getElementById("fichier-robot").setAttribute("aria-label", L.fichier_label);
     if (parFichier) {
       err.textContent = touche && !fichierEtat.ok ? L[fichierEtat.err] : "";
-      ok.textContent = fichierEtat.ok ? L.ok_fichier.replace("{nom}", fichierEtat.nom) : "";
+      ok.textContent = "";  // le nom du fichier s'affiche dans la zone de dépôt
       champ.setAttribute("aria-invalid", "false");
       if (fichierEtat.ok) ref = "fichier";  // le numéro est donné par le serveur au moment du clic
     } else {
@@ -444,6 +476,10 @@
   document.getElementById("lien-robot").addEventListener("blur", () => { touche = true; majCommande(); });
   document.getElementById("renonce").addEventListener("change", majCommande);
   document.getElementById("fichier-robot").addEventListener("change", lireFichier);
+  // Zone de dépôt : le champ fichier (invisible) couvre toute la zone, le glisser-déposer marche nativement
+  const zone = document.getElementById("depot");
+  ["dragenter", "dragover"].forEach((t) => zone.addEventListener(t, () => zone.classList.add("survol")));
+  ["dragleave", "drop"].forEach((t) => zone.addEventListener(t, () => zone.classList.remove("survol")));
   document.querySelectorAll('input[name="source"]').forEach((r) => r.addEventListener("change", () => { touche = false; majCommande(); }));
   document.getElementById("commander").addEventListener("click", (e) => {
     if (e.currentTarget.getAttribute("aria-disabled") === "true") { e.preventDefault(); touche = true; majCommande(); return; }
