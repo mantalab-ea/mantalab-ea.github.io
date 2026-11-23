@@ -62,6 +62,17 @@
   .erreur-lien:empty { display:none; }
   .ok-lien { color:var(--encre-2); font-size:.82rem; margin:0; }
   .ok-lien:empty { display:none; }
+  .choix { display:grid; grid-template-columns:1fr 1fr; gap:.3rem; padding:.25rem; background:var(--fond-2); border-radius:11px; border:0; margin:0; }
+  .choix legend { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  .choix label { position:relative; text-align:center; font-size:.86rem; font-weight:500; color:var(--encre-2); padding:.55rem .4rem; border-radius:8px; cursor:pointer; }
+  .choix input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+  .choix label:has(input:checked) { background:var(--fond); color:var(--encre); box-shadow:0 1px 2px rgba(0,0,0,.12); }
+  .choix label:has(input:focus-visible) { outline:2px solid var(--focus); outline-offset:2px; }
+  .mode[hidden] { display:none; }
+  .form-commande input[type="file"] { font:inherit; font-size:.88rem; color:var(--encre-2); width:100%; }
+  .aide { font-size:.8rem; color:var(--encre-3); margin:0; line-height:1.45; }
+  .bandeau-test { background:#fff3c4; color:#5a4500; font-size:.8rem; padding:.45rem .7rem; border-radius:8px; margin:0 0 .9rem; }
+  .bandeau-test[hidden] { display:none; }
   .renonce { display:flex; gap:.6rem; align-items:flex-start; font-size:.82rem; color:var(--encre-2); line-height:1.45; cursor:pointer; }
   .renonce input { margin:.15rem 0 0; width:1.05rem; height:1.05rem; accent-color:var(--rouge); flex:none; }
   .garanties { list-style:none; margin:1.1rem 0 0; padding:0; font-size:.9rem; color:var(--encre-2); display:grid; gap:.45rem; }
@@ -146,10 +157,24 @@
         <div class="achat">
           <p class="prix"><b id="prix"></b><span data-t="par_robot">par robot</span></p>
           <p class="delai" data-t="delai">Fiche en PDF, livrée par e-mail sous 48 h.</p>
+          <p class="bandeau-test" id="bandeau-test" data-t="mode_test" hidden>Mode test : les ventes ne sont pas encore ouvertes. Un paiement ici serait réel.</p>
           <div class="form-commande" id="form-commande" hidden>
-            <label class="champ"><span data-t="lien_label">Lien du robot sur le Market MQL5</span>
-              <input type="url" id="lien-robot" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://www.mql5.com/fr/market/product/…" aria-describedby="erreur-lien ok-lien">
-            </label>
+            <fieldset class="choix">
+              <legend data-t="choix_legende">Comment indiquer le robot</legend>
+              <label><input type="radio" name="source" value="lien" checked><span data-t="choix_lien">Lien du Market</span></label>
+              <label><input type="radio" name="source" value="fichier"><span data-t="choix_fichier">Fichier du robot</span></label>
+            </fieldset>
+            <div class="mode" id="mode-lien">
+              <label class="champ"><span data-t="lien_label">Lien du robot sur le Market MQL5</span>
+                <input type="url" id="lien-robot" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://www.mql5.com/fr/market/product/…" aria-describedby="erreur-lien ok-lien">
+              </label>
+            </div>
+            <div class="mode" id="mode-fichier" hidden>
+              <label class="champ"><span data-t="fichier_label">Fichier du robot (.ex5 ou code .mq5)</span>
+                <input type="file" id="fichier-robot" accept=".ex5,.mq5" aria-describedby="erreur-lien ok-lien aide-fichier">
+              </label>
+              <p class="aide" id="aide-fichier" data-t="fichier_aide">Le fichier reste sur votre ordinateur pour l'instant. Après le paiement, envoyez-le à mantalab.audit@gmail.com depuis l'adresse utilisée pour payer. Un .ex5 acheté sur le Market ne fonctionne que sur l'ordinateur de l'acheteur : collez plutôt son lien.</p>
+            </div>
             <p class="erreur-lien" id="erreur-lien" role="alert"></p>
             <p class="ok-lien" id="ok-lien"></p>
             <label class="renonce"><input type="checkbox" id="renonce"><span><span data-t="renonce">Je demande que l'audit soit réalisé tout de suite et je reconnais perdre mon droit de rétractation une fois la fiche livrée. J'accepte les</span> <a href="legal.html#cgv" data-t="cgv_lien">conditions de vente.</a></span></label>
@@ -214,6 +239,8 @@
   const LIEN_PAIEMENT = "https://buy.stripe.com/5kQ8wOfJT3601NN10YdAk00";
   // VENTES_OUVERTES : passer à true seulement quand les conditions de vente sont complètes (médiateur).
   const VENTES_OUVERTES = false;
+  // Mode test : commande.html?test affiche le formulaire même ventes fermées (pour essayer le parcours).
+  const MODE_TEST = (() => { try { return new URLSearchParams(location.search).has("test"); } catch (e) { return false; } })();
   const PRIX = "29 €";
   // ----------------------------------------------------------------------------------------
   const T = {
@@ -235,6 +262,16 @@
       err_format: "Ce n'est pas un lien de robot du Market MQL5 (il ressemble à mql5.com/fr/market/product/123456).",
       ok_robot: "Robot n° {id} : le labo vérifie qu'il est testable avant de lancer l'audit.",
       remplir: "Indiquez le robot et cochez la case",
+      mode_test: "Mode test : les ventes ne sont pas encore ouvertes. Un paiement ici serait réel.",
+      choix_legende: "Comment indiquer le robot",
+      choix_lien: "Lien du Market", choix_fichier: "Fichier du robot",
+      fichier_label: "Fichier du robot (.ex5 ou code .mq5)",
+      fichier_aide: "Le fichier reste sur votre ordinateur pour l'instant. Après le paiement, envoyez-le à mantalab.audit@gmail.com depuis l'adresse utilisée pour payer. Un .ex5 acheté sur le Market ne fonctionne que sur l'ordinateur de l'acheteur : collez plutôt son lien.",
+      err_fichier_vide: "Choisissez le fichier du robot.",
+      err_fichier_type: "Il faut un fichier .ex5 (robot compilé) ou .mq5 (code source).",
+      err_fichier_taille: "Fichier trop lourd (20 Mo au plus).",
+      err_pas_robot: "Ce code n'est pas un robot : il n'a pas de fonction OnTick (indicateur ou script ?).",
+      ok_fichier: "{nom} : prêt. Vous l'enverrez par e-mail après le paiement.",
       voir_exemple: "Voir une fiche complète ↗",
       alt_apercu: "Exemple de fiche MantaLab : verdict risque élevé, courbe du solde et de l'équité minute par minute",
       inclus_titre: "Ce que contient la fiche.",
@@ -283,6 +320,16 @@
       err_format: "This is not an MQL5 Market robot link (it looks like mql5.com/en/market/product/123456).",
       ok_robot: "Robot no. {id}: the lab checks it can be tested before starting the audit.",
       remplir: "Enter the robot and tick the box",
+      mode_test: "Test mode: orders are not open yet. A payment here would be real.",
+      choix_legende: "How to name the robot",
+      choix_lien: "Market link", choix_fichier: "Robot file",
+      fichier_label: "Robot file (.ex5 or .mq5 source)",
+      fichier_aide: "The file stays on your computer for now. After paying, email it to mantalab.audit@gmail.com from the address you paid with. A .ex5 bought on the Market only runs on the buyer's computer: paste its link instead.",
+      err_fichier_vide: "Choose the robot file.",
+      err_fichier_type: "A .ex5 (compiled robot) or .mq5 (source code) file is needed.",
+      err_fichier_taille: "File too large (20 MB max).",
+      err_pas_robot: "This code is not a robot: it has no OnTick function (indicator or script?).",
+      ok_fichier: "{nom}: ready. You will email it after paying.",
       voir_exemple: "See a full report ↗",
       alt_apercu: "Sample MantaLab report: high-risk verdict, balance and minute-by-minute equity curve",
       inclus_titre: "What the report contains.",
@@ -336,23 +383,52 @@
     const m = v.match(/^(?:https?:\/\/)?(?:www\.)?mql5\.com\/(?:[a-z]{2}\/)?market\/product\/(\d{3,7})(?:[\/?#].*)?$/i) || v.match(/^(\d{3,7})$/);
     return m ? m[1] : null;
   }
-  let touche = false;
+  let touche = false, fichierEtat = { ok: false, err: "err_fichier_vide", nom: "" };
+  function source() { return document.querySelector('input[name="source"]:checked').value; }
+  function refFichier(nom) { return "fichier-" + nom.replace(/\.(ex5|mq5)$/i, "").normalize("NFD").replace(/[^A-Za-z0-9_-]+/g, "_").slice(0, 150); }
+  async function lireFichier() {
+    const f = document.getElementById("fichier-robot").files[0];
+    if (!f) fichierEtat = { ok: false, err: "err_fichier_vide", nom: "" };
+    else if (!/\.(ex5|mq5)$/i.test(f.name)) fichierEtat = { ok: false, err: "err_fichier_type", nom: f.name };
+    else if (f.size > 20 * 1024 * 1024) fichierEtat = { ok: false, err: "err_fichier_taille", nom: f.name };
+    else if (/\.mq5$/i.test(f.name)) {
+      // Lu dans le navigateur seulement (rien n'est envoyé) : un robot a une fonction OnTick
+      let texte = "";
+      try { const buf = await f.arrayBuffer(), u = new Uint8Array(buf);
+        texte = (u[0] === 0xff && u[1] === 0xfe) ? new TextDecoder("utf-16le").decode(buf) : new TextDecoder("utf-8").decode(buf); } catch (e) {}
+      fichierEtat = /\bOnTick\s*\(/.test(texte) ? { ok: true, err: "", nom: f.name } : { ok: false, err: "err_pas_robot", nom: f.name };
+    } else fichierEtat = { ok: true, err: "", nom: f.name };
+    touche = true; majCommande();
+  }
   function majCommande() {
     const L = T[langue], b = document.getElementById("commander"), note = document.getElementById("note-commande");
     const form = document.getElementById("form-commande"), champ = document.getElementById("lien-robot");
     const err = document.getElementById("erreur-lien"), ok = document.getElementById("ok-lien");
-    if (!(LIEN_PAIEMENT && VENTES_OUVERTES)) {
+    document.getElementById("bandeau-test").hidden = !(MODE_TEST && !VENTES_OUVERTES);
+    if (!(LIEN_PAIEMENT && (VENTES_OUVERTES || MODE_TEST))) {
       form.hidden = true;
       b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.bientot; note.textContent = L.note_bientot;
       return;
     }
     form.hidden = false; note.textContent = L.note_paiement;
-    const id = idRobot(champ.value), coche = document.getElementById("renonce").checked;
-    err.textContent = touche && !id ? (champ.value.trim() ? L.err_format : L.err_vide) : "";
-    champ.setAttribute("aria-invalid", String(touche && !id));
-    ok.textContent = id ? L.ok_robot.replace("{id}", id) : "";
-    if (id && coche) {
-      b.href = LIEN_PAIEMENT + "?client_reference_id=mql5-" + id;
+    const parFichier = source() === "fichier", coche = document.getElementById("renonce").checked;
+    document.getElementById("mode-lien").hidden = parFichier;
+    document.getElementById("mode-fichier").hidden = !parFichier;
+    let ref = null;
+    if (parFichier) {
+      err.textContent = touche && !fichierEtat.ok ? L[fichierEtat.err] : "";
+      ok.textContent = fichierEtat.ok ? L.ok_fichier.replace("{nom}", fichierEtat.nom) : "";
+      champ.setAttribute("aria-invalid", "false");
+      if (fichierEtat.ok) ref = refFichier(fichierEtat.nom);
+    } else {
+      const id = idRobot(champ.value);
+      err.textContent = touche && !id ? (champ.value.trim() ? L.err_format : L.err_vide) : "";
+      champ.setAttribute("aria-invalid", String(touche && !id));
+      ok.textContent = id ? L.ok_robot.replace("{id}", id) : "";
+      if (id) ref = "mql5-" + id;
+    }
+    if (ref && coche) {
+      b.href = LIEN_PAIEMENT + "?client_reference_id=" + encodeURIComponent(ref);
       b.textContent = L.commander; b.removeAttribute("aria-disabled");
     } else {
       b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.remplir;
@@ -361,6 +437,8 @@
   document.getElementById("lien-robot").addEventListener("input", majCommande);
   document.getElementById("lien-robot").addEventListener("blur", () => { touche = true; majCommande(); });
   document.getElementById("renonce").addEventListener("change", majCommande);
+  document.getElementById("fichier-robot").addEventListener("change", lireFichier);
+  document.querySelectorAll('input[name="source"]').forEach((r) => r.addEventListener("change", () => { touche = false; majCommande(); }));
   document.getElementById("commander").addEventListener("click", (e) => {
     if (e.currentTarget.getAttribute("aria-disabled") === "true") { e.preventDefault(); touche = true; majCommande(); return; }
     try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: "evt-paiement", title: "paiement", event: true }); } catch (x) {}
