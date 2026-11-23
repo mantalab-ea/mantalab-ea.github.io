@@ -242,6 +242,8 @@
   // Mode test : commande.html?test affiche le formulaire même ventes fermées (pour essayer le parcours).
   const MODE_TEST = (() => { try { return new URLSearchParams(location.search).has("test"); } catch (e) { return false; } })();
   const PRIX = "29 €";
+  // Serveur Cloudflare qui reçoit les fichiers de robots (labo/cloudflare/commandes)
+  const SERVEUR = "https://mantalab-commandes.mantalab.workers.dev";
   // ----------------------------------------------------------------------------------------
   const T = {
     fr: {
@@ -272,6 +274,8 @@
       err_fichier_taille: "Fichier trop lourd (20 Mo au plus).",
       err_pas_robot: "Ce code n'est pas un robot : il n'a pas de fonction OnTick (indicateur ou script ?).",
       ok_fichier: "{nom} : fichier accepté.",
+      envoi: "Envoi du fichier…",
+      err_envoi: "L'envoi du fichier a échoué. Réessayez dans un instant.",
       voir_exemple: "Voir une fiche complète ↗",
       alt_apercu: "Exemple de fiche MantaLab : verdict risque élevé, courbe du solde et de l'équité minute par minute",
       inclus_titre: "Ce que contient la fiche.",
@@ -330,6 +334,8 @@
       err_fichier_taille: "File too large (20 MB max).",
       err_pas_robot: "This code is not a robot: it has no OnTick function (indicator or script?).",
       ok_fichier: "{nom}: file accepted.",
+      envoi: "Uploading the file…",
+      err_envoi: "The upload failed. Please try again in a moment.",
       voir_exemple: "See a full report ↗",
       alt_apercu: "Sample MantaLab report: high-risk verdict, balance and minute-by-minute equity curve",
       inclus_titre: "What the report contains.",
@@ -383,9 +389,8 @@
     const m = v.match(/^(?:https?:\/\/)?(?:www\.)?mql5\.com\/(?:[a-z]{2}\/)?market\/product\/(\d{3,7})(?:[\/?#].*)?$/i) || v.match(/^(\d{3,7})$/);
     return m ? m[1] : null;
   }
-  let touche = false, fichierEtat = { ok: false, err: "err_fichier_vide", nom: "" };
+  let touche = false, envoiEnCours = false, fichierEtat = { ok: false, err: "err_fichier_vide", nom: "" };
   function source() { return document.querySelector('input[name="source"]:checked').value; }
-  function refFichier(nom) { return "fichier-" + nom.replace(/\.(ex5|mq5)$/i, "").normalize("NFD").replace(/[^A-Za-z0-9_-]+/g, "_").slice(0, 150); }
   async function lireFichier() {
     const f = document.getElementById("fichier-robot").files[0];
     if (!f) fichierEtat = { ok: false, err: "err_fichier_vide", nom: "" };
@@ -419,7 +424,7 @@
       err.textContent = touche && !fichierEtat.ok ? L[fichierEtat.err] : "";
       ok.textContent = fichierEtat.ok ? L.ok_fichier.replace("{nom}", fichierEtat.nom) : "";
       champ.setAttribute("aria-invalid", "false");
-      if (fichierEtat.ok) ref = refFichier(fichierEtat.nom);
+      if (fichierEtat.ok) ref = "fichier";  // le numéro est donné par le serveur au moment du clic
     } else {
       const id = idRobot(champ.value);
       err.textContent = touche && !id ? (champ.value.trim() ? L.err_format : L.err_vide) : "";
@@ -427,8 +432,9 @@
       ok.textContent = id ? L.ok_robot.replace("{id}", id) : "";
       if (id) ref = "mql5-" + id;
     }
+    if (envoiEnCours) { b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.envoi; return; }
     if (ref && coche) {
-      b.href = LIEN_PAIEMENT + "?client_reference_id=" + encodeURIComponent(ref);
+      b.href = ref === "fichier" ? "#" : LIEN_PAIEMENT + "?client_reference_id=" + encodeURIComponent(ref);
       b.textContent = L.commander; b.removeAttribute("aria-disabled");
     } else {
       b.removeAttribute("href"); b.setAttribute("aria-disabled", "true"); b.textContent = L.remplir;
@@ -442,7 +448,23 @@
   document.getElementById("commander").addEventListener("click", (e) => {
     if (e.currentTarget.getAttribute("aria-disabled") === "true") { e.preventDefault(); touche = true; majCommande(); return; }
     try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: "evt-paiement", title: "paiement", event: true }); } catch (x) {}
+    if (source() === "fichier") { e.preventDefault(); envoyerFichier(); }
   });
+  // Fichier : envoyé au serveur Cloudflare (gardé 7 jours), puis paiement Stripe avec son numéro
+  async function envoyerFichier() {
+    const f = document.getElementById("fichier-robot").files[0], err = document.getElementById("erreur-lien");
+    if (!f || !fichierEtat.ok) return;
+    envoiEnCours = true; majCommande();
+    try {
+      const r = await fetch(SERVEUR + "/fichiers", { method: "POST", body: f,
+        headers: { "Content-Type": "application/octet-stream", "X-Nom-Fichier": encodeURIComponent(f.name) } });
+      const d = await r.json();
+      if (!r.ok || !d.id) throw new Error(d.erreur || r.status);
+      location.href = LIEN_PAIEMENT + "?client_reference_id=fichier-" + d.id;
+    } catch (x) {
+      envoiEnCours = false; majCommande(); err.textContent = T[langue].err_envoi;
+    }
+  }
 
   document.querySelectorAll("[data-lang]").forEach((x) => x.addEventListener("click", () => {
     langue = x.dataset.lang; try { localStorage.setItem("labo-langue", langue); } catch (e) {} appliquer();
