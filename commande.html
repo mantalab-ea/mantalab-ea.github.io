@@ -63,7 +63,7 @@
   .form-commande { display:grid; gap:.75rem; margin:0 0 .9rem; }
   .form-commande[hidden] { display:none; }
   .form-commande label.champ { display:grid; gap:.35rem; font-size:.88rem; font-weight:500; }
-  .form-commande input[type="url"], .form-commande input[type="text"] { font:inherit; font-size:.95rem; font-weight:400; color:var(--encre); background:var(--fond);
+  .form-commande input[type="url"], .form-commande input[type="text"], .form-commande select { font:inherit; font-size:.95rem; font-weight:400; color:var(--encre); background:var(--fond);
     border:1px solid var(--filet-fort); border-radius:10px; padding:.75rem .85rem; width:100%; }
   .form-commande input[aria-invalid="true"] { border-color:var(--rouge); }
   .erreur-lien { color:var(--rouge); font-size:.82rem; margin:0; min-height:0; }
@@ -201,6 +201,16 @@
                 <span class="depot-titre" id="depot-titre"></span>
                 <span class="depot-sous" id="depot-sous"></span>
               </label>
+              <label class="champ"><span data-t="marche_label">Marché sur lequel le robot doit tourner</span>
+                <select id="marche-fichier">
+                  <option value="" data-t="marche_inconnu">Je ne sais pas (le labo le cherche dans le fichier)</option>
+                  <option value="XAUUSD" data-t="marche_or">XAUUSD (or)</option>
+                  <option value="EURUSD">EURUSD</option><option value="GBPUSD">GBPUSD</option><option value="USDJPY">USDJPY</option>
+                  <option value="AUDUSD">AUDUSD</option><option value="USDCAD">USDCAD</option><option value="USDCHF">USDCHF</option>
+                  <option value="US30">US30 (Dow Jones)</option><option value="USTEC">USTEC (Nasdaq)</option><option value="US500">US500 (S&amp;P 500)</option>
+                  <option value="DE40">DE40 (DAX)</option><option value="XAGUSD" data-t="marche_argent">XAGUSD (argent)</option>
+                </select>
+              </label>
               <p class="aide" id="aide-fichier" data-t="fichier_aide">Robot acheté sur le Market ? Utilisez plutôt l'onglet « Lien du Market ».</p>
             </div>
             <p class="erreur-lien" id="erreur-lien" role="alert"></p>
@@ -303,6 +313,8 @@
       fichier_label: "Fichier du robot (.ex5 ou code .mq5)",
       depot_titre: "Déposez le fichier du robot ici", depot_sous: "ou cliquez pour le choisir · .ex5 ou .mq5", depot_changer: "Cliquez ou déposez un autre fichier pour le remplacer",
       fichier_aide: "Robot acheté sur le Market ? Utilisez plutôt l'onglet « Lien du Market ».",
+      marche_label: "Marché sur lequel le robot doit tourner", marche_inconnu: "Je ne sais pas (le labo le cherche dans le fichier)",
+      marche_or: "XAUUSD (or)", marche_argent: "XAGUSD (argent)",
       err_fichier_vide: "Choisissez le fichier du robot.",
       err_fichier_type: "Il faut un fichier .ex5 (robot compilé) ou .mq5 (code source).",
       err_fichier_taille: "Fichier trop lourd (20 Mo au plus).",
@@ -369,6 +381,8 @@
       fichier_label: "Robot file (.ex5 or .mq5 source)",
       depot_titre: "Drop the robot file here", depot_sous: "or click to choose it · .ex5 or .mq5", depot_changer: "Click or drop another file to replace it",
       fichier_aide: "Bought the robot on the Market? Use the “Market link” tab instead.",
+      marche_label: "Market the robot should trade", marche_inconnu: "I don't know (the lab looks for it in the file)",
+      marche_or: "XAUUSD (gold)", marche_argent: "XAGUSD (silver)",
       err_fichier_vide: "Choose the robot file.",
       err_fichier_type: "A .ex5 (compiled robot) or .mq5 (source code) file is needed.",
       err_fichier_taille: "File too large (20 MB max).",
@@ -526,7 +540,8 @@
         headers: { "Content-Type": "application/octet-stream", "X-Nom-Fichier": encodeURIComponent(f.name) } });
       const d = await r.json();
       if (!r.ok || !d.id) throw new Error(d.erreur || r.status);
-      location.href = LIEN_PAIEMENT + "?client_reference_id=fichier-" + d.id;
+      const marche = document.getElementById("marche-fichier").value;
+      location.href = LIEN_PAIEMENT + "?client_reference_id=fichier-" + d.id + (marche ? "-" + marche : "");
     } catch (x) {
       envoiEnCours = false; majCommande(); err.textContent = T[langue].err_envoi;
     }
