@@ -1194,7 +1194,7 @@
   // ensemble, au même format (virgule ou point, décimales, espaces) ; le texte final est déjà dans la page.
   let jetonCompte = 0;
   const NOMBRE = /\d{1,3}(?:[\u202f\u00a0 ]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?/g;
-  function compter(el) {
+  function animerNombres(el) {
     const modele = el.textContent, jeton = jetonCompte, morceaux = [];
     modele.replace(NOMBRE, (m) => { morceaux.push(m); return m; });
     if (!morceaux.length) return;
@@ -1220,7 +1220,7 @@
   const animer = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
   if (animer) {
     const vus = new IntersectionObserver((entrees) => entrees.forEach((e) => {
-      if (e.isIntersecting) { vus.unobserve(e.target); compter(e.target); }
+      if (e.isIntersecting) { vus.unobserve(e.target); animerNombres(e.target); }
     }), { threshold: 0.6 });
     document.querySelectorAll("[data-compte]").forEach((el) => vus.observe(el));
   }
