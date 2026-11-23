@@ -204,6 +204,13 @@
     text-decoration: underline; text-decoration-color: var(--filet-fort); text-underline-offset: 3px; }
   .exemples button:hover { text-decoration-color: var(--encre); }
   .confidentiel { margin: .6rem 0 0; font-size: .8rem; color: var(--encre-3); }
+  .partage { margin-top: 1rem; border: 1px solid var(--filet); border-radius: 12px; padding: .85rem 1rem; display: grid; gap: .4rem; }
+  .partage[hidden] { display: none; }
+  .partage label { display: flex; gap: .65rem; align-items: flex-start; font-size: .88rem; color: var(--encre-2); line-height: 1.45; cursor: pointer; }
+  .partage input { margin: .18rem 0 0; width: 1.05rem; height: 1.05rem; accent-color: var(--rouge); flex: none; }
+  .partage b { color: var(--encre); font-weight: 600; }
+  .partage-etat { margin: 0; font-size: .8rem; color: var(--encre-3); padding-left: 1.7rem; }
+  .partage-etat:empty { display: none; }
   .erreur { margin-top: 1.25rem; border: 1px solid color-mix(in srgb, var(--alerte) 35%, transparent); background: color-mix(in srgb, var(--alerte) 6%, var(--fond)); padding: .9rem 1rem; border-radius: 10px; font-size: .95rem; }
 
   /* ----- Vérifications : un tableau, pas des cartes ----- */
@@ -397,8 +404,12 @@
           <button type="button" data-exemple="grille" data-t="ex_grille">un robot à grille</button>
           <button type="button" data-exemple="propre" data-t="ex_propre">un robot propre</button>
         </div>
-        <p class="confidentiel" id="confidentiel" data-t="confidentiel">Gratuit, sans inscription. Le fichier est lu dans votre navigateur : il n'est envoyé nulle part.</p>
+        <p class="confidentiel" id="confidentiel" data-t="confidentiel">Gratuit, sans inscription. Le fichier est lu dans votre navigateur : il n'est envoyé nulle part, sauf si vous choisissez de partager les résultats.</p>
         <div id="erreur" class="erreur" role="alert" hidden></div>
+        <div class="partage" id="partage" hidden>
+          <label><input type="checkbox" id="partage-case"><span data-h="partage_texte"><b>Partager anonymement ces résultats</b> pour enrichir la base MantaLab : trades et mesures seulement, sans votre nom, votre numéro de compte ni votre courtier.</span></label>
+          <p class="partage-etat" id="partage-etat" aria-live="polite"></p>
+        </div>
       </div>
       <div class="droite" id="apercu" aria-live="polite">
         <div id="apercu-exemple">
@@ -576,7 +587,10 @@
       depot_aide: "Glissez-le n'importe où sur la page, ou choisissez-le.", depot_aide_tactile: "Touchez pour choisir le fichier sur votre téléphone.",
       exemples: "Pas de fichier sous la main ? Voir un exemple :",
       ex_martingale: "un robot à martingale", ex_grille: "un robot à grille", ex_propre: "un robot propre",
-      confidentiel: "Gratuit, sans inscription. Le fichier est lu dans votre navigateur : il n'est envoyé nulle part.",
+      confidentiel: "Gratuit, sans inscription. Le fichier est lu dans votre navigateur : il n'est envoyé nulle part, sauf si vous choisissez de partager les résultats.",
+      partage_texte: "<b>Partager anonymement ces résultats</b> pour enrichir la base MantaLab : trades et mesures seulement, sans votre nom, votre numéro de compte ni votre courtier.",
+      partage_envoi: "Envoi…", partage_ok: "Merci : résultats ajoutés à la base.", partage_deja: "Merci : ces résultats étaient déjà dans la base.",
+      partage_err: "Le partage a échoué. Réessayez plus tard.", partage_gros: "Ce rapport est trop volumineux pour être partagé.",
       apercu_exemple: "Exemple : ce que l'audit voit et que le vendeur ne montre pas", apercu_votre: "Votre verdict",
       analyse_etapes: ["Lecture des trades…", "Martingale et grille…", "Stop-loss…", "Solidité et challenges…"],
       depot_fait: "✓ Fichier analysé", depot_autre: "Analyser un autre fichier",
@@ -753,7 +767,10 @@
       depot_aide: "Drop it anywhere on the page, or pick it.", depot_aide_tactile: "Tap to pick the file on your phone.",
       exemples: "No file at hand? See an example:",
       ex_martingale: "a martingale robot", ex_grille: "a grid robot", ex_propre: "a clean robot",
-      confidentiel: "Free, no sign-up. The file is read in your browser: it is not sent anywhere.",
+      confidentiel: "Free, no sign-up. The file is read in your browser: it is not sent anywhere unless you choose to share the results.",
+      partage_texte: "<b>Share these results anonymously</b> to improve the MantaLab database: trades and measures only, without your name, account number or broker.",
+      partage_envoi: "Sending…", partage_ok: "Thank you: results added to the database.", partage_deja: "Thank you: these results were already in the database.",
+      partage_err: "Sharing failed. Please try again later.", partage_gros: "This report is too large to be shared.",
       apercu_exemple: "Example: what the audit sees and the seller doesn't show", apercu_votre: "Your verdict",
       analyse_etapes: ["Reading the trades…", "Martingale and grid…", "Stop-loss…", "Solidity and challenges…"],
       depot_fait: "✓ File analysed", depot_autre: "Analyse another file",
@@ -1106,6 +1123,7 @@
   function etatRepos() {
     blocDepot.classList.remove("en-cours", "analyse-faite");
     fichierAnalyse = null;
+    preparerPartage(null);
     appliquerLangue();
   }
 
@@ -1125,6 +1143,7 @@
       fichierAnalyse = f.name;
       etatFait();
       afficher(dernier);
+      preparerPartage(backtest, resultat, signal ? "signal" : "rapport");
       compter(signal ? "signal-analyse" : "rapport-analyse");
     } catch (e) {
       await attente;
@@ -1133,6 +1152,41 @@
       compter("rapport-erreur");
     }
   }
+
+  // ---- Partage volontaire (case NON cochée par défaut) : trades + mesures, jamais de nom ni de compte ----
+  const SERVEUR = "https://mantalab-commandes.mantalab.workers.dev";
+  let aPartager = null;
+  function preparerPartage(backtest, resultat, source) {
+    const bloc = document.getElementById("partage"), caseP = document.getElementById("partage-case");
+    document.getElementById("partage-etat").textContent = "";
+    caseP.checked = false; caseP.disabled = false;
+    if (!backtest) { aPartager = null; bloc.hidden = true; return; }
+    aPartager = {
+      v: 1, source, robot: backtest.robot || null, symbole: backtest.symbole || null, periode: backtest.periode || null,
+      debut: backtest.debut || null, fin: backtest.fin || null, depot: backtest.depot || null, stats: backtest.stats || {},
+      // commentaire et n° d'ordre retirés : ils peuvent contenir n'importe quoi
+      transactions: (backtest.transactions || []).map((t) => ({ temps: t.temps, symbole: t.symbole, sens: t.sens, entree: t.entree,
+        volume: t.volume, prix: t.prix, commission: t.commission, swap: t.swap, profit: t.profit, stopLoss: t.stopLoss })),
+      verdict: { risque: resultat.risque, compatibleProp: resultat.compatibleProp },
+    };
+    bloc.hidden = false;
+  }
+  document.getElementById("partage-case").addEventListener("change", async (ev) => {
+    const caseP = ev.target, etat = document.getElementById("partage-etat"), L = T[langue];
+    if (!caseP.checked || !aPartager) return;
+    caseP.disabled = true; etat.textContent = L.partage_envoi;
+    try {
+      const gz = await new Response(new Blob([JSON.stringify(aPartager)]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
+      if (gz.byteLength > 1900 * 1024) { etat.textContent = L.partage_gros; caseP.checked = false; return; }
+      const r = await fetch(SERVEUR + "/partages", { method: "POST", body: gz, headers: { "Content-Type": "application/octet-stream" } });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.erreur || r.status);
+      etat.textContent = d.nouveau ? L.partage_ok : L.partage_deja;
+      compter("partage");
+    } catch (e) {
+      etat.textContent = L.partage_err; caseP.checked = false; caseP.disabled = false;
+    }
+  });
 
   const input = document.getElementById("fichier");
   input.addEventListener("change", () => { if (input.files[0]) lireFichier(input.files[0]); input.value = ""; });
@@ -1176,6 +1230,7 @@
     await etatAnalyse(T[langue]["ex_" + nom]);
     const resultat = E.auditer(window.LaboExemples[nom]());
     dernier = { resultat, analyses: AN.analyser(resultat), avertissements: [], exemple: nom };
+    preparerPartage(null);
     fichierAnalyse = T[langue]["ex_" + nom];
     etatFait();
     afficher(dernier);
