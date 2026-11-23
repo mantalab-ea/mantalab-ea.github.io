@@ -40,11 +40,13 @@
   .langue button[aria-pressed="true"] { color:var(--encre); }
 
   /* Haut de page : promesse + achat à gauche, la fiche à droite */
-  .haut { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.05fr); gap:4rem; align-items:center; padding:4.5rem 0 5rem; }
-  h1 { font-weight:600; font-size:clamp(2.3rem,4.6vw,3.6rem); line-height:1.03; letter-spacing:-.045em; margin:0 0 1.1rem; text-wrap:balance; }
-  .intro { color:var(--encre-2); font-size:1.12rem; margin:0 0 2rem; max-width:30rem; }
+  /* Haut : titre et sous-titre sur toute la largeur, puis la carte d'achat et la fiche côte à côte, alignées en haut */
+  .haut { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.1fr); column-gap:4.5rem; row-gap:2.8rem; align-items:start; padding:4.5rem 0 5rem; }
+  .haut-titre { grid-column:1 / -1; }
+  h1 { font-weight:600; font-size:clamp(2.3rem,4.6vw,3.6rem); line-height:1.03; letter-spacing:-.045em; margin:0 0 1.1rem; text-wrap:pretty; }
+  .intro { color:var(--encre-2); font-size:1.2rem; margin:0; }
   /* Carte d'achat : la bande rouge reprend celle du verdict de la fiche PDF (même geste de marque) */
-  .achat { border:1px solid var(--filet-fort); border-radius:18px; max-width:28rem; overflow:hidden; background:var(--fond);
+  .achat { border:1px solid var(--filet-fort); border-radius:18px; overflow:hidden; background:var(--fond);
     box-shadow:0 1px 2px rgba(0,0,0,.05), 0 24px 48px -28px rgba(0,0,0,.35); }
   .achat-tete { position:relative; background:var(--rouge); color:#fff; padding:1.5rem 1.6rem 1.35rem; overflow:hidden; isolation:isolate; }
   .achat-tete::after { content:""; position:absolute; z-index:-1; right:-3.2rem; top:50%; width:15rem; height:15rem; transform:translateY(-50%) rotate(-8deg);
@@ -139,7 +141,8 @@
   .retour { display:inline-block; margin-top:2.5rem; color:var(--encre-2); font-size:.9rem; }
   footer { border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
   @media (max-width: 56rem) {
-    .haut { grid-template-columns:1fr; gap:3.5rem; padding-top:3rem; }
+    .haut { grid-template-columns:1fr; row-gap:2.2rem; padding-top:3rem; }
+    .apercu { margin-top:1.3rem; }
     .inclus, .etapes, .robots { grid-template-columns:1fr; }
     .etapes { padding:0 0 0 2rem; gap:2.2rem; }
     .etapes::before, .etapes::after { left:6px; top:.6rem; width:2px; height:var(--long, 100%); }
@@ -169,9 +172,10 @@
 
   <main class="contenu">
     <section class="haut">
-      <div>
+      <div class="haut-titre">
         <h1 data-t="titre">Avant d'acheter un robot, faites-le tester.</h1>
         <p class="intro" data-t="intro">Le labo fait tourner le robot lui-même et vous remet sa fiche d'audit. Pas le rapport du vendeur : le nôtre.</p>
+      </div>
         <div class="achat">
           <div class="achat-tete">
             <p class="prix"><b id="prix"></b><span data-t="par_robot">par robot</span></p>
@@ -208,7 +212,6 @@
           <p class="note" id="note-commande"></p>
           </div>
         </div>
-      </div>
       <a class="apercu" href="exemple/multimartin.html" target="_blank" rel="noopener">
         <img src="exemple/apercu-fiche.jpg" width="1000" height="1044" alt="Exemple de fiche MantaLab : verdict risque élevé, courbe du solde et de l'équité minute par minute" data-alt="alt_apercu">
         <span data-t="voir_exemple">Voir une fiche complète ↗</span>
