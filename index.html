@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Sécurité (audit du 25/11/2026) : la page ne peut charger ou envoyer des données qu'à ces adresses-là. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab-commandes.mantalab.workers.dev https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
 <title>MantaLab — audit indépendant de robots MT5 (EA) : martingale, grille, prop firm</title>
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">

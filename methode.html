@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Sécurité (audit du 25/11/2026) : la page ne peut charger ou envoyer des données qu'à ces adresses-là. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab-commandes.mantalab.workers.dev https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
 <title>MantaLab — méthode : comment nous auditons un robot MT5</title>
 <meta name="description" content="Comment MantaLab vérifie un robot MetaTrader 5 : détection de martingale, de grille et de stop-loss, statistiques de solidité, simulation de challenges de prop firms, et notre taux d'erreur mesuré (98,8 % sur 209 tests).">
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
