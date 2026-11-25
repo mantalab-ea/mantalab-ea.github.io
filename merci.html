@@ -56,6 +56,12 @@
   .retour { display:inline-block; margin-top:1.6rem; font-weight:500; text-decoration:none; padding:.75rem 1.05rem; border-radius:10px; border:1px solid var(--filet-fort); }
   .retour:hover { background:var(--fond-2); }
   .pied { font-size:.78rem; color:var(--encre-3); margin-top:2.5rem; }
+  #merci[hidden], #neutre[hidden], #verif[hidden] { display:none; }
+  #verif { color:var(--encre-2); text-align:center; padding:6rem 0; }
+  #neutre h1 { margin-top:3.5rem; }
+  .bouton { display:inline-block; font-weight:500; text-decoration:none; padding:.85rem 1.15rem; border-radius:10px; background:var(--rouge); color:#fff; margin:.4rem 0 2rem; }
+  .bouton:hover { background:var(--rouge-fonce); }
+  .centre { text-align:center; }
   @media (max-width: 52rem) {
     .recu { grid-template-columns:1fr; min-height:0; }
     .produit { border-right:0; border-bottom:1px solid var(--filet); justify-content:center; }
@@ -79,6 +85,15 @@
   </div></section>
 
   <section class="suite"><div class="suite-in">
+    <p id="verif" hidden data-t="verif">Vérification du paiement…</p>
+    <div id="neutre" hidden>
+      <h1 data-t="n_titre">Aucun paiement à afficher</h1>
+      <p class="releve" data-t="n_texte">Cette page s'affiche juste après un paiement. Pour faire auditer un robot, c'est par ici.</p>
+      <p class="centre"><a class="bouton" href="commande.html" data-t="n_bouton">Faire auditer un robot</a></p>
+      <p class="note" data-t="n_doute">Vous venez de payer et vous voyez ce message ? Votre commande est bien enregistrée chez Stripe et la fiche arrive par e-mail sous 48&nbsp;h. En cas de doute, écrivez-nous :</p>
+      <p class="note"><a href="mailto:mantalab.audit@gmail.com">mantalab.audit@gmail.com</a></p>
+    </div>
+    <div id="merci" hidden>
     <div class="coche" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
     <h1 data-t="titre">Merci pour votre paiement</h1>
     <p class="releve" data-t="releve">Un paiement en faveur de MANTALAB apparaîtra sur votre relevé.</p>
@@ -99,6 +114,7 @@
     <p class="note" data-t="n2">Rien reçu après 48&nbsp;h ? Regardez dans les indésirables, puis écrivez-nous :</p>
     <p class="note"><a href="mailto:mantalab.audit@gmail.com">mantalab.audit@gmail.com</a></p>
     <a class="retour" href="index.html" data-t="retour">Retour à l'accueil</a>
+    </div>
     <p class="pied" data-t="pied">MantaLab — test indépendant de robots MetaTrader 5. Ce service ne constitue pas un conseil en investissement.</p>
   </div></section>
 </main>
@@ -115,7 +131,9 @@
     e3_t: "Your PDF report", e3: "It arrives at the same address within 48 business hours.",
     n1: "If the robot can't be tested (no demo version, market not available at the test broker…), you'll be told and fully refunded.",
     n2: "Nothing after 48 hours? Check your spam folder, then write to us:",
-    retour: "Back to home",
+    retour: "Back to home", verif: "Checking the payment…",
+    n_titre: "No payment to show", n_texte: "This page appears right after a payment. To get a robot audited, start here.", n_bouton: "Get a robot audited",
+    n_doute: "Just paid and seeing this message? Your order is recorded at Stripe and the report arrives by email within 48 hours. If in doubt, write to us:",
     pied: "MantaLab — independent MetaTrader 5 robot testing. This service is not investment advice." } };
   const MOTS = { fr: { robot_fichier: "Le fichier que vous avez envoyé", robot_n: "Produit MQL5 n° " },
                  en: { robot_fichier: "The file you uploaded", robot_n: "MQL5 product no. " } };
@@ -151,10 +169,22 @@
     else document.getElementById("c-carte").hidden = true;
     document.getElementById("boite").hidden = false;
   }
+  // Le « merci » ne s'affiche qu'après un paiement vérifié chez Stripe. Sans paiement (adresse ouverte à la main,
+  // session non payée ou vieille de plus de 24 h) : page neutre. Si la vérification est impossible (serveur ou
+  // Stripe injoignable), le client vient sans doute de payer : merci générique, sans le détail.
+  const montrer = (id) => ["verif", "neutre", "merci"].forEach((x) => { document.getElementById(x).hidden = x !== id; });
   const session = new URLSearchParams(location.search).get("session_id");
-  if (session && /^cs_(live|test)_[A-Za-z0-9]+$/.test(session)) {
+  if (!session || !/^cs_(live|test)_[A-Za-z0-9]+$/.test(session)) montrer("neutre");
+  else {
+    montrer("verif");
     fetch(SERVEUR + "/paiement?session=" + encodeURIComponent(session))
-      .then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) afficherPaiement(d); }).catch(() => {});
+      .then((r) => {
+        if (r.status === 404 || r.status === 400) { montrer("neutre"); return null; }
+        montrer("merci");
+        return r.ok ? r.json() : null;
+      })
+      .then((d) => { if (d) afficherPaiement(d); })
+      .catch(() => montrer("merci"));
   }
 </script>
 </body>
