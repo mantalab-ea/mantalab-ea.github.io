@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MantaLab — commande reçue</title>
-<!-- Page de retour après paiement : à indiquer dans le lien de paiement Stripe
-     (Après le paiement → Rediriger vers votre site → https://mantalab-ea.github.io/merci.html). Pas dans le sitemap. -->
+<title>MantaLab — paiement reçu</title>
+<!-- Page de retour après paiement. Dans le lien de paiement Stripe : Page de confirmation → Ne pas afficher → rediriger vers
+     https://mantalab-ea.github.io/merci.html?session_id={CHECKOUT_SESSION_ID}
+     Le résumé (e-mail, carte, montant) est lu chez Stripe par le serveur de commandes (route /paiement). Pas dans le sitemap. -->
 <meta name="robots" content="noindex">
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
@@ -14,49 +15,81 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
 <style>
+  /* Même découpe que la confirmation de Stripe : le produit à gauche, le reçu à droite ; puis la suite chez MantaLab. */
   :root { --fond:#fff; --fond-2:#f6f6f7; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
     --rouge:#d62917; --rouge-fonce:#b51f12; --focus:#2b6cf6; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; } }
   :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
   a { color:inherit; }
   :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
-  .contenu { width:100%; max-width:70rem; margin:0 auto; padding:0 1.5rem; }
-  header { border-bottom:1px solid var(--filet); }
-  header .contenu { display:flex; align-items:center; height:4rem; }
-  .logo { height:1.9rem; width:auto; display:block; } .logo-sombre { display:none; }
+  .recu { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); min-height:100vh; }
+  .produit { background:var(--fond-2); border-right:1px solid var(--filet); display:flex; justify-content:flex-end; }
+  .produit-in { width:100%; max-width:31rem; padding:3rem 3.5rem 3rem 1.5rem; }
+  .logo { height:1.75rem; width:auto; display:block; } .logo-sombre { display:none; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display:none; } :root:not([data-theme="light"]) .logo-sombre { display:block; } }
-  main { flex:1; }
-  .bloc { max-width:38rem; padding:4.5rem 0 5rem; }
-  .coche { width:3.2rem; height:3.2rem; border-radius:50%; background:var(--rouge); color:#fff; display:grid; place-items:center; margin:0 0 1.6rem; }
-  h1 { font-weight:600; font-size:clamp(2rem,4.4vw,3rem); line-height:1.05; letter-spacing:-.045em; margin:0 0 1rem; text-wrap:pretty; }
-  .intro { color:var(--encre-2); font-size:1.12rem; margin:0 0 2.6rem; }
-  ol { list-style:none; margin:0 0 2.4rem; padding:0; border-top:1px solid var(--filet); }
-  li { display:grid; grid-template-columns:2rem 1fr; gap:.2rem .9rem; padding:1.1rem 0; border-bottom:1px solid var(--filet); }
-  li span { grid-row:span 2; font-weight:600; color:var(--rouge); }
+  .nom-produit { color:var(--encre-2); margin:3rem 0 .3rem; font-size:.95rem; }
+  .prix { font-stretch:72%; font-weight:750; font-size:3rem; line-height:1; margin:0 0 1rem; font-variant-numeric:tabular-nums; }
+  .desc { color:var(--encre-2); font-size:.9rem; line-height:1.55; margin:0 0 1.8rem; max-width:26rem; }
+  .apercu { display:block; width:100%; max-width:17rem; height:auto; border-radius:6px; border:1px solid var(--filet); box-shadow:0 18px 40px -24px rgba(0,0,0,.35); }
+  .suite { display:flex; justify-content:flex-start; }
+  .suite-in { width:100%; max-width:33rem; padding:3rem 1.5rem 3rem 3.5rem; }
+  .coche { width:3.2rem; height:3.2rem; border-radius:50%; background:var(--rouge); color:#fff; display:grid; place-items:center; margin:2.2rem auto 1.1rem; }
+  h1 { font-stretch:72%; font-weight:750; font-size:1.9rem; line-height:1.08; letter-spacing:-.005em; text-align:center; margin:0 0 .5rem; }
+  .releve { text-align:center; color:var(--encre-2); font-size:.9rem; margin:0 auto 1.8rem; max-width:24rem; }
+  .boite { border:1px solid var(--filet-fort); border-radius:10px; padding:.2rem 1.1rem; margin:0 0 2.6rem; }
+  .boite[hidden], .champ[hidden] { display:none; }
+  .champ { padding:.85rem 0; border-bottom:1px solid var(--filet); }
+  .champ:last-child { border-bottom:0; }
+  .champ span.l { display:block; font-size:.78rem; color:var(--encre-2); margin-bottom:.15rem; }
+  .champ b { font-weight:500; font-size:.95rem; overflow-wrap:anywhere; }
+  .carte { display:inline-flex; align-items:center; gap:.5rem; }
+  .carte i { font-style:normal; font-size:.66rem; font-weight:700; letter-spacing:.04em; border:1px solid var(--filet-fort); border-radius:3px; padding:.05rem .3rem; text-transform:uppercase; }
+  h2 { font-stretch:72%; font-weight:750; font-size:1.35rem; margin:0 0 .6rem; }
+  ol { list-style:none; margin:0 0 1.8rem; padding:0; border-top:1px solid var(--filet); }
+  li { display:grid; grid-template-columns:1.8rem 1fr; gap:.15rem .8rem; padding:1rem 0; border-bottom:1px solid var(--filet); }
+  li > span { grid-row:span 2; font-weight:600; color:var(--rouge); }
   li b { font-weight:600; }
-  li p { grid-column:2; margin:0; color:var(--encre-2); font-size:.95rem; }
-  .note { font-size:.92rem; color:var(--encre-2); margin:0 0 .6rem; }
-  .retour { display:inline-block; margin-top:1.8rem; font-weight:500; text-decoration:none; padding:.8rem 1.1rem; border-radius:10px; border:1px solid var(--filet-fort); }
+  li p { grid-column:2; margin:0; color:var(--encre-2); font-size:.92rem; }
+  .note { font-size:.88rem; color:var(--encre-2); margin:0 0 .6rem; }
+  .retour { display:inline-block; margin-top:1.6rem; font-weight:500; text-decoration:none; padding:.75rem 1.05rem; border-radius:10px; border:1px solid var(--filet-fort); }
   .retour:hover { background:var(--fond-2); }
-  footer { border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
-
-  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
-  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
-    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
-  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
+  .pied { font-size:.78rem; color:var(--encre-3); margin-top:2.5rem; }
+  @media (max-width: 52rem) {
+    .recu { grid-template-columns:1fr; min-height:0; }
+    .produit { border-right:0; border-bottom:1px solid var(--filet); justify-content:center; }
+    .produit-in, .suite-in { max-width:36rem; padding:1.6rem 1.25rem 2rem; margin:0 auto; }
+    .nom-produit { margin-top:1.8rem; }
+    .apercu { display:none; }
+    .suite { justify-content:center; }
+    .coche { margin-top:.6rem; }
+  }
 </style>
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
-  <header><div class="contenu">
+<main class="recu">
+  <section class="produit"><div class="produit-in">
     <a href="index.html"><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab — accueil"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab — accueil"></a>
-  </div></header>
-  <main><div class="contenu"><div class="bloc">
+    <p class="nom-produit" data-t="produit">Audit MantaLab</p>
+    <p class="prix" id="prix">19,00&nbsp;€</p>
+    <p class="desc" data-t="desc">Fiche d'audit PDF d'un robot MetaTrader 5 : le labo MantaLab le teste sur 5 ans de marché, ticks réels du courtier compris (martingale, grille, stop, pire scénario, challenges de prop firm). Livrée par e-mail sous 48&nbsp;h ouvrées.</p>
+    <img class="apercu" src="exemple/apercu-fiche.jpg" alt="" width="1000" height="1045">
+  </div></section>
+
+  <section class="suite"><div class="suite-in">
     <div class="coche" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-    <h1 data-t="titre">Paiement reçu. Le labo s'occupe de votre robot.</h1>
-    <p class="intro" data-t="intro">Vous n'avez plus rien à faire : la fiche arrive par e-mail.</p>
+    <h1 data-t="titre">Merci pour votre paiement</h1>
+    <p class="releve" data-t="releve">Un paiement en faveur de MANTALAB apparaîtra sur votre relevé.</p>
+
+    <div class="boite" id="boite" hidden>
+      <div class="champ" id="c-email"><span class="l" data-t="l_email">Coordonnées</span><b id="v-email"></b></div>
+      <div class="champ" id="c-robot" hidden><span class="l" data-t="l_robot">Robot à auditer</span><b id="v-robot"></b></div>
+      <div class="champ" id="c-carte"><span class="l" data-t="l_paiement">Moyen de paiement</span><b id="v-carte"></b></div>
+    </div>
+
+    <h2 data-t="ensuite">Et maintenant</h2>
     <ol>
       <li><span>1</span><b data-t="e1_t">Reçu de paiement</b><p data-t="e1">Stripe vous l'envoie tout de suite, à l'adresse donnée au paiement.</p></li>
       <li><span>2</span><b data-t="e2_t">Test du robot</b><p data-t="e2">Le labo fait tourner la version de démonstration sur 5 ans de marché, en ticks réels du courtier, avec des retards d'exécution.</p></li>
@@ -66,13 +99,17 @@
     <p class="note" data-t="n2">Rien reçu après 48&nbsp;h ? Regardez dans les indésirables, puis écrivez-nous :</p>
     <p class="note"><a href="mailto:mantalab.audit@gmail.com">mantalab.audit@gmail.com</a></p>
     <a class="retour" href="index.html" data-t="retour">Retour à l'accueil</a>
-  </div></div></main>
-  <footer><div class="contenu"><p data-t="pied">MantaLab — test indépendant de robots MetaTrader 5. Ce service ne constitue pas un conseil en investissement.</p></div></footer>
+    <p class="pied" data-t="pied">MantaLab — test indépendant de robots MetaTrader 5. Ce service ne constitue pas un conseil en investissement.</p>
+  </div></section>
+</main>
 <script>
-  // Même choix de langue que le reste du site.
+  const SERVEUR = "https://mantalab-commandes.mantalab.workers.dev";
   const T = { en: {
-    titre: "Payment received. The lab is taking care of your robot.",
-    intro: "Nothing more to do on your side: the report will arrive by email.",
+    produit: "MantaLab audit",
+    desc: "PDF audit report of a MetaTrader 5 robot: the MantaLab lab tests it over 5 years of market data, real broker ticks included (martingale, grid, stop, worst case, prop firm challenges). Delivered by email within 48 business hours.",
+    titre: "Thank you for your payment", releve: "A payment to MANTALAB will appear on your statement.",
+    l_email: "Contact details", l_robot: "Robot to audit", l_paiement: "Payment method",
+    ensuite: "What happens next",
     e1_t: "Payment receipt", e1: "Stripe sends it right away, to the address you gave at checkout.",
     e2_t: "Robot test", e2: "The lab runs the demo version over 5 years of market data, using real broker ticks, with execution delays.",
     e3_t: "Your PDF report", e3: "It arrives at the same address within 48 business hours.",
@@ -80,12 +117,44 @@
     n2: "Nothing after 48 hours? Check your spam folder, then write to us:",
     retour: "Back to home",
     pied: "MantaLab — independent MetaTrader 5 robot testing. This service is not investment advice." } };
+  const MOTS = { fr: { robot_fichier: "Le fichier que vous avez envoyé", robot_n: "Produit MQL5 n° " },
+                 en: { robot_fichier: "The file you uploaded", robot_n: "MQL5 product no. " } };
   let langue = "fr";
   try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
-  if (T[langue]) {
-    document.documentElement.lang = langue;
-    document.title = "MantaLab — order received";
-    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = T[langue][el.dataset.t] || el.textContent; });
+  if (langue === "en") {
+    document.documentElement.lang = "en";
+    document.title = "MantaLab — payment received";
+    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = T.en[el.dataset.t] || el.textContent; });
+  }
+  // Résumé du paiement : lu chez Stripe via le serveur de commandes. Sans identifiant ou en cas d'échec, la page reste générique.
+  function afficherPaiement(d) {
+    const M = MOTS[langue];
+    const montant = typeof d.montant === "number"
+      ? new Intl.NumberFormat(langue === "en" ? "en-GB" : "fr-FR", { style: "currency", currency: (d.devise || "eur").toUpperCase() }).format(d.montant / 100) : null;
+    if (montant) document.getElementById("prix").textContent = montant;
+    if (d.email) document.getElementById("v-email").textContent = d.email; else document.getElementById("c-email").hidden = true;
+    if (d.robot) {
+      document.getElementById("c-robot").hidden = false;
+      const v = document.getElementById("v-robot");
+      if (d.robot.produit) {
+        const a = document.createElement("a"); a.href = "https://www.mql5.com/fr/market/product/" + d.robot.produit;
+        a.textContent = M.robot_n + d.robot.produit; a.target = "_blank"; a.rel = "noopener"; v.appendChild(a);
+      } else v.textContent = M.robot_fichier;
+    }
+    const vc = document.getElementById("v-carte");
+    if (d.carte) {
+      const c = document.createElement("span"); c.className = "carte";
+      const i = document.createElement("i"); i.textContent = d.carte.marque || "card";
+      c.append(i, document.createTextNode("•••• " + d.carte.fin + (montant ? " — " + montant : "")));
+      vc.appendChild(c);
+    } else if (montant) vc.textContent = montant;
+    else document.getElementById("c-carte").hidden = true;
+    document.getElementById("boite").hidden = false;
+  }
+  const session = new URLSearchParams(location.search).get("session_id");
+  if (session && /^cs_(live|test)_[A-Za-z0-9]+$/.test(session)) {
+    fetch(SERVEUR + "/paiement?session=" + encodeURIComponent(session))
+      .then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) afficherPaiement(d); }).catch(() => {});
   }
 </script>
 </body>
