@@ -361,6 +361,101 @@
     table.challenges td[data-l]::before { content: attr(data-l); display: block; font: 400 .74rem/1.3 "Archivo", sans-serif; color: var(--encre-2); }
   }
 
+  /* ---- Coulisses : carrousel des 6 vérifications (texte à gauche, figure du principe à droite) ---- */
+  .cl { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "fen fleche" "bas bas" "note note"; column-gap: 1.75rem; margin-top: 2.6rem; }
+  .cl-fenetre { grid-area: fen; overflow: hidden; border-top: 1px solid var(--encre); touch-action: pan-y; }
+  .cl-piste { display: flex; transition: transform .75s cubic-bezier(.65, 0, .25, 1); will-change: transform; }
+  .cl-diapo { flex: 0 0 100%; min-width: 0; overflow: hidden; display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 4rem; align-items: center; padding: 2.8rem 0 2.6rem; }
+  .cl-texte h3 { font-stretch: 72%; font-weight: 750; font-size: clamp(1.5rem, 2.5vw, 2.05rem); line-height: 1.06; letter-spacing: -.005em; margin: 0 0 1.1rem; text-wrap: balance; }
+  .cl-phrase { font-size: 1.08rem; line-height: 1.62; margin: 0 0 1.7rem; max-width: 31rem; text-wrap: pretty; }
+  .cl-calcul { font-size: .875rem; line-height: 1.62; color: var(--encre-2); margin: 0; padding-top: 1rem; border-top: 1px solid var(--filet); max-width: 31rem; text-wrap: pretty; }
+  .cl-calcul span:first-child { color: var(--encre); font-weight: 600; }
+  .cl-figure { margin: 0; }
+  .cl-figure svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .cl-suivant { grid-area: fleche; align-self: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+    background: var(--fond); color: var(--encre); border: 1px solid var(--filet-fort); transition: border-color .2s, transform .2s cubic-bezier(.2, .8, .2, 1); }
+  .cl-suivant:hover { border-color: var(--encre); transform: translateX(3px); }
+  .cl-bas { grid-area: bas; display: flex; align-items: center; gap: 1.25rem; padding-top: .9rem; border-top: 1px solid var(--filet); }
+  .cl-temps { display: flex; gap: .4rem; flex: 1; max-width: 21rem; }
+  .cl-temps button { flex: 1; height: 1.5rem; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; }
+  .cl-temps i { display: block; width: 100%; height: 2px; background: var(--filet-fort); position: relative; overflow: hidden; border-radius: 1px; }
+  .cl-temps i::after { content: ""; position: absolute; inset: 0; background: var(--encre); transform: scaleX(0); transform-origin: left; }
+  .cl-temps .vu i::after { transform: scaleX(1); }
+  .cl-temps .actif i::after { animation: cl-remplir 10s linear forwards; }
+  .cl-temps button:hover i { background: var(--encre-3); }
+  .cl:hover .cl-temps .actif i::after, .cl:focus-within .cl-temps .actif i::after, .cl.pause .cl-temps .actif i::after { animation-play-state: paused; }
+  .cl.statique .cl-temps .actif i::after { animation: none; transform: scaleX(1); }
+  .cl.statique .cl-piste { transition: none; }
+  @keyframes cl-remplir { to { transform: scaleX(1); } }
+  .cl-compte { font-size: .8rem; color: var(--encre-2); font-variant-numeric: tabular-nums; }
+  .cl-compte b { color: var(--encre); font-weight: 600; }
+  .cl-note { grid-area: note; font-size: .78rem; color: var(--encre-3); margin: .9rem 0 0; }
+
+  /* Figures : mêmes codes que la fiche PDF (noir = ce que montre le vendeur, rouge = le danger) */
+  .f-lbl { font: 400 13.5px "Archivo", system-ui, sans-serif; fill: var(--encre-2); }
+  .f-lbl-rouge { fill: var(--rouge); }
+  .f-fort { fill: var(--encre); font-weight: 600; }
+  .f-titre { font: 600 14.5px "Archivo", system-ui, sans-serif; fill: var(--encre); }
+  .f-val { font: 600 13px "Archivo", system-ui, sans-serif; fill: var(--rouge); text-anchor: middle; }
+  .f-axe { stroke: var(--filet-fort); stroke-width: 1; }
+  .f-gris, .f-barres-sain rect { fill: var(--encre-3); }
+  .f-rouge, .f-barres-martin rect { fill: var(--rouge); }
+  .f-prix { fill: none; stroke: var(--encre); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .f-prix-suite, .f-prix-cache { fill: none; stroke: var(--encre-3); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .f-niveaux line { stroke: var(--encre-3); stroke-width: 1; stroke-dasharray: 2 4; }
+  .f-entrees circle { fill: var(--fond); stroke: var(--rouge); stroke-width: 2; }
+  .f-moyen { stroke: var(--rouge); stroke-width: 1.5; stroke-dasharray: 7 4; }
+  .f-cloture { stroke: var(--encre); stroke-width: 1; }
+  .f-entree { stroke: var(--filet-fort); stroke-width: 1; stroke-dasharray: 2 4; }
+  .f-stop { stroke: var(--encre); stroke-width: 2.2; }
+  .f-stop-virtuel { stroke: var(--encre-2); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; }
+  .f-coupure { fill: var(--fond-2); stroke: var(--filet-fort); stroke-dasharray: 3 3; }
+  .f-impact circle { fill: var(--encre); }
+  .f-impact-rouge circle { fill: var(--rouge); }
+  .f-ecart, .f-fleche { fill: none; stroke: var(--rouge); stroke-width: 1.5; }
+  .f-solde, .f-solde-ech { fill: none; stroke: var(--encre); stroke-width: 2.2; stroke-linejoin: round; }
+  .f-equite, .f-equite-ech { fill: none; stroke: var(--rouge); stroke-width: 1.4; stroke-linejoin: round; }
+  .f-creux { fill: var(--rouge); opacity: .13; }
+  .f-depart { stroke: var(--encre-3); stroke-width: 1; stroke-dasharray: 3 4; }
+  .f-objectif { stroke: var(--encre); stroke-width: 1; }
+  .f-limite { stroke: var(--rouge); stroke-width: 1; }
+  .f-faisceau path { fill: none; stroke: var(--encre-3); stroke-width: 1; opacity: .3; }
+  .f-faisceau path.perte { stroke: var(--rouge); opacity: .55; }
+  .f-vendeur { fill: none; stroke: var(--encre); stroke-width: 2.4; stroke-linejoin: round; }
+  .f-essais path { fill: none; stroke: var(--encre-3); stroke-width: 1.3; stroke-linejoin: round; }
+  .f-essais path.reussi { stroke: var(--encre); }
+  .f-essais path.elimine { stroke: var(--rouge); opacity: .75; }
+  .f-essais circle { fill: var(--encre); }
+  .f-essais .croix { stroke: var(--rouge); stroke-width: 2; stroke-linecap: round; }
+
+  /* Animations : rejouées à chaque arrivée d'une diapositive */
+  .f-trace { stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .cl-diapo.actif .f-trace { animation: f-tracer 1.7s cubic-bezier(.6, .05, .2, 1) both; }
+  .cl-diapo.actif .f-prix-suite.f-trace, .cl-diapo.actif .f-prix-cache.f-trace { animation-delay: .9s; }
+  .cl-diapo.actif .f-equite.f-trace { animation-delay: .5s; animation-duration: 2s; }
+  .cl-diapo.actif .f-vendeur.f-trace { animation-delay: .8s; }
+  .cl-diapo.actif .f-barres-martin rect, .cl-diapo.actif .f-entrees circle { transform-box: fill-box; }
+  .cl-diapo.actif .f-barres-martin rect { transform-origin: 50% 100%; animation: f-pousser .65s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.25s + var(--i) * .15s); }
+  .cl-diapo.actif .f-entrees circle { transform-origin: center; animation: f-poser .45s cubic-bezier(.2, 1.6, .4, 1) both; animation-delay: calc(.35s + var(--i) * .24s); }
+  .cl-diapo.actif .f-niveaux line { animation: f-fondu .5s ease both; animation-delay: calc(.45s + var(--i) * .24s); }
+  .cl-diapo.actif :is(.f-valeurs, .f-moyen, .f-cloture, .f-creux, .f-ecart, .f-fleche, .f-impact, .f-lbl-rouge, .f-vendeur-lbl) { animation: f-fondu .5s ease 1.5s both; }
+  .cl-diapo.actif .f-faisceau { animation: f-fondu .9s ease both; }
+  .cl-diapo.actif .f-essais g { animation: f-fondu .4s ease both; animation-delay: calc(.2s + var(--i) * .08s); }
+  @keyframes f-tracer { from { stroke-dashoffset: 1; } }
+  @keyframes f-pousser { from { transform: scaleY(0); } }
+  @keyframes f-poser { from { transform: scale(0); } }
+  @keyframes f-fondu { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .cl-diapo.actif * { animation: none !important; } }
+
+  @media (max-width: 56rem) {
+    .cl { grid-template-areas: "fen fen" "bas fleche" "note note"; column-gap: 1rem; }
+    .cl-diapo { grid-template-columns: minmax(0, 1fr); gap: 1.8rem; padding: 2rem 0 1.6rem; }
+    .cl-bas { border-top: 0; padding-top: 0; }
+    .cl-suivant { margin-top: 0; }
+    .f-lbl { font-size: 15.5px; } .f-titre { font-size: 16.5px; } .f-val { font-size: 15px; }
+    .f-mobile-non { display: none; }
+  }
+
   /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
   :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
     font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
@@ -458,16 +553,167 @@
   <section class="bloc" id="verifs" aria-labelledby="verifs-titre">
     <div class="contenu">
       <div class="bloc-tete">
-        <h2 id="verifs-titre" data-t="verifs_titre">Ce que l'audit vérifie</h2>
-        <p class="bloc-sous" data-t="verifs_sous">Chaque constat s'appuie sur les trades eux-mêmes. Exemples tirés de robots publics de la bibliothèque MQL5.</p>
+        <h2 id="verifs-titre" data-t="verifs_titre">Ce qui se passe derrière</h2>
+        <p class="bloc-sous" data-t="verifs_sous">Six vérifications, en mots simples. Le calcul est juste en dessous, pour ceux qui veulent creuser.</p>
       </div>
-      <div class="mini">
-        <div class="mc"><b class="mc-n" data-compte data-t="v1_n">43,8×</b><h3 data-t="v1_t">Martingale</h3><p data-t="v1_ex">VR Overturn : sa mise grimpe jusqu'à 43,8 fois celle de départ, après 41 pertes sur 41.</p></div>
-        <div class="mc"><b class="mc-n" data-compte data-t="v2_n">7</b><h3 data-t="v2_t">Grille</h3><p data-t="v2_ex">GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros.</p></div>
-        <div class="mc"><b class="mc-n" data-compte data-t="v3_n">97 %</b><h3 data-t="v3_t">Stop-loss</h3><p data-t="v3_ex">MultiMartin : aucun stop chez le courtier. 97 % des pertes sont coupées par le robot lui-même.</p></div>
-        <div class="mc"><b class="mc-n" data-compte data-t="v4_n">94 → 17 %</b><h3 data-t="v4_t">Solidité des gains</h3><p data-t="v4_ex">Moving Average : 94 % de chances d'un vrai avantage… 17 % une fois la sur-optimisation comptée.</p></div>
-        <div class="mc"><b class="mc-n" data-compte data-t="v5_n">−31 %</b><h3 data-t="v5_t">Challenges de prop firms</h3><p data-t="v5_ex">GridPro Panel : 31 % perdus en une seule journée. FTMO en tolère 5 %.</p></div>
-        <div class="mc"><b class="mc-n" data-compte data-t="v6_n">212</b><h3 data-t="v6_t">Signaux MQL5</h3><p data-t="v6_ex">Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres.</p></div>
+      <!-- Coulisses : 6 vérifications, une par diapositive (texte simple + calcul, figure du principe).
+           Défilement : flèche, clavier, glissé au doigt, et automatique toutes les 10 s quand la section est visible. -->
+      <div class="cl" id="coulisses" role="region" aria-roledescription="carrousel" aria-labelledby="verifs-titre">
+        <div class="cl-fenetre">
+          <div class="cl-piste" aria-live="off">
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="1">
+              <div class="cl-texte">
+                <h3 data-t="c1_t">Ce que fait le robot juste après une perte</h3>
+                <p class="cl-phrase" data-t="c1_p">Un robot sain garde la même mise. Une martingale la double pour se refaire : ça tient des mois, jusqu'à la série de pertes qui vide le compte.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">Le calcul : </span><span data-t="c1_c">après chaque perte, on compare la taille de la position suivante à la précédente. Alerte si la mise augmente dans une grande part des cas, ou plusieurs fois d'affilée. Un seul cran de 0,01 lot est ignoré : c'est un arrondi, pas une stratégie.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f1t"><title id="f1t" data-t="f1_alt">Mise après chaque perte : elle reste au même niveau pour un robot sain, elle double jusqu'à 64 fois pour une martingale.</title>
+                  <line class="f-axe" x1="36" y1="272" x2="504" y2="272"/>
+                  <g class="f-legende"><rect x="36" y="18" width="11" height="11" class="f-gris"/><text x="54" y="28" class="f-lbl" data-t="f1_sain">Robot sain : même mise</text>
+                    <rect x="232" y="18" width="11" height="11" class="f-rouge"/><text x="250" y="28" class="f-lbl" data-t="f1_martin">Martingale : la mise double</text></g>
+                  <g class="f-barres-sain">
+                    <rect x="52" y="266" width="22" height="6"/><rect x="118" y="266" width="22" height="6"/><rect x="184" y="266" width="22" height="6"/><rect x="250" y="266" width="22" height="6"/>
+                    <rect x="316" y="266" width="22" height="6"/><rect x="382" y="266" width="22" height="6"/><rect x="448" y="266" width="22" height="6"/></g>
+                  <g class="f-barres-martin">
+                    <rect style="--i:0" x="76" y="266.6" width="22" height="5.4"/><rect style="--i:1" x="142" y="261.2" width="22" height="10.8"/><rect style="--i:2" x="208" y="250.4" width="22" height="21.6"/>
+                    <rect style="--i:3" x="274" y="228.8" width="22" height="43.2"/><rect style="--i:4" x="340" y="185.6" width="22" height="86.4"/><rect style="--i:5" x="406" y="99.2" width="22" height="172.8"/>
+                    <rect style="--i:6" x="472" y="56" width="22" height="216"/></g>
+                  <g class="f-valeurs"><text x="285" y="220" class="f-val">×8</text><text x="351" y="177" class="f-val">×16</text><text x="417" y="91" class="f-val">×32</text><text x="483" y="48" class="f-val f-fort">×64</text></g>
+                  <text x="36" y="296" class="f-lbl" data-t="f1_debut">1re perte</text><text x="504" y="296" class="f-lbl" text-anchor="end" data-t="f1_fin">7e perte d'affilée</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="2">
+              <div class="cl-texte">
+                <h3 data-t="c2_t">Les positions qui s'empilent quand le prix part du mauvais côté</h3>
+                <p class="cl-phrase" data-t="c2_p">Au lieu d'accepter une perte, une grille rachète plus bas, encore et encore, avec des lots de plus en plus gros. Tant que le prix revient, tout va bien. Le jour où il ne revient pas, tout part en même temps.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">Le calcul : </span><span data-t="c2_c">on rejoue l'ouverture et la fermeture de chaque position à la seconde près. Plusieurs positions dans le même sens, à des prix de plus en plus défavorables, avec des lots qui grossissent d'au moins 25 % : c'est une grille. Quelques renforts isolés sur des centaines de trades ne comptent pas.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f2t"><title id="f2t" data-t="f2_alt">Le prix baisse, le robot ouvre cinq positions de plus en plus grosses, puis ferme tout le panier quand le prix remonte jusqu'au prix moyen.</title>
+                  <g class="f-niveaux">
+                    <line style="--i:0" x1="52" y1="80" x2="410" y2="80"/><line style="--i:1" x1="111" y1="115" x2="410" y2="115"/><line style="--i:2" x1="160" y1="150" x2="410" y2="150"/>
+                    <line style="--i:3" x1="207" y1="185" x2="410" y2="185"/><line style="--i:4" x1="276" y1="220" x2="410" y2="220"/></g>
+                  <line class="f-moyen" x1="276" y1="165" x2="410" y2="165"/>
+                  <text x="282" y="158" class="f-lbl f-lbl-rouge" data-t="f2_moyen">prix moyen du panier</text>
+                  <path class="f-prix f-trace" pathLength="1" d="M36 64 L52 80 L70 95 L85 85 L111 115 L130 108 L160 150 L175 138 L207 185 L220 170 L250 215 L265 205 L276 220 L290 238 L320 225 L360 190 L400 170 L410 165"/>
+                  <path class="f-prix-suite f-trace" pathLength="1" d="M410 165 L440 150 L480 138 L504 132"/>
+                  <g class="f-entrees">
+                    <circle style="--i:0" cx="52" cy="80" r="4.5"/><circle style="--i:1" cx="111" cy="115" r="5.6"/><circle style="--i:2" cx="160" cy="150" r="7"/>
+                    <circle style="--i:3" cx="207" cy="185" r="8.8"/><circle style="--i:4" cx="276" cy="220" r="11"/></g>
+                  <line class="f-cloture" x1="410" y1="40" x2="410" y2="272"/>
+                  <text x="418" y="40" class="f-lbl" data-t="f2_cloture1">panier fermé</text><text x="418" y="56" class="f-lbl" data-t="f2_cloture2">d'un coup</text>
+                  <text x="36" y="296" class="f-lbl" data-t="f2_legende">Chaque rond est une nouvelle position, plus grosse que la précédente.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="3">
+              <div class="cl-texte">
+                <h3 data-t="c3_t">Le stop-loss existe-t-il vraiment ?</h3>
+                <p class="cl-phrase" data-t="c3_p">Un vrai stop est posé chez le courtier : il protège même si votre ordinateur s'éteint. Beaucoup de robots le gardent dans leur mémoire. Une coupure, une ouverture agitée, et la perte file bien au-delà.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">Le calcul : </span><span data-t="c3_c">on vérifie si chaque position a un stop enregistré chez le courtier. Sinon, on cherche un plafond : des pertes qui s'arrêtent toujours à la même distance. Le stop existe alors, mais seulement dans le robot.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f3t"><title id="f3t" data-t="f3_alt">À gauche, le stop posé chez le courtier ferme la position à son niveau. À droite, le stop gardé par le robot ne joue pas pendant une coupure et la perte va bien plus loin.</title>
+                  <text x="24" y="28" class="f-titre" data-t="f3_courtier">Stop chez le courtier</text>
+                  <text x="276" y="28" class="f-titre" data-t="f3_virtuel">Stop « virtuel », dans le robot</text>
+                  <line class="f-entree" x1="24" y1="84" x2="244" y2="84"/><line class="f-entree" x1="276" y1="84" x2="496" y2="84"/>
+                  <line class="f-stop" x1="24" y1="170" x2="244" y2="170"/>
+                  <line class="f-stop f-stop-virtuel" x1="276" y1="170" x2="496" y2="170"/>
+                  <text x="244" y="162" class="f-lbl" text-anchor="end" data-t="f3_stop">stop</text>
+                  <text x="380" y="162" class="f-lbl" text-anchor="end" data-t="f3_stop_memoire">stop en mémoire</text>
+                  <rect class="f-coupure" x="386" y="48" width="58" height="224"/>
+                  <text x="415" y="62" class="f-lbl" text-anchor="middle" data-t="f3_coupure1">terminal</text><text x="415" y="76" class="f-lbl" text-anchor="middle" data-t="f3_coupure2">arrêté</text>
+                  <path class="f-prix f-trace" pathLength="1" d="M24 84 L52 96 L76 88 L104 122 L122 112 L150 170"/>
+                  <path class="f-prix-suite f-trace" pathLength="1" d="M150 170 L178 204 L200 196 L244 236"/>
+                  <path class="f-prix f-trace" pathLength="1" d="M276 84 L304 96 L328 88 L356 122 L374 112 L386 140"/>
+                  <path class="f-prix-cache f-trace" pathLength="1" d="M386 140 L410 176 L428 168 L444 238"/>
+                  <path class="f-prix-suite f-trace" pathLength="1" d="M444 238 L470 244 L496 236"/>
+                  <g class="f-impact"><circle cx="150" cy="170" r="5"/></g>
+                  <g class="f-impact f-impact-rouge"><circle cx="444" cy="238" r="5"/></g>
+                  <path class="f-ecart" d="M462 172 L462 236 M457 172 L467 172 M457 236 L467 236"/>
+                  <text x="496" y="266" class="f-lbl f-lbl-rouge" text-anchor="end" data-t="f3_ecart">perte en trop</text>
+                  <text x="24" y="296" class="f-lbl" data-t="f3_ferme">Fermé au niveau prévu.</text>
+                  <text x="276" y="296" class="f-lbl f-lbl-rouge" data-t="f3_file">Fermé bien plus bas, au retour.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="4">
+              <div class="cl-texte">
+                <h3 data-t="c4_t">Les pertes que le rapport du vendeur ne montre pas</h3>
+                <p class="cl-phrase" data-t="c4_p">Le rapport trace le solde, qui ne bouge qu'à la fermeture des positions. Entre deux, le compte peut plonger de 20 % sans que la courbe ne bronche.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">Le calcul : </span><span data-t="c4_c">le labo reprend les cours minute par minute et recalcule la valeur de chaque position encore ouverte. Écart moyen avec MetaTrader sur le pire recul : 0,05 point.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f4t"><title id="f4t" data-t="f4_alt">Le solde monte en marches régulières alors que l'équité, minute par minute, plonge profondément entre deux fermetures.</title>
+                  <g class="f-legende"><line x1="36" y1="24" x2="56" y2="24" class="f-solde-ech"/><text x="62" y="28" class="f-lbl" data-t="f4_solde">Solde : ce que montre le vendeur</text>
+                    <line x1="270" y1="24" x2="290" y2="24" class="f-equite-ech"/><text x="296" y="28" class="f-lbl" data-t="f4_equite">Équité : ce que le compte subit</text></g>
+                  <path class="f-creux" d="M236 150 L250 168 L264 160 L280 196 L296 186 L312 232 L322 222 L332 262 L340 240 L350 196 L360 170 L370 150 Z"/>
+                  <path class="f-equite f-trace" pathLength="1" d="M36 206 L52 200 L66 210 L84 196 L100 204 L120 186 L136 192 L152 180 L170 188 L190 174 L210 180 L236 150 L250 168 L264 160 L280 196 L296 186 L312 232 L322 222 L332 262 L340 240 L350 196 L360 170 L370 150 L392 142 L410 150 L430 136 L452 128 L476 120 L504 112"/>
+                  <path class="f-solde f-trace" pathLength="1" d="M36 206 L120 206 L120 186 L236 186 L236 150 L370 150 L370 150 L452 150 L452 128 L504 128 L504 112"/>
+                  <path class="f-fleche" d="M332 266 L332 292"/>
+                  <text x="340" y="290" class="f-lbl f-lbl-rouge" data-t="f4_creux">le creux caché</text>
+                  <text x="36" y="296" class="f-lbl" data-t="f4_note">Le solde ne bouge qu'à la fermeture.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="5">
+              <div class="cl-texte">
+                <h3 data-t="c5_t">Du talent, ou un coup de chance ?</h3>
+                <p class="cl-phrase" data-t="c5_p">Un vendeur peut essayer cent réglages et ne vous montrer que le meilleur. On crée mille passés possibles avec les vraies journées du robot, et on regarde si le gain tient toujours.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">Le calcul : </span><span data-t="c5_c">rééchantillonnage par blocs d'un mois, 1 000 tirages. Puis le Sharpe « dégonflé » de Bailey et López de Prado : le robot doit battre le meilleur de 100 essais faits au hasard, pas seulement zéro.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f5t" data-figure="faisceau"><title id="f5t" data-t="f5_alt">Un faisceau de courbes : les passés possibles du même robot. La courbe montrée par le vendeur est parmi les meilleures ; une partie des autres finit en perte.</title>
+                  <line class="f-depart" x1="36" y1="176" x2="504" y2="176"/>
+                  <g class="f-faisceau"></g>
+                  <path class="f-vendeur f-trace" pathLength="1" d=""/>
+                  <text class="f-lbl f-fort f-vendeur-lbl" x="504" y="40" text-anchor="end" data-t="f5_vendeur">la courbe du vendeur</text>
+                  <text x="36" y="296" class="f-lbl" data-t="f5_trait">Chaque trait : un passé possible. Pointillés : le capital de départ.</text>
+                  <text x="36" y="316" class="f-lbl f-lbl-rouge" data-t="f5_rouge">En rouge : ceux qui finissent en perte.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="6">
+              <div class="cl-texte">
+                <h3 data-t="c6_t">Passerait-il un challenge de prop firm ?</h3>
+                <p class="cl-phrase" data-t="c6_p">Un seul mauvais jour suffit à perdre un challenge. On le fait passer des milliers de fois avec les règles officielles de FTMO, FundedNext et The5ers, et on vous donne ses vraies chances.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">Le calcul : </span><span data-t="c6_c">1 000 challenges simulés pour chaque firme, plus un challenge relancé chaque jour de l'historique réel. Objectif, perte maximale par jour mesurée au pire moment de la journée, perte maximale totale : les règles lues sur les sites des firmes.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f6t" data-figure="challenges"><title id="f6t" data-t="f6_alt">Des essais de challenge : certains atteignent l'objectif, d'autres touchent la perte maximale ou perdent trop en une journée.</title>
+                  <line class="f-objectif" x1="36" y1="64" x2="504" y2="64"/>
+                  <line class="f-depart" x1="36" y1="164" x2="504" y2="164"/>
+                  <line class="f-limite" x1="36" y1="264" x2="504" y2="264"/>
+                  <text x="504" y="56" class="f-lbl" text-anchor="end" data-t="f6_objectif">objectif +10 %</text>
+                  <text x="504" y="156" class="f-lbl" text-anchor="end" data-t="f6_depart">départ</text>
+                  <text x="504" y="282" class="f-lbl f-lbl-rouge" text-anchor="end" data-t="f6_limite">perte max −10 %</text>
+                  <g class="f-essais"></g>
+                  <text x="36" y="306" class="f-lbl" data-t="f6_legende">Point noir : réussi. Croix rouge : éliminé (perte du jour ou perte totale).</text>
+                </svg>
+              </figure>
+            </article>
+
+          </div>
+        </div>
+        <button type="button" class="cl-suivant" aria-controls="coulisses" data-t-aria="c_suivant">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="cl-bas">
+          <div class="cl-temps" role="tablist" data-t-aria="c_choix">
+            <button type="button" role="tab" data-va="0"><i></i></button><button type="button" role="tab" data-va="1"><i></i></button><button type="button" role="tab" data-va="2"><i></i></button>
+            <button type="button" role="tab" data-va="3"><i></i></button><button type="button" role="tab" data-va="4"><i></i></button><button type="button" role="tab" data-va="5"><i></i></button>
+          </div>
+          <span class="cl-compte" aria-hidden="true"><b>1</b> / 6</span>
+        </div>
+        <p class="cl-note" data-t="c_note">Les figures illustrent le principe de chaque calcul. Les résultats d'un robot précis sont dans sa fiche.</p>
       </div>
     </div>
   </section>
@@ -633,7 +879,44 @@
       c2_v: "29 / 29", c2_l: "verdicts conformes sur 10 vrais robots de référence",
       c3_v: "0,05 pt", c3_l: "d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute",
       c4_v: "6", c4_l: "challenges de prop firms simulés avec leurs règles officielles",
-      verifs_titre: "Ce que l'audit vérifie", verifs_sous: "Chaque constat s'appuie sur les trades eux-mêmes. Exemples tirés de robots publics de la bibliothèque MQL5.",
+      verifs_titre: "Ce qui se passe derrière", verifs_sous: "Six vérifications, en mots simples. Le calcul est juste en dessous, pour ceux qui veulent creuser.",
+      c_calcul: "Le calcul : ", c_suivant: "Vérification suivante", c_choix: "Choisir une vérification",
+      c_note: "Les figures illustrent le principe de chaque calcul. Les résultats d'un robot précis sont dans sa fiche.",
+      c1_t: "Ce que fait le robot juste après une perte",
+      c1_p: "Un robot sain garde la même mise. Une martingale la double pour se refaire : ça tient des mois, jusqu'à la série de pertes qui vide le compte.",
+      c1_c: "après chaque perte, on compare la taille de la position suivante à la précédente. Alerte si la mise augmente dans une grande part des cas, ou plusieurs fois d'affilée. Un seul cran de 0,01 lot est ignoré : c'est un arrondi, pas une stratégie.",
+      f1_alt: "Mise après chaque perte : elle reste au même niveau pour un robot sain, elle double jusqu'à 64 fois pour une martingale.",
+      f1_sain: "Robot sain : même mise", f1_martin: "Martingale : la mise double", f1_debut: "1re perte", f1_fin: "7e perte d'affilée",
+      c2_t: "Les positions qui s'empilent quand le prix part du mauvais côté",
+      c2_p: "Au lieu d'accepter une perte, une grille rachète plus bas, encore et encore, avec des lots de plus en plus gros. Tant que le prix revient, tout va bien. Le jour où il ne revient pas, tout part en même temps.",
+      c2_c: "on rejoue l'ouverture et la fermeture de chaque position à la seconde près. Plusieurs positions dans le même sens, à des prix de plus en plus défavorables, avec des lots qui grossissent d'au moins 25\u00a0% : c'est une grille. Quelques renforts isolés sur des centaines de trades ne comptent pas.",
+      f2_alt: "Le prix baisse, le robot ouvre cinq positions de plus en plus grosses, puis ferme tout le panier quand le prix remonte jusqu'au prix moyen.",
+      f2_moyen: "prix moyen du panier", f2_cloture1: "panier fermé", f2_cloture2: "d'un coup",
+      f2_legende: "Chaque rond est une nouvelle position, plus grosse que la précédente.",
+      c3_t: "Le stop-loss existe-t-il vraiment ?",
+      c3_p: "Un vrai stop est posé chez le courtier : il protège même si votre ordinateur s'éteint. Beaucoup de robots le gardent dans leur mémoire. Une coupure, une ouverture agitée, et la perte file bien au-delà.",
+      c3_c: "on vérifie si chaque position a un stop enregistré chez le courtier. Sinon, on cherche un plafond : des pertes qui s'arrêtent toujours à la même distance. Le stop existe alors, mais seulement dans le robot.",
+      f3_alt: "À gauche, le stop posé chez le courtier ferme la position à son niveau. À droite, le stop gardé par le robot ne joue pas pendant une coupure et la perte va bien plus loin.",
+      f3_courtier: "Stop chez le courtier", f3_virtuel: "Stop « virtuel », dans le robot", f3_stop: "stop", f3_stop_memoire: "stop en mémoire",
+      f3_coupure1: "terminal", f3_coupure2: "arrêté", f3_ecart: "perte en trop",
+      f3_ferme: "Fermé au niveau prévu.", f3_file: "Fermé bien plus bas, au retour.",
+      c4_t: "Les pertes que le rapport du vendeur ne montre pas",
+      c4_p: "Le rapport trace le solde, qui ne bouge qu'à la fermeture des positions. Entre deux, le compte peut plonger de 20\u00a0% sans que la courbe ne bronche.",
+      c4_c: "le labo reprend les cours minute par minute et recalcule la valeur de chaque position encore ouverte. Écart moyen avec MetaTrader sur le pire recul : 0,05 point.",
+      f4_alt: "Le solde monte en marches régulières alors que l'équité, minute par minute, plonge profondément entre deux fermetures.",
+      f4_solde: "Solde : ce que montre le vendeur", f4_equite: "Équité : ce que le compte subit",
+      f4_creux: "le creux caché", f4_note: "Le solde ne bouge qu'à la fermeture.",
+      c5_t: "Du talent, ou un coup de chance ?",
+      c5_p: "Un vendeur peut essayer cent réglages et ne vous montrer que le meilleur. On crée mille passés possibles avec les vraies journées du robot, et on regarde si le gain tient toujours.",
+      c5_c: "rééchantillonnage par blocs d'un mois, 1 000 tirages. Puis le Sharpe « dégonflé » de Bailey et López de Prado : le robot doit battre le meilleur de 100 essais faits au hasard, pas seulement zéro.",
+      f5_alt: "Un faisceau de courbes : les passés possibles du même robot. La courbe montrée par le vendeur est parmi les meilleures ; une partie des autres finit en perte.",
+      f5_depart: "capital de départ", f5_vendeur: "la courbe du vendeur", f5_trait: "Chaque trait : un passé possible. Pointillés : le capital de départ.", f5_rouge: "En rouge : ceux qui finissent en perte.",
+      c6_t: "Passerait-il un challenge de prop firm ?",
+      c6_p: "Un seul mauvais jour suffit à perdre un challenge. On le fait passer des milliers de fois avec les règles officielles de FTMO, FundedNext et The5ers, et on vous donne ses vraies chances.",
+      c6_c: "1 000 challenges simulés pour chaque firme, plus un challenge relancé chaque jour de l'historique réel. Objectif, perte maximale par jour mesurée au pire moment de la journée, perte maximale totale : les règles lues sur les sites des firmes.",
+      f6_alt: "Des essais de challenge : certains atteignent l'objectif, d'autres touchent la perte maximale ou perdent trop en une journée.",
+      f6_objectif: "objectif +10\u00a0%", f6_depart: "départ", f6_limite: "perte max −10\u00a0%",
+      f6_legende: "Point noir : réussi. Croix rouge : éliminé (perte du jour ou perte totale).",
       v1_n: "43,8×", v2_n: "7", v3_n: "97 %", v4_n: "94 → 17 %", v5_n: "−31 %", v6_n: "212", v1_t: "Martingale", v1_p: "Le robot augmente-t-il sa mise pour se refaire après une perte ?",
       v2_t: "Grille", v2_p: "Empile-t-il des positions quand le prix va contre lui ?",
       v3_t: "Stop-loss", v3_p: "Vrai stop chez le courtier, stop « virtuel »… ou rien du tout ?",
@@ -813,7 +1096,44 @@
       c2_v: "29 / 29", c2_l: "verdicts confirmed on 10 real reference robots",
       c3_v: "0.05 pt", c3_l: "average gap with MetaTrader on drawdown, recomputed minute by minute",
       c4_v: "6", c4_l: "prop-firm challenges simulated with their official rules",
-      verifs_titre: "What the audit checks", verifs_sous: "Every finding comes from the trades themselves. Examples from public robots in the MQL5 library.",
+      verifs_titre: "What happens behind the scenes", verifs_sous: "Six checks, in plain words. The maths is right below for anyone who wants to dig in.",
+      c_calcul: "The maths: ", c_suivant: "Next check", c_choix: "Choose a check",
+      c_note: "The figures illustrate the principle of each calculation. A given robot's results are in its report.",
+      c1_t: "What the robot does right after a loss",
+      c1_p: "A sound robot keeps the same size. A martingale doubles it to win the loss back: it holds for months, until the losing streak that wipes the account.",
+      c1_c: "after every loss, we compare the size of the next position with the previous one. Alert if the size goes up in a large share of cases, or several times in a row. A single 0.01-lot step is ignored: it is rounding, not a strategy.",
+      f1_alt: "Size after each loss: flat for a sound robot, doubling up to 64 times for a martingale.",
+      f1_sain: "Sound robot: same size", f1_martin: "Martingale: size doubles", f1_debut: "1st loss", f1_fin: "7th loss in a row",
+      c2_t: "Positions that pile up when price goes the wrong way",
+      c2_p: "Instead of taking a loss, a grid buys again lower, again and again, with ever larger lots. As long as price comes back, all is well. The day it doesn't, everything goes at once.",
+      c2_c: "we replay every position's opening and closing to the second. Several positions in the same direction, at ever worse prices, with lots growing by at least 25%: that is a grid. A few isolated additions across hundreds of trades don't count.",
+      f2_alt: "Price falls, the robot opens five ever larger positions, then closes the whole basket when price climbs back to the average price.",
+      f2_moyen: "basket average price", f2_cloture1: "basket closed", f2_cloture2: "all at once",
+      f2_legende: "Each dot is a new position, larger than the one before.",
+      c3_t: "Does the stop-loss really exist?",
+      c3_p: "A real stop sits at the broker: it protects you even if your computer shuts down. Many robots keep it in their own memory. One outage, one wild open, and the loss runs far past it.",
+      c3_c: "we check whether every position has a stop recorded at the broker. If not, we look for a ceiling: losses that always stop at the same distance. The stop then exists, but only inside the robot.",
+      f3_alt: "Left, the stop held by the broker closes the position at its level. Right, the stop kept by the robot does nothing during an outage and the loss goes much further.",
+      f3_courtier: "Stop at the broker", f3_virtuel: "“Virtual” stop, inside the robot", f3_stop: "stop", f3_stop_memoire: "stop in memory",
+      f3_coupure1: "terminal", f3_coupure2: "stopped", f3_ecart: "extra loss",
+      f3_ferme: "Closed where planned.", f3_file: "Closed much lower, on restart.",
+      c4_t: "The losses the seller's report doesn't show",
+      c4_p: "The report plots the balance, which only moves when positions close. In between, the account can sink 20% while the curve stays calm.",
+      c4_c: "the lab takes prices minute by minute and revalues every open position. Average gap with MetaTrader on the worst drawdown: 0.05 points.",
+      f4_alt: "The balance climbs in regular steps while equity, minute by minute, sinks deeply between two closes.",
+      f4_solde: "Balance: what the seller shows", f4_equite: "Equity: what the account goes through",
+      f4_creux: "the hidden dip", f4_note: "The balance only moves on closing.",
+      c5_t: "Skill, or a lucky streak?",
+      c5_p: "A seller can try a hundred settings and only show you the best one. We build a thousand possible pasts from the robot's real days, and check whether the gain still holds.",
+      c5_c: "block resampling by month, 1,000 draws. Then Bailey and López de Prado's “deflated” Sharpe: the robot must beat the best of 100 random tries, not just zero.",
+      f5_alt: "A bundle of curves: possible pasts of the same robot. The curve the seller shows is among the best; part of the others end in a loss.",
+      f5_depart: "starting capital", f5_vendeur: "the seller's curve", f5_trait: "Each line: one possible past. Dotted: starting capital.", f5_rouge: "In red: those ending in a loss.",
+      c6_t: "Would it pass a prop firm challenge?",
+      c6_p: "One bad day is enough to fail a challenge. We run it thousands of times under the official rules of FTMO, FundedNext and The5ers, and give you its real odds.",
+      c6_c: "1,000 simulated challenges for each firm, plus a challenge restarted on every day of the real history. Target, maximum daily loss measured at the worst moment of the day, maximum overall loss: rules read on the firms' own websites.",
+      f6_alt: "Challenge attempts: some reach the target, others hit the maximum loss or lose too much in one day.",
+      f6_objectif: "target +10%", f6_depart: "start", f6_limite: "max loss −10%",
+      f6_legende: "Black dot: passed. Red cross: failed (daily loss or overall loss).",
       v1_n: "43.8×", v2_n: "7", v3_n: "97%", v4_n: "94 → 17%", v5_n: "−31%", v6_n: "212", v1_t: "Martingale", v1_p: "Does the robot raise its size after a loss to win it back?",
       v2_t: "Grid", v2_p: "Does it stack positions while price moves against it?",
       v3_t: "Stop-loss", v3_p: "A real broker stop, a “virtual” stop… or none at all?",
@@ -945,6 +1265,7 @@
       },
     },
   };
+  window.LaboTextes = T;
 
   let langue = "fr";
   try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
@@ -1286,6 +1607,124 @@
     document.querySelectorAll("[data-compte]").forEach((el) => vus.observe(el));
   }
   document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => { jetonCompte++; }, true));
+})();
+</script>
+<script>
+// ---- Coulisses : figures calculées (faisceau, challenges) et carrousel des 6 vérifications ----
+(function () {
+  "use strict";
+  const cl = document.getElementById("coulisses");
+  if (!cl) return;
+  const NS = "http://www.w3.org/2000/svg";
+  // Tirages pseudo-aléatoires reproductibles : la figure est la même à chaque visite.
+  const alea = (g) => () => { g |= 0; g = (g + 0x6d2b79f5) | 0; let t = Math.imul(g ^ (g >>> 15), 1 | g); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const normale = (r) => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+  const chemin = (pts) => "M" + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+  const el = (nom, attrs) => { const e = document.createElementNS(NS, nom); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+  // Figure 5 : 1 000 passés possibles (ici 90 tracés). La courbe du vendeur est la meilleure du lot.
+  const f5 = cl.querySelector('[data-figure="faisceau"]');
+  if (f5) {
+    const r = alea(20261125), N = 60, P = 64, series = [];
+    for (let s = 0; s < N; s++) {
+      let v = 0; const pts = [0];
+      for (let k = 1; k < P; k++) { v += 0.12 + normale(r); pts.push(v); }
+      series.push(pts);
+    }
+    const toutes = series.flat(), min = Math.min(...toutes), max = Math.max(...toutes);
+    const y = (v) => v >= 0 ? 176 - (v / max) * 132 : 176 + (v / min) * 94;   // départ à 176, haut à 44, bas à 270
+    const x = (k) => 36 + (k / (P - 1)) * 468;
+    const g = f5.querySelector(".f-faisceau");
+    let meilleure = 0;
+    series.forEach((pts, s) => {
+      if (pts[P - 1] > series[meilleure][P - 1]) meilleure = s;
+      const p = el("path", { d: chemin(pts.map((v, k) => [x(k), y(v)])) });
+      if (pts[P - 1] < 0) p.setAttribute("class", "perte");
+      g.appendChild(p);
+    });
+    const best = series[meilleure];
+    f5.querySelector(".f-vendeur").setAttribute("d", chemin(best.map((v, k) => [x(k), y(v)])));
+    f5.querySelector(".f-vendeur-lbl").setAttribute("y", Math.max(22, y(best[P - 1]) - 12).toFixed(0));
+  }
+
+  // Figure 6 : essais de challenge (+10 % à atteindre, −5 % par jour et −10 % au total à ne pas toucher).
+  const f6 = cl.querySelector('[data-figure="challenges"]');
+  if (f6) {
+    const r = alea(1185), J = 30, g = f6.querySelector(".f-essais");
+    const x = (k) => 36 + (k / J) * 434, y = (pc) => 164 - pc * 10;
+    for (let s = 0; s < 10; s++) {
+      let v = 0, issue = "", jourFatal = -1; const pts = [[x(0), y(0)]];
+      for (let k = 1; k <= J; k++) {
+        let d = 0.3 + normale(r) * 1.45;
+        if (r() < 0.012) d = -5.2 - r() * 1.5;               // la mauvaise journée qui élimine
+        v += d; pts.push([x(k), y(Math.max(-10, Math.min(10, v)))]);
+        if (d <= -5) { issue = "elimine"; jourFatal = k; break; }
+        if (v >= 10) { issue = "reussi"; break; }
+        if (v <= -10) { issue = "elimine"; break; }
+      }
+      const grp = el("g", { style: "--i:" + s });
+      grp.appendChild(el("path", { d: chemin(pts), class: issue || "" }));
+      const [fx, fy] = pts[pts.length - 1];
+      if (issue === "reussi") grp.appendChild(el("circle", { cx: fx, cy: fy, r: 3.6 }));
+      if (issue === "elimine") grp.appendChild(el("path", { class: "croix", d: `M${fx - 4} ${fy - 4} L${fx + 4} ${fy + 4} M${fx + 4} ${fy - 4} L${fx - 4} ${fy + 4}` }));
+      if (jourFatal > 0) { const [ax, ay] = pts[pts.length - 2]; grp.appendChild(el("path", { class: "croix", d: `M${ax} ${ay} L${fx} ${fy}`, style: "stroke-width:1.6;opacity:.9" })); }
+      g.appendChild(grp);
+    }
+  }
+
+  // ---- Carrousel ----
+  const piste = cl.querySelector(".cl-piste"), diapos = [...cl.querySelectorAll(".cl-diapo")];
+  const onglets = [...cl.querySelectorAll(".cl-temps button")], compte = cl.querySelector(".cl-compte b");
+  const suivant = cl.querySelector(".cl-suivant"), n = diapos.length;
+  const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (calme) cl.classList.add("statique");
+  let i = 0;
+  const relancer = (e, classe) => { e.classList.remove(classe); void e.getBoundingClientRect(); e.classList.add(classe); };
+  function aller(k) {
+    i = (k + n) % n;
+    piste.style.transform = `translateX(${-100 * i}%)`;
+    diapos.forEach((d, j) => { d.inert = j !== i; d.setAttribute("aria-hidden", String(j !== i)); if (j !== i) d.classList.remove("actif"); });
+    relancer(diapos[i], "actif");
+    onglets.forEach((o, j) => { o.classList.toggle("vu", j < i); o.setAttribute("aria-selected", String(j === i)); if (j !== i) o.classList.remove("actif"); });
+    relancer(onglets[i], "actif");
+    compte.textContent = String(i + 1);
+  }
+  // Défilement automatique : la fin du remplissage (10 s) de la barre active passe à la suivante.
+  // Survol, focus clavier ou section hors de l'écran : la barre se met en pause (CSS), donc le défilement aussi.
+  cl.querySelector(".cl-temps").addEventListener("animationend", (e) => { if (e.animationName === "cl-remplir") aller(i + 1); });
+  suivant.addEventListener("click", () => aller(i + 1));
+  onglets.forEach((o, j) => o.addEventListener("click", () => aller(j)));
+  cl.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { aller(i + 1); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { aller(i - 1); e.preventDefault(); }
+  });
+  // Glissé au doigt (ou à la souris) sur la diapositive
+  let x0 = null, y0 = null;
+  const fen = cl.querySelector(".cl-fenetre");
+  fen.addEventListener("pointerdown", (e) => { x0 = e.clientX; y0 = e.clientY; });
+  fen.addEventListener("pointerup", (e) => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) aller(i + (dx < 0 ? 1 : -1));
+  });
+  // Pause tant que la section n'est pas à l'écran : on ne rate pas le début en arrivant dessus.
+  if ("IntersectionObserver" in window) {
+    cl.classList.add("pause");
+    new IntersectionObserver((es) => es.forEach((e) => {
+      const visible = e.isIntersecting && e.intersectionRatio >= 0.35;
+      if (visible && cl.classList.contains("pause")) { cl.classList.remove("pause"); aller(i); } else if (!visible) cl.classList.add("pause");
+    }), { threshold: [0, 0.35, 0.6] }).observe(cl);
+  }
+  // Libellés pour lecteurs d'écran, dans la langue de la page
+  function libelles() {
+    const T = window.LaboTextes, L = T[document.documentElement.lang === "en" ? "en" : "fr"];
+    cl.querySelectorAll("[data-t-aria]").forEach((e) => e.setAttribute("aria-label", L[e.dataset.tAria]));
+    diapos.forEach((d, j) => d.setAttribute("aria-label", `${j + 1} / ${n}`));
+    onglets.forEach((o, j) => o.setAttribute("aria-label", `${j + 1} / ${n}`));
+  }
+  new MutationObserver(libelles).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+  libelles();
+  aller(0);
 })();
 </script>
 </body>
