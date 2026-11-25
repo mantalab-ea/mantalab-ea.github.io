@@ -6,7 +6,7 @@
 <title>MantaLab — paiement reçu</title>
 <!-- Page de retour après paiement. Dans le lien de paiement Stripe : Page de confirmation → Ne pas afficher → rediriger vers
      https://mantalab-ea.github.io/merci.html?session_id={CHECKOUT_SESSION_ID}
-     Le résumé (e-mail, carte, montant) est lu chez Stripe par le serveur de commandes (route /paiement). Pas dans le sitemap. -->
+     Le résumé (e-mail masqué, montant, robot ; rien sur la carte) est lu chez Stripe par le serveur de commandes (route /paiement). Pas dans le sitemap. -->
 <meta name="robots" content="noindex">
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
@@ -44,8 +44,6 @@
   .champ:last-child { border-bottom:0; }
   .champ span.l { display:block; font-size:.78rem; color:var(--encre-2); margin-bottom:.15rem; }
   .champ b { font-weight:500; font-size:.95rem; overflow-wrap:anywhere; }
-  .carte { display:inline-flex; align-items:center; gap:.5rem; }
-  .carte i { font-style:normal; font-size:.66rem; font-weight:700; letter-spacing:.04em; border:1px solid var(--filet-fort); border-radius:3px; padding:.05rem .3rem; text-transform:uppercase; }
   h2 { font-stretch:72%; font-weight:750; font-size:1.35rem; margin:0 0 .6rem; }
   ol { list-style:none; margin:0 0 1.8rem; padding:0; border-top:1px solid var(--filet); }
   li { display:grid; grid-template-columns:1.8rem 1fr; gap:.15rem .8rem; padding:1rem 0; border-bottom:1px solid var(--filet); }
@@ -101,7 +99,7 @@
     <div class="boite" id="boite" hidden>
       <div class="champ" id="c-email"><span class="l" data-t="l_email">Coordonnées</span><b id="v-email"></b></div>
       <div class="champ" id="c-robot" hidden><span class="l" data-t="l_robot">Robot à auditer</span><b id="v-robot"></b></div>
-      <div class="champ" id="c-carte"><span class="l" data-t="l_paiement">Moyen de paiement</span><b id="v-carte"></b></div>
+      <div class="champ" id="c-montant"><span class="l" data-t="l_montant">Montant payé</span><b id="v-montant"></b></div>
     </div>
 
     <h2 data-t="ensuite">Et maintenant</h2>
@@ -124,7 +122,7 @@
     produit: "MantaLab audit",
     desc: "PDF audit report of a MetaTrader 5 robot: the MantaLab lab tests it over 5 years of market data, real broker ticks included (martingale, grid, stop, worst case, prop firm challenges). Delivered by email within 48 business hours.",
     titre: "Thank you for your payment", releve: "A payment to MANTALAB will appear on your statement.",
-    l_email: "Contact details", l_robot: "Robot to audit", l_paiement: "Payment method",
+    l_email: "Contact details", l_robot: "Robot to audit", l_montant: "Amount paid",
     ensuite: "What happens next",
     e1_t: "Payment receipt", e1: "Stripe sends it right away, to the address you gave at checkout.",
     e2_t: "Robot test", e2: "The lab runs the demo version over 5 years of market data, using real broker ticks, with execution delays.",
@@ -159,14 +157,7 @@
         a.textContent = M.robot_n + d.robot.produit; a.target = "_blank"; a.rel = "noopener"; v.appendChild(a);
       } else v.textContent = M.robot_fichier;
     }
-    const vc = document.getElementById("v-carte");
-    if (d.carte) {
-      const c = document.createElement("span"); c.className = "carte";
-      const i = document.createElement("i"); i.textContent = d.carte.marque || "card";
-      c.append(i, document.createTextNode("•••• " + d.carte.fin + (montant ? " — " + montant : "")));
-      vc.appendChild(c);
-    } else if (montant) vc.textContent = montant;
-    else document.getElementById("c-carte").hidden = true;
+    if (montant) document.getElementById("v-montant").textContent = montant; else document.getElementById("c-montant").hidden = true;
     document.getElementById("boite").hidden = false;
   }
   // Le « merci » ne s'affiche qu'après un paiement vérifié chez Stripe. Sans paiement (adresse ouverte à la main,
