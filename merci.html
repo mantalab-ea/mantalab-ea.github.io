@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MantaLab — commande reçue</title>
+<!-- Page de retour après paiement : à indiquer dans le lien de paiement Stripe
+     (Après le paiement → Rediriger vers votre site → https://mantalab-ea.github.io/merci.html). Pas dans le sitemap. -->
+<meta name="robots" content="noindex">
+<link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
+<link rel="apple-touch-icon" href="marque/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<style>
+  :root { --fond:#fff; --fond-2:#f6f6f7; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
+    --rouge:#d62917; --rouge-fonce:#b51f12; --focus:#2b6cf6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; } }
+  :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
+  a { color:inherit; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
+  .contenu { width:100%; max-width:70rem; margin:0 auto; padding:0 1.5rem; }
+  header { border-bottom:1px solid var(--filet); }
+  header .contenu { display:flex; align-items:center; height:4rem; }
+  .logo { height:1.9rem; width:auto; display:block; } .logo-sombre { display:none; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display:none; } :root:not([data-theme="light"]) .logo-sombre { display:block; } }
+  main { flex:1; }
+  .bloc { max-width:38rem; padding:4.5rem 0 5rem; }
+  .coche { width:3.2rem; height:3.2rem; border-radius:50%; background:var(--rouge); color:#fff; display:grid; place-items:center; margin:0 0 1.6rem; }
+  h1 { font-weight:600; font-size:clamp(2rem,4.4vw,3rem); line-height:1.05; letter-spacing:-.045em; margin:0 0 1rem; text-wrap:pretty; }
+  .intro { color:var(--encre-2); font-size:1.12rem; margin:0 0 2.6rem; }
+  ol { list-style:none; margin:0 0 2.4rem; padding:0; border-top:1px solid var(--filet); }
+  li { display:grid; grid-template-columns:2rem 1fr; gap:.2rem .9rem; padding:1.1rem 0; border-bottom:1px solid var(--filet); }
+  li span { grid-row:span 2; font-weight:600; color:var(--rouge); }
+  li b { font-weight:600; }
+  li p { grid-column:2; margin:0; color:var(--encre-2); font-size:.95rem; }
+  .note { font-size:.92rem; color:var(--encre-2); margin:0 0 .6rem; }
+  .retour { display:inline-block; margin-top:1.8rem; font-weight:500; text-decoration:none; padding:.8rem 1.1rem; border-radius:10px; border:1px solid var(--filet-fort); }
+  .retour:hover { background:var(--fond-2); }
+  footer { border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
+</style>
+<script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+  <header><div class="contenu">
+    <a href="index.html"><img class="logo logo-clair" src="marque/mantalab-logo.svg" alt="MantaLab — accueil"><img class="logo logo-sombre" src="marque/mantalab-logo-fond-sombre.svg" alt="MantaLab — accueil"></a>
+  </div></header>
+  <main><div class="contenu"><div class="bloc">
+    <div class="coche" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1 data-t="titre">Paiement reçu. Le labo s'occupe de votre robot.</h1>
+    <p class="intro" data-t="intro">Vous n'avez plus rien à faire : la fiche arrive par e-mail.</p>
+    <ol>
+      <li><span>1</span><b data-t="e1_t">Reçu de paiement</b><p data-t="e1">Stripe vous l'envoie tout de suite, à l'adresse donnée au paiement.</p></li>
+      <li><span>2</span><b data-t="e2_t">Test du robot</b><p data-t="e2">Le labo fait tourner la version de démonstration sur 5 ans de marché, en ticks réels du courtier, avec des retards d'exécution.</p></li>
+      <li><span>3</span><b data-t="e3_t">Votre fiche en PDF</b><p data-t="e3">Elle arrive à la même adresse sous 48&nbsp;h ouvrées.</p></li>
+    </ol>
+    <p class="note" data-t="n1">Si le robot ne peut pas être testé (pas de version de démonstration, marché introuvable chez le courtier de test…), vous êtes prévenu et intégralement remboursé.</p>
+    <p class="note" data-t="n2">Rien reçu après 48&nbsp;h ? Regardez dans les indésirables, puis écrivez-nous :</p>
+    <p class="note"><a href="mailto:mantalab.audit@gmail.com">mantalab.audit@gmail.com</a></p>
+    <a class="retour" href="index.html" data-t="retour">Retour à l'accueil</a>
+  </div></div></main>
+  <footer><div class="contenu"><p data-t="pied">MantaLab — test indépendant de robots MetaTrader 5. Ce service ne constitue pas un conseil en investissement.</p></div></footer>
+<script>
+  // Même choix de langue que le reste du site.
+  const T = { en: {
+    titre: "Payment received. The lab is taking care of your robot.",
+    intro: "Nothing more to do on your side: the report will arrive by email.",
+    e1_t: "Payment receipt", e1: "Stripe sends it right away, to the address you gave at checkout.",
+    e2_t: "Robot test", e2: "The lab runs the demo version over 5 years of market data, using real broker ticks, with execution delays.",
+    e3_t: "Your PDF report", e3: "It arrives at the same address within 48 business hours.",
+    n1: "If the robot can't be tested (no demo version, market not available at the test broker…), you'll be told and fully refunded.",
+    n2: "Nothing after 48 hours? Check your spam folder, then write to us:",
+    retour: "Back to home",
+    pied: "MantaLab — independent MetaTrader 5 robot testing. This service is not investment advice." } };
+  let langue = "fr";
+  try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
+  if (T[langue]) {
+    document.documentElement.lang = langue;
+    document.title = "MantaLab — order received";
+    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = T[langue][el.dataset.t] || el.textContent; });
+  }
+</script>
+</body>
+</html>

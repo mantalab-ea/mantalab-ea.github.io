@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MantaLab — page introuvable</title>
+<meta name="robots" content="noindex">
+<!-- Servie par GitHub Pages pour toute adresse inconnue, à n'importe quelle profondeur : liens et images en chemins absolus. -->
+<link rel="icon" href="/marque/mantalab-icone.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="48x48" href="/marque/mantalab-icone-48.png">
+<link rel="apple-touch-icon" href="/marque/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<style>
+  :root { --fond:#fff; --fond-2:#f6f6f7; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
+    --rouge:#d62917; --rouge-fonce:#b51f12; --focus:#2b6cf6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; } }
+  :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
+  a { color:inherit; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
+  .contenu { width:100%; max-width:70rem; margin:0 auto; padding:0 1.5rem; }
+  header { border-bottom:1px solid var(--filet); }
+  header .contenu { display:flex; align-items:center; height:4rem; }
+  .logo { height:1.9rem; width:auto; display:block; } .logo-sombre { display:none; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display:none; } :root:not([data-theme="light"]) .logo-sombre { display:block; } }
+  main { flex:1; display:flex; align-items:center; }
+  .bloc { max-width:34rem; padding:4rem 0 5rem; }
+  .code { font-weight:600; font-size:clamp(4.5rem,14vw,8rem); line-height:.9; letter-spacing:-.06em; color:var(--rouge); margin:0 0 1.2rem; }
+  h1 { font-weight:600; font-size:clamp(1.7rem,3.6vw,2.4rem); line-height:1.1; letter-spacing:-.035em; margin:0 0 .8rem; }
+  p { color:var(--encre-2); margin:0 0 2rem; }
+  .liens { display:flex; flex-wrap:wrap; gap:.75rem; }
+  .bouton { display:inline-flex; align-items:center; font-weight:500; text-decoration:none; padding:.8rem 1.1rem; border-radius:10px; border:1px solid var(--filet-fort); }
+  .bouton.plein { background:var(--rouge); border-color:var(--rouge); color:#fff; }
+  .bouton.plein:hover { background:var(--rouge-fonce); }
+  .bouton:not(.plein):hover { background:var(--fond-2); }
+</style>
+<script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+  <header><div class="contenu">
+    <a href="/"><img class="logo logo-clair" src="/marque/mantalab-logo.svg" alt="MantaLab — accueil"><img class="logo logo-sombre" src="/marque/mantalab-logo-fond-sombre.svg" alt="MantaLab — accueil"></a>
+  </div></header>
+  <main><div class="contenu"><div class="bloc">
+    <p class="code" aria-hidden="true">404</p>
+    <h1 data-t="titre">Cette page n'existe pas.</h1>
+    <p data-t="texte">Le lien est peut-être ancien ou mal recopié. Tout le reste du site est là :</p>
+    <div class="liens">
+      <a class="bouton plein" href="/" data-t="l1">Analyser un rapport gratuitement</a>
+      <a class="bouton" href="/commande.html" data-t="l2">Faire auditer un robot</a>
+      <a class="bouton" href="/methode.html" data-t="l3">La méthode</a>
+    </div>
+  </div></div></main>
+<script>
+  // Même choix de langue que le reste du site (mémorisé par la page d'accueil).
+  const T = { en: { titre: "This page doesn't exist.", texte: "The link may be old or mistyped. The rest of the site is here:",
+    l1: "Analyse a report for free", l2: "Get a robot audited", l3: "Our method" } };
+  let langue = "fr";
+  try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
+  if (T[langue]) {
+    document.documentElement.lang = langue;
+    document.title = "MantaLab — page not found";
+    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = T[langue][el.dataset.t] || el.textContent; });
+  }
+</script>
+</body>
+</html>

@@ -6,6 +6,8 @@
 <title>MantaLab — faire auditer un robot</title>
 <meta name="description" content="Le labo MantaLab fait tourner votre robot MetaTrader 5 lui-même et vous remet une fiche d'audit indépendante sous 48 h : martingale, grille, stops, pire scénario, prop firms. 19 €.">
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
+<link rel="apple-touch-icon" href="marque/apple-touch-icon.png">
 <link rel="canonical" href="https://mantalab-ea.github.io/commande.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MantaLab">
@@ -322,6 +324,7 @@
       ok_fichier: "{nom} : fichier accepté.",
       envoi: "Envoi du fichier…",
       err_envoi: "L'envoi du fichier a échoué. Réessayez dans un instant.",
+      err_quota: "Trop d'envois aujourd'hui depuis cette connexion. Réessayez demain, ou écrivez à mantalab.audit@gmail.com.",
       voir_exemple: "Voir une fiche complète ↗",
       alt_apercu: "Exemple de fiche MantaLab : verdict risque élevé, courbe du solde et de l'équité minute par minute",
       inclus_titre: "Ce que contient la fiche.",
@@ -390,6 +393,7 @@
       ok_fichier: "{nom}: file accepted.",
       envoi: "Uploading the file…",
       err_envoi: "The upload failed. Please try again in a moment.",
+      err_quota: "Too many uploads today from this connection. Try again tomorrow, or write to mantalab.audit@gmail.com.",
       voir_exemple: "See a full report ↗",
       alt_apercu: "Sample MantaLab report: high-risk verdict, balance and minute-by-minute equity curve",
       inclus_titre: "What the report contains.",
@@ -543,7 +547,7 @@
       const marche = document.getElementById("marche-fichier").value;
       location.href = LIEN_PAIEMENT + "?client_reference_id=fichier-" + d.id + (marche ? "-" + marche : "");
     } catch (x) {
-      envoiEnCours = false; majCommande(); err.textContent = T[langue].err_envoi;
+      envoiEnCours = false; majCommande(); err.textContent = T[langue][x.message === "quota" ? "err_quota" : "err_envoi"];
     }
   }
 
