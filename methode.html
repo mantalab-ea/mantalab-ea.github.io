@@ -17,16 +17,16 @@
 <meta property="og:image" content="https://mantalab-ea.github.io/marque/mantalab-logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
 <style>
-  /* Mêmes repères que l'accueil : noir et blanc, Inter, filets fins ; le rouge pour la marque et le danger. */
+  /* Mêmes repères que l'accueil : noir et blanc, Archivo (titres étroits), filets fins ; le rouge pour la marque et le danger. */
   :root { --fond:#fff; --fond-2:#f7f7f8; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
     --rouge:#d62917; --rouge-fonce:#b51f12; --ok:#137a3e; --attention:#a8620a; --alerte:#c4231a; --focus:#2b6cf6; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; } }
   :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; }
   * { box-sizing:border-box; }
   html { scroll-padding-top:4.5rem; }
-  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.6 "Inter",system-ui,sans-serif; font-optical-sizing:auto; font-feature-settings:"cv11","ss01"; -webkit-font-smoothing:antialiased; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.6 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
   a { color:inherit; }
   :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
   .contenu { max-width:70rem; margin:0 auto; padding:0 1.5rem; }
@@ -37,9 +37,9 @@
   :root[data-theme="dark"] .logo-clair { display:none; } :root[data-theme="dark"] .logo-sombre { display:block; }
   .droite { margin-left:auto; display:flex; align-items:center; gap:1rem; }
   .langue { display:flex; gap:.15rem; }
-  .langue button { font:500 .8rem/1 "Inter",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
+  .langue button { font:500 .8rem/1 "Archivo",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
   .langue button[aria-pressed="true"] { color:var(--encre); }
-  .bouton { display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; text-decoration:none; font:500 .85rem/1 "Inter",sans-serif;
+  .bouton { display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; text-decoration:none; font:500 .85rem/1 "Archivo",sans-serif;
     padding:.55rem .85rem; border-radius:8px; background:var(--rouge); color:#fff; transition:background-color .15s; }
   .bouton:hover { background:var(--rouge-fonce); }
 
@@ -77,6 +77,11 @@
   @media (max-width: 58rem) { .page { grid-template-columns:1fr; gap:0; } nav.sommaire { display:none; } }
   @media (max-width: 40rem) { .chiffres { grid-template-columns:1fr; } .chiffres div + div { border-left:0; border-top:1px solid var(--filet); } h1 { margin-top:3rem; }
     .table-defile { overflow-x:auto; } }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
 </style>
 <!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

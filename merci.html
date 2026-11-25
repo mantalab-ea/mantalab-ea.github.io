@@ -12,14 +12,14 @@
 <link rel="apple-touch-icon" href="marque/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
 <style>
   :root { --fond:#fff; --fond-2:#f6f6f7; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
     --rouge:#d62917; --rouge-fonce:#b51f12; --focus:#2b6cf6; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; } }
   :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
   a { color:inherit; }
   :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
   .contenu { width:100%; max-width:70rem; margin:0 auto; padding:0 1.5rem; }
@@ -41,6 +41,11 @@
   .retour { display:inline-block; margin-top:1.8rem; font-weight:500; text-decoration:none; padding:.8rem 1.1rem; border-radius:10px; border:1px solid var(--filet-fort); }
   .retour:hover { background:var(--fond-2); }
   footer { border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
 </style>
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>

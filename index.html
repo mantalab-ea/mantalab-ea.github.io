@@ -18,9 +18,9 @@
 <meta name="description" content="Déposez le rapport du testeur MetaTrader 5 d'un robot : martingale, grille, stop-loss et règles de prop firm vérifiés en quelques secondes, sans que le fichier quitte votre ordinateur.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
 <style>
-  /* Direction : un labo, pas une startup. Noir et blanc, une seule famille (Inter, coupe « display » aux grandes
+  /* Direction : un labo, pas une startup. Noir et blanc, une seule famille (Archivo ; titres et grands chiffres en étroit, aux grandes
      tailles), alignement à gauche, filets fins. Le rouge n'apparaît QUE pour le danger : la perte cachée, le tampon. */
   :root {
     --fond: #ffffff; --fond-2: #f7f7f8; --encre: #0c0d10; --encre-2: #5d6068; --encre-3: #8a8d95;
@@ -44,8 +44,7 @@
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; scroll-padding-top: 4.5rem; }
-  body { margin: 0; background: var(--fond); color: var(--encre); font: 400 1rem/1.55 "Inter", system-ui, sans-serif;
-    font-optical-sizing: auto; font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiased; }
+  body { margin: 0; background: var(--fond); color: var(--encre); font: 400 1rem/1.55 "Archivo", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
   .contenu { max-width: 70rem; margin: 0 auto; padding: 0 1.5rem; }
@@ -65,10 +64,10 @@
   nav.liens a { text-decoration: none; transition: color .15s; } nav.liens a:hover { color: var(--encre); }
   .barre .droite { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
   .langue { display: flex; gap: .15rem; font-size: .8rem; }
-  .langue button { font: 500 .8rem/1 "Inter", sans-serif; background: none; border: 0; color: var(--encre-3); padding: .35rem .3rem; cursor: pointer; }
+  .langue button { font: 500 .8rem/1 "Archivo", sans-serif; background: none; border: 0; color: var(--encre-3); padding: .35rem .3rem; cursor: pointer; }
   .langue button[aria-pressed="true"] { color: var(--encre); }
   .bouton { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; white-space: nowrap; text-decoration: none; cursor: pointer;
-    font: 500 .9375rem/1 "Inter", sans-serif; letter-spacing: -.005em; padding: .78rem 1.15rem; border-radius: 9px;
+    font: 500 .9375rem/1 "Archivo", sans-serif; letter-spacing: -.005em; padding: .78rem 1.15rem; border-radius: 9px;
     background: var(--rouge); color: #fff; border: 1px solid var(--rouge); transition: background-color .15s, opacity .15s; }
   .bouton:hover { background: var(--rouge-fonce); border-color: var(--rouge-fonce); }
   .bouton.second { background: transparent; color: var(--encre); border-color: var(--filet-fort); }
@@ -106,7 +105,7 @@
   .graphe .solde { fill: none; stroke: var(--encre); stroke-width: 1.6; }
   .graphe .equite { fill: none; stroke: var(--danger); stroke-width: 1.1; }
   .graphe .zone-cachee { fill: var(--danger-doux); }
-  .graphe text { font: 500 10.5px "Inter", sans-serif; fill: var(--encre-2); }
+  .graphe text { font: 500 10.5px "Archivo", sans-serif; fill: var(--encre-2); }
   .graphe .t-rouge { fill: var(--danger); }
   .graphe .repere { stroke: var(--danger); stroke-width: 1; }
   .graphe .trace { stroke-dasharray: 1; stroke-dashoffset: 1; animation: tracer 1.6s cubic-bezier(.6,.05,.2,1) .2s forwards; }
@@ -119,7 +118,7 @@
   .legende { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; padding: .8rem 1.1rem 0; font-size: .78rem; color: var(--encre-2); }
   .legende span::before { content: ""; display: inline-block; width: 1.1rem; height: 0; border-top: 2px solid var(--encre); vertical-align: middle; margin-right: .45rem; }
   .legende .l-equite::before { border-top: 1.5px solid var(--danger); }
-  .preuve .tampon-mini { position: absolute; top: 1.3rem; left: 1.2rem; font: 700 .68rem/1 "Inter", sans-serif; letter-spacing: .06em; text-transform: uppercase;
+  .preuve .tampon-mini { position: absolute; top: 1.3rem; left: 1.2rem; font: 700 .68rem/1 "Archivo", sans-serif; letter-spacing: .06em; text-transform: uppercase;
     color: var(--danger); border: 1.5px solid var(--danger); border-radius: 5px; padding: .3rem .45rem; transform: rotate(-4deg); background: var(--fond); }
 
 
@@ -136,7 +135,7 @@
   .depot .icone { width: 2.6rem; height: 2.6rem; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.16); margin-bottom: .5rem; }
   .depot strong { font-weight: 600; font-size: 1.15rem; letter-spacing: -.015em; line-height: 1.3; }
   .depot small { color: rgba(255,255,255,.82); font-size: .9rem; }
-  .depot .faux-bouton { margin-top: .9rem; background: #fff; color: var(--rouge); font: 600 .9rem/1 "Inter", sans-serif; padding: .7rem 1rem; border-radius: 9px; }
+  .depot .faux-bouton { margin-top: .9rem; background: #fff; color: var(--rouge); font: 600 .9rem/1 "Archivo", sans-serif; padding: .7rem 1rem; border-radius: 9px; }
   .depot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   .depot .tactile { display: none; }
   @media (hover: none) { .depot .bureau { display: none; } .depot .tactile { display: inline; } }
@@ -202,7 +201,7 @@
   @media (min-width: 64rem) { .bloc-sous { white-space: nowrap; } }
 
   .exemples { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline; color: var(--encre-2); font-size: .875rem; }
-  .exemples button { font: 500 .875rem/1.4 "Inter", sans-serif; background: none; border: 0; padding: 0; color: var(--encre); cursor: pointer;
+  .exemples button { font: 500 .875rem/1.4 "Archivo", sans-serif; background: none; border: 0; padding: 0; color: var(--encre); cursor: pointer;
     text-decoration: underline; text-decoration-color: var(--filet-fort); text-underline-offset: 3px; }
   .exemples button:hover { text-decoration-color: var(--encre); }
   .confidentiel { margin: .6rem 0 0; font-size: .8rem; color: var(--encre-3); }
@@ -296,7 +295,7 @@
   .fiche-tete { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; }
   .fiche-tete h2 { font-weight: 600; letter-spacing: -.03em; font-size: 1.6rem; margin: 0 0 .25rem; overflow-wrap: anywhere; }
   .fiche-tete .meta { color: var(--encre-2); font-size: .875rem; font-variant-numeric: tabular-nums; }
-  .tampon { --c: var(--inconnu); font: 700 clamp(.95rem, 2.4vw, 1.2rem)/1.05 "Inter", sans-serif; letter-spacing: .05em; text-transform: uppercase;
+  .tampon { --c: var(--inconnu); font: 700 clamp(.95rem, 2.4vw, 1.2rem)/1.05 "Archivo", sans-serif; letter-spacing: .05em; text-transform: uppercase;
     color: var(--c); border: 2px solid var(--c); border-radius: 7px; padding: .45rem .75rem .4rem; text-align: center;
     transform: rotate(-4deg); margin: .4rem .2rem 0 0; white-space: nowrap; opacity: 0; }
   .tampon small { display: block; font-weight: 500; text-transform: none; letter-spacing: 0; font-size: .58em; margin-top: .2rem; opacity: .8; }
@@ -311,10 +310,10 @@
   .ligne details summary, .ligne .simple { list-style: none; display: grid; grid-template-columns: 8.5rem 1fr; gap: 1rem; padding: .95rem 0; align-items: baseline; }
   .ligne details summary { cursor: pointer; }
   .ligne details summary::-webkit-details-marker { display: none; }
-  .statut { font: 500 .8rem/1.3 "Inter", sans-serif; display: inline-flex; align-items: baseline; gap: .45rem; }
+  .statut { font: 500 .8rem/1.3 "Archivo", sans-serif; display: inline-flex; align-items: baseline; gap: .45rem; }
   .statut::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; transform: translateY(-.05rem); }
   .statut.ok { color: var(--ok); } .statut.attention { color: var(--attention); } .statut.alerte { color: var(--alerte); } .statut.inconnu { color: var(--inconnu); }
-  .ligne h3 { margin: 0; font: 600 .95rem/1.35 "Inter", sans-serif; letter-spacing: -.01em; }
+  .ligne h3 { margin: 0; font: 600 .95rem/1.35 "Archivo", sans-serif; letter-spacing: -.01em; }
   .ligne .resume { margin: .2rem 0 0; color: var(--encre-2); font-size: .9rem; }
   .ligne .detail { padding: 0 0 1rem 9.5rem; font-size: .88rem; color: var(--encre-2); }
   .ligne .detail ul { margin: .25rem 0; padding-left: 1.1rem; }
@@ -327,7 +326,7 @@
   .note-bloc summary::-webkit-details-marker { display: none; }
   .note-chiffre { grid-row: span 2; font-weight: 600; letter-spacing: -.05em; font-size: 2.6rem; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
   .note-chiffre small { font-size: .34em; font-weight: 500; color: var(--encre-2); margin-left: .1rem; letter-spacing: 0; }
-  .note-nom { font: 600 .95rem/1.3 "Inter", sans-serif; }
+  .note-nom { font: 600 .95rem/1.3 "Archivo", sans-serif; }
   .note-sous { color: var(--encre-2); font-size: .82rem; line-height: 1.35; }
   .note-detail { margin: .8rem 1rem 0 0; padding: 0; list-style: none; font-size: .82rem; }
   .note-detail li { display: flex; justify-content: space-between; gap: 1rem; padding: .3rem 0; border-top: 1px solid var(--filet); }
@@ -338,9 +337,9 @@
   .table-defile { overflow-x: auto; border-top: 1px solid var(--encre); }
   table.challenges { width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
   table.challenges th, table.challenges td { text-align: left; padding: .65rem .5rem .65rem 0; border-bottom: 1px solid var(--filet); vertical-align: top; }
-  table.challenges th { font: 500 .75rem/1.3 "Inter", sans-serif; color: var(--encre-2); }
+  table.challenges th { font: 500 .75rem/1.3 "Archivo", sans-serif; color: var(--encre-2); }
   table.challenges td.chiffre { font-weight: 600; font-size: 1rem; white-space: nowrap; }
-  table.challenges td small { display: block; font: 400 .75rem/1.35 "Inter", sans-serif; color: var(--encre-2); }
+  table.challenges td small { display: block; font: 400 .75rem/1.35 "Archivo", sans-serif; color: var(--encre-2); }
   .haut { color: var(--ok); } .milieu { color: var(--attention); } .bas { color: var(--alerte); }
   .remarques { margin: .8rem 0 0; padding-left: 1.1rem; font-size: .82rem; color: var(--encre-2); }
   .remarques li { margin-bottom: .25rem; }
@@ -348,7 +347,7 @@
   .notes p { margin: .3rem 0; }
   .depot-signal { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .5rem; }
   .depot-signal input { font: inherit; width: 9rem; padding: .45rem .65rem; border: 1px solid var(--filet-fort); border-radius: 8px; background: var(--fond); color: var(--encre); }
-  .depot-signal button { font: 500 .85rem/1 "Inter", sans-serif; padding: .55rem .9rem; border: 0; border-radius: 8px; background: var(--encre); color: var(--fond); cursor: pointer; }
+  .depot-signal button { font: 500 .85rem/1 "Archivo", sans-serif; padding: .55rem .9rem; border: 0; border-radius: 8px; background: var(--encre); color: var(--fond); cursor: pointer; }
   @media (max-width: 40rem) {
     .fiche { padding: 1.2rem 1rem 1.4rem; }
     .fiche-tete { grid-template-columns: 1fr; } .tampon { justify-self: start; }
@@ -359,8 +358,13 @@
     table.challenges tr { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem 1rem; padding: .8rem 0; border-bottom: 1px solid var(--filet); }
     table.challenges td { display: block; padding: 0; border: 0; }
     table.challenges td:first-child, table.challenges td:nth-child(2) { grid-column: 1 / -1; }
-    table.challenges td[data-l]::before { content: attr(data-l); display: block; font: 400 .74rem/1.3 "Inter", sans-serif; color: var(--encre-2); }
+    table.challenges td[data-l]::before { content: attr(data-l); display: block; font: 400 .74rem/1.3 "Archivo", sans-serif; color: var(--encre-2); }
   }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
 </style>
 <!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

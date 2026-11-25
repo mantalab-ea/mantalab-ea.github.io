@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
 <style>
   /* Mêmes repères que l'accueil. L'élément fort : la fiche elle-même, montrée en grand à côté du prix. */
   :root { --fond:#fff; --fond-2:#f6f6f7; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
@@ -26,7 +26,7 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; } }
   :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#141518; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --rouge:#e2341f; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Inter",system-ui,sans-serif; font-optical-sizing:auto; font-feature-settings:"cv11","ss01"; -webkit-font-smoothing:antialiased; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.55 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
   a { color:inherit; }
   :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
   .contenu { max-width:70rem; margin:0 auto; padding:0 1.5rem; }
@@ -38,7 +38,7 @@
   .droite { margin-left:auto; display:flex; align-items:center; gap:1.2rem; font-size:.875rem; }
   .droite a { color:var(--encre-2); text-decoration:none; } .droite a:hover { color:var(--encre); }
   .langue { display:flex; gap:.15rem; }
-  .langue button { font:500 .8rem/1 "Inter",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
+  .langue button { font:500 .8rem/1 "Archivo",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
   .langue button[aria-pressed="true"] { color:var(--encre); }
 
   /* Haut de page : promesse + achat à gauche, la fiche à droite */
@@ -58,7 +58,7 @@
   .prix span { color:rgba(255,255,255,.82); }
   .delai { color:rgba(255,255,255,.88); margin:0; font-size:.95rem; }
   .achat-corps { padding:1.4rem 1.6rem 1.5rem; }
-  .bouton { display:flex; align-items:center; justify-content:center; text-align:center; font:500 1rem/1.2 "Inter",sans-serif; text-decoration:none; padding:.95rem 1.1rem; border-radius:10px;
+  .bouton { display:flex; align-items:center; justify-content:center; text-align:center; font:500 1rem/1.2 "Archivo",sans-serif; text-decoration:none; padding:.95rem 1.1rem; border-radius:10px;
     background:var(--rouge); color:#fff; border:1px solid var(--rouge); transition:background-color .15s; }
   .bouton:hover { background:var(--rouge-fonce); }
   .bouton[aria-disabled="true"] { background:var(--fond-2); color:var(--encre-2); border-color:var(--filet); cursor:default; }
@@ -155,6 +155,11 @@
   }
   @media (max-width: 36rem) { .droite > a { display:none; } }
   @media (prefers-reduced-motion: reduce) { .apercu img { transition:none; transform:none; } }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
 </style>
 <!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
