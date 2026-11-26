@@ -12,6 +12,10 @@
 - [Get a robot audited](https://mantalab-ea.github.io/en/commande.html): the lab runs the robot itself in MetaTrader 5 over 5 years of history in three scenarios (1-minute OHLC with perfect execution, real broker ticks, random execution delays) and delivers a PDF audit report. Price €19. Orders open soon; checking a report is free meanwhile.
 - [Sample audit report](https://mantalab-ea.github.io/exemple/multimartin.html)
 
+## Audited robots
+
+- [Robots audited by the lab](https://mantalab-ea.github.io/en/robots/): MetaTrader 5 Market robots tested over 5 years, with perfect execution and on a broker's real ticks, default settings, version recorded. One page per robot: risk level, what was detected (martingale, grid, missing stops, prop firm rules) and how the result changes on real ticks.
+
 ## Method and accuracy
 
 - [How MantaLab audits a robot](https://mantalab-ea.github.io/en/methode.html): detection rules, robustness statistics (bootstrap of the trade sequence), prop firm challenge simulation, and the measured accuracy: 98.8% correct verdicts on 209 tests of robots with known behaviour.
