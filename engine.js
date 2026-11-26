@@ -197,9 +197,25 @@
     if (ddMax) { const m = /\(([\d.,\s]+)%\)/.exec(ddMax); if (m) pcts.push(parseNum(m[1]) / 100); }
     if (pcts.length) stats.drawdownEquiteMaxPct = Math.max(...pcts);
 
+    // Réglages EXACTS du robot pendant le test (section « Inputs » de l'en-tête) + courtier, build, qualité de l'historique :
+    // la preuve de ce qui a été testé (26/11/2026). Lignes « ==== TITRE ==== » = groupes, sans valeur.
+    const reglages = [];
+    let dansInputs = false;
+    for (const r of allRows) {
+      if (r.length === 2 && /^(inputs|paramètres d'entrée|parametres d'entree|entrées)\s*:?$/i.test(r[0])) dansInputs = true;
+      else if (dansInputs && (r.length !== 2 || r[0] !== "")) dansInputs = false;
+      if (!dansInputs) continue;
+      const v = r[1] || "", i = v.indexOf("=");
+      if (i > 0) reglages.push({ nom: v.slice(0, i).trim(), valeur: v.slice(i + 1).trim() });
+      else if (v.trim()) reglages.push({ groupe: v.replace(/=+/g, "").trim() });
+    }
+    const contexte = { serveur: (allRows[1] && allRows[1][0]) || null, societe: findStat(allRows, [/^company/, /^société/]),
+      qualiteHistorique: findStat(allRows, [/^history quality/, /^qualité de l'historique/]), levier: findStat(allRows, [/^leverage/, /^effet de levier/]) };
+
     const temps = transactions.map((t) => t.temps);
     return {
       backtest: {
+        reglages, contexte,
         robot: findStat(allRows, [/^expert/]) || "Robot",
         symbole: findStat(allRows, [/^symbol/, /^symbole/]) || transactions[0].symbole,
         periode: (findStat(allRows, [/^period/, /^période/]) || "").replace(/\s*\(.*\)\s*$/, ""),
@@ -327,7 +343,7 @@
         const p = {
           symbole: t.symbole, sens: t.sens, volume: t.volume, prixEntree: t.prix,
           ouverture: t.temps, fermeture: null, prixSortie: null,
-          profit: (t.commission || 0) + (t.swap || 0), stopLoss: t.stopLoss, fermeParSL: false,
+          profit: (t.commission || 0) + (t.swap || 0), stopLoss: t.stopLoss, fermeParSL: false, commentaire: t.commentaire || "",
         };
         resultat.push(p);
         ouvertes.push({ p, reste: t.volume });
@@ -361,8 +377,8 @@
     // moteur v2 (26/11/2026) : décisions, causalité perte → hausse, renforts sans stop (voir construireDecisions)
     fenetreDecisionSecondes: 60,
     ratioMartingale: 1.45, ratioGrilleMartingale: 1.25, minEvenementsMartingale: 3,
-    minPertesMartingale: 10, partMartingaleAlerte: 0.4, ecartMartingaleAlerte: 0.3, partMartingaleAttention: 0.2, ecartMartingaleAttention: 0.15,
-    minEntreesGrille: 5, minRenfortsGrilleAlerte: 10, pileGrilleAlerte: 5, partRenfortsNonProteges: 0.5, partGrilleMartingale: 0.3,
+    minPertesMartingale: 10, partMartingaleAlerte: 0.4, ecartMartingaleAlerte: 0.3, partMartingaleAttention: 0.2, ecartMartingaleAttention: 0.15, rapportTailleMartingaleAlerte: 1.6, ecartMartingaleAttention2: 0.1, rapportTailleMartingaleAttention: 1.3,
+    minEntreesGrille: 5, minRenfortsGrilleAlerte: 10, pileGrilleAlerte: 5, stopLointainFois: 5, risqueStopMax: 0.25, partRenfortsPanier: 0.8, partStopsTouchesMin: 0.05, partRenfortsNonProteges: 0.5, partGrilleMartingale: 0.3,
     partSansStopAlerte: 0.5, partSansStopAttention: 0.1,
     minPertesStopVirtuel: 10, toleranceStopVirtuel: 0.15, partStopVirtuel: 0.7,
     partPlafondStop: 0.3, partAuDelaPlafond: 0.05, partRenfortsAttention: 0.05,
@@ -426,11 +442,18 @@
     let solde = depot, iF = 0, iM = 0;
     const derniere = new Map(), res = [];
     let stopConnu = false;
+    // Stratégies nommées dans les commentaires (2 à 60, ≥ 70 % des positions) : deux stratégies qui entrent dans la même
+    // minute restent deux décisions (sinon leurs tailles se mélangent).
+    const strat = (p) => (p.commentaire || "").replace(/\.\d+$/, "").replace(/[\s_-]+(b|s|buy|sell|long|short)$/i, "").trim();
+    const comptes = new Map();
+    let commentees = 0;
+    for (const p of positions) { const k = strat(p); if (k) { commentees++; comptes.set(k, (comptes.get(k) || 0) + 1); } }
+    const parStrategie = comptes.size >= 2 && comptes.size <= 60 && commentees >= 0.7 * positions.length;
     for (const p of tri) {
       while (iF < fermees.length && fermees[iF].fermeture <= p.ouverture) solde += fermees[iF++].profit;
       while (iM < mvts.length && mvts[iM].temps <= p.ouverture) solde += mvts[iM++].montant;
       if (p.stopLoss !== null && p.stopLoss !== undefined) stopConnu = true;
-      const cle = p.symbole + "|" + p.sens, d = derniere.get(cle);
+      const cle = p.symbole + "|" + p.sens + (parStrategie ? "|" + strat(p) : ""), d = derniere.get(cle);
       const protegee = p.stopLoss > 0 || p.fermeParSL;
       if (d && p.ouverture - d.ouverture <= fenetre) {
         d.prixEntree = (d.prixEntree * d.volume + p.prixEntree * p.volume) / (d.volume + p.volume);
@@ -444,13 +467,42 @@
       derniere.set(cle, nd);
       res.push(nd);
     }
+    // Un stop ne protège vraiment que s'il est à une distance NORMALE pour ce robot (au plus 5× sa distance habituelle) et
+    // qu'il ne laisse pas perdre plus de 25 % du compte : sinon une grille « déguisée » avec des stops très lointains
+    // passerait pour protégée (contre-vérification du 26/11/2026). Valeur d'un point par lot retrouvée dans les trades.
+    const distances = positions.filter((p) => p.stopLoss > 0).map((p) => Math.abs(p.prixEntree - p.stopLoss) / p.prixEntree).sort((a, b) => a - b);
+    const distanceHabituelle = distances.length ? distances[distances.length >> 1] : null;
+    const valeurs = new Map();
+    for (const p of positions) {
+      if (!fermee(p) || p.prixSortie === null || !(p.volume > 0)) continue;
+      const ecart = (p.sens === "buy" ? 1 : -1) * (p.prixSortie - p.prixEntree);
+      if (Math.abs(ecart) < 1e-9 || Math.abs(p.profit) < 1e-6) continue;
+      const v = p.profit / (ecart * p.volume);
+      if (v > 0) { if (!valeurs.has(p.symbole)) valeurs.set(p.symbole, []); valeurs.get(p.symbole).push(v); }
+    }
+    const valeurPoint = new Map([...valeurs].map(([k, v]) => [k, v.sort((a, b) => a - b)[v.length >> 1]]));
     for (const d of res) {
       const ouvertes = d.jambes.some((p) => !fermee(p));
       d.fermeture = ouvertes ? null : maxDe(d.jambes.map((p) => p.fermeture));
       d.profit = d.jambes.reduce((s, p) => s + p.profit, 0);
       d.n = d.jambes.length;
+      const vp = valeurPoint.get(d.symbole);
+      // perte si TOUS les stops de la décision sont touchés, en fraction du solde au moment d'ouvrir
+      d.risqueAuStop = vp && d.jambes.every((p) => p.stopLoss > 0)
+        ? d.jambes.reduce((s, p) => s + Math.abs(p.prixEntree - p.stopLoss) * p.volume * vp, 0) / d.solde : null;
+      const stopNormal = (p) => p.fermeParSL || (p.stopLoss > 0 && (distanceHabituelle === null ||
+        Math.abs(p.prixEntree - p.stopLoss) / p.prixEntree <= r.stopLointainFois * distanceHabituelle));
+      d.protegee = d.jambes.every(stopNormal) && !(d.risqueAuStop !== null && d.risqueAuStop > r.risqueStopMax);
     }
+    // Stops DÉCORATIFS : posés à l'entrée mais presque jamais touchés (moins de 5 % des pertes fermées « sl » sur au moins
+    // 20 pertes) → ils ne protègent pas ; seules les jambes réellement fermées par leur stop restent protégées.
+    // Robots du Market vérifiés : 25 à 89 % des pertes fermées par le stop.
+    const pertes = positions.filter((p) => fermee(p) && p.profit < 0);
+    const parSL = pertes.filter((p) => p.fermeParSL).length;
+    res.stopsDecoratifs = stopConnu && pertes.length >= r.minPositions && parSL / pertes.length < r.partStopsTouchesMin;
+    if (res.stopsDecoratifs) for (const d of res) d.protegee = d.jambes.every((p) => p.fermeParSL);
     res.stopConnu = stopConnu;
+    res.distanceStopHabituelle = distanceHabituelle;
     return res;
   }
 
@@ -463,22 +515,17 @@
    * 47 à 100 % de hausses après une perte, 0 % après un gain ; 13 robots du Market = écart de 9 points au plus.
    * Un DÉPÔT entre les deux décisions : pas de comparaison.
    */
-  function detecterMartingale(decisions, r, unitaires, depots) {
+  /** Comptage « après une perte / après un gain » ; groupe(d) = flux comparé (symbole, ou symbole + stratégie). */
+  function compterHausses(decisions, groupe, depotEntre, r) {
     const fermeesD = decisions.filter((d) => d.fermeture !== null).sort((a, b) => a.fermeture - b.fermeture);
-    if (fermeesD.length < r.minPositions) return pasAssez("martingale", fermeesD.length);
-    const dep = (depots || []).slice().sort((a, b) => a - b);
-    const depotEntre = (t0, t1) => dep.some((t) => t > t0 && t <= t1);
-    const u = unitaires || [];
-    const vMin = minDe(u.map((p) => p.volume));
-    const mult = vMin ? maxDe(u.map((p) => p.volume)) / vMin : 1;
-    const parSymbole = new Map();
-    for (const d of fermeesD) { if (!parSymbole.has(d.symbole)) parSymbole.set(d.symbole, []); parSymbole.get(d.symbole).push(d); }
+    const parFlux = new Map();
+    for (const d of fermeesD) { const k = groupe(d); if (!parFlux.has(k)) parFlux.set(k, []); parFlux.get(k).push(d); }
     let apresPerte = 0, hausses = 0, apresGain = 0, haussesGain = 0, chaine = 0, chaineMax = 0, logPerte = 0, logGain = 0;
     const exemples = [];
     const tri = decisions.slice().sort((a, b) => a.ouverture - b.ouverture);
     for (const d of tri) {
-      const liste = parSymbole.get(d.symbole) || [];
-      let lo = 0, hi = liste.length;               // dernière décision fermée avant l'ouverture de d
+      const liste = parFlux.get(groupe(d)) || [];
+      let lo = 0, hi = liste.length;               // dernière décision fermée du même flux avant l'ouverture de d
       while (lo < hi) { const m = (lo + hi) >> 1; if (liste[m].fermeture <= d.ouverture) lo = m + 1; else hi = m; }
       const prev = lo > 0 ? liste[lo - 1] : null;
       if (!prev || prev === d || depotEntre(prev.fermeture, d.ouverture)) continue;
@@ -497,13 +544,88 @@
     }
     const part = apresPerte ? hausses / apresPerte : 0;
     const partGain = apresGain ? haussesGain / apresGain : 0;
-    const mesures = { apresPerte, hausses, part: +part.toFixed(3), apresGain, haussesGain, partGain: +partGain.toFixed(3),
+    return { apresPerte, hausses, part: +part.toFixed(3), apresGain, haussesGain, partGain: +partGain.toFixed(3),
       ecart: +(part - partGain).toFixed(3), taillePerte: +Math.exp(apresPerte ? logPerte / apresPerte : 0).toFixed(2),
-      tailleGain: +Math.exp(apresGain ? logGain / apresGain : 0).toFixed(2), chaineMax, mult: +mult.toFixed(2) };
-    let niveau = "ok";
-    if (apresPerte >= r.minPertesMartingale && part >= r.partMartingaleAlerte && part - partGain >= r.ecartMartingaleAlerte) niveau = "alerte";
-    else if (hausses >= r.minEvenementsMartingale && part >= r.partMartingaleAttention && part - partGain >= r.ecartMartingaleAttention) niveau = "attention";
-    return { code: "martingale", niveau, cle: "martingale_" + niveau, donnees: mesures, mesures, exemples };
+      tailleGain: +Math.exp(apresGain ? logGain / apresGain : 0).toFixed(2), chaineMax, exemples };
+  }
+
+  function niveauMartingale(m, r) {
+    if (m.apresPerte >= r.minPertesMartingale && m.part >= r.partMartingaleAlerte && m.part - m.partGain >= r.ecartMartingaleAlerte) return "alerte";
+    // Effet de TAILLE : en moyenne, la décision qui suit une perte est bien plus grosse que celle qui suit un gain (la
+    // proportion de hausses est brouillée quand le nombre de positions par décision varie : LaboMulti, 26/11/2026).
+    // Martingales connues : rapport 1,85 à plus de 3 ; 13 robots du Market : 1,32 au plus.
+    if (m.apresPerte >= 2 * r.minPertesMartingale && m.apresGain >= r.minPertesMartingale && m.tailleGain > 0 &&
+        m.taillePerte / m.tailleGain >= r.rapportTailleMartingaleAlerte && m.part - m.partGain >= r.ecartMartingaleAttention) return "alerte";
+    if (m.hausses >= r.minEvenementsMartingale && m.part >= r.partMartingaleAttention && m.part - m.partGain >= r.ecartMartingaleAttention) return "attention";
+    // « à surveiller » à DEUX conditions (écart ≥ 0,10 ET rapport de taille ≥ 1,3) : aucun robot non-martingale de la base ne
+    // remplit les deux (EMA Cross : 0,12 mais 1,23 ; Gold Beaver : 0,07 et 1,31 ; grille plate : 1,67 mais écart ≤ 0,03).
+    if (m.apresPerte >= 2 * r.minPertesMartingale && m.apresGain >= r.minPertesMartingale && m.tailleGain > 0 &&
+        m.part - m.partGain >= r.ecartMartingaleAttention2 && m.taillePerte / m.tailleGain >= r.rapportTailleMartingaleAttention) return "attention";
+    return "ok";
+  }
+
+  /**
+   * Stratégie d'une décision, lue dans le COMMENTAIRE de ses ordres (« Janus S-7 B », « Moon Eclipse », « QT S01 »…) : on
+   * retire le numéro de ticket (« .12 ») et le sens (B/S, Buy/Sell). Utilisable seulement si les commentaires découpent le
+   * robot en 2 à 60 stratégies (pas un identifiant par trade, comme AiX Gold) et en couvrent au moins 70 %.
+   */
+  function strategieDe(d) {
+    const c = (d.jambes[0].commentaire || "").replace(/\.\d+$/, "").replace(/[\s_-]+(b|s|buy|sell|long|short)$/i, "").trim();
+    return c;
+  }
+  function strategiesUtilisables(decisions) {
+    const n = new Map();
+    let avec = 0;
+    for (const d of decisions) { const k = strategieDe(d); if (k) { avec++; n.set(k, (n.get(k) || 0) + 1); } }
+    return n.size >= 2 && n.size <= 60 && avec >= 0.7 * decisions.length;
+  }
+
+  /**
+   * MARTINGALE : la mise grossit-elle À CAUSE des pertes ? On compare chaque décision à la précédente décision FERMÉE du
+   * même symbole, en taille rapportée au solde (un lot qui suit le compte n'est pas une martingale), et on regarde la part
+   * de hausses ×1,45 et plus APRÈS UNE PERTE et APRÈS UN GAIN. Une martingale grossit après les pertes et presque jamais
+   * après les gains ; un robot à plusieurs stratégies ou à plusieurs jambes varie autant dans les deux cas.
+   * Étalonnage du 26/11/2026 : martingales connues (MultiMartin, VR Overturn, LaboSynth ×2 et ×1,6 sur 19 marchés) =
+   * 47 à 100 % de hausses après une perte, 0 % après un gain ; 13 robots du Market = écart de 9 points au plus.
+   * PAR STRATÉGIE (campagne LaboMulti du 26/11/2026) : quand 5 stratégies tournent ensemble, chacune avec sa martingale,
+   * la décision précédente est souvent celle d'une AUTRE stratégie et le lien se dilue (12 martingales sur 12 ratées). Si
+   * les commentaires des ordres nomment les stratégies, le même test est refait stratégie par stratégie. Sans aucune
+   * étiquette, une martingale répartie sur plusieurs stratégies reste indétectable (angle mort documenté).
+   * Un DÉPÔT entre les deux décisions : pas de comparaison.
+   */
+  function detecterMartingale(decisions, r, unitaires, depots) {
+    const fermeesD = decisions.filter((d) => d.fermeture !== null);
+    if (fermeesD.length < r.minPositions) return pasAssez("martingale", fermeesD.length);
+    const dep = (depots || []).slice().sort((a, b) => a - b);
+    const depotEntre = (t0, t1) => dep.some((t) => t > t0 && t <= t1);
+    const u = unitaires || [];
+    const vMin = minDe(u.map((p) => p.volume));
+    const mult = vMin ? maxDe(u.map((p) => p.volume)) / vMin : 1;
+    const global = compterHausses(decisions, (d) => d.symbole, depotEntre, r);
+    let niveau = niveauMartingale(global, r), cle = "martingale_" + niveau;
+    let mesures = Object.assign({}, global, { mult: +mult.toFixed(2) });
+    delete mesures.exemples;
+    let exemples = global.exemples;
+    if (niveau !== "alerte" && strategiesUtilisables(decisions)) {
+      // chaque décision comparée à la précédente de SA stratégie ; résultats regroupés (toutes les données servent, même
+      // quand chaque stratégie a peu de trades)
+      const m = compterHausses(decisions, (d) => d.symbole + "|" + strategieDe(d), depotEntre, r);
+      const n = niveauMartingale(m, r);
+      const rang = { ok: 0, attention: 1, alerte: 2 };
+      if (rang[n] > rang[niveau]) {
+        // la stratégie la plus en cause, pour le texte
+        let nomPire = null, ecartPire = -Infinity;
+        for (const nom of new Set(decisions.map(strategieDe).filter(Boolean))) {
+          const x = compterHausses(decisions.filter((d) => strategieDe(d) === nom), (d) => d.symbole, depotEntre, r);
+          if (x.apresPerte >= 3 && x.ecart > ecartPire) { ecartPire = x.ecart; nomPire = nom; }
+        }
+        niveau = n; cle = "martingale_strategie";
+        mesures = Object.assign({}, m, { strategie: nomPire || "?", niveauStrategie: n, mult: +mult.toFixed(2), partGlobale: global.part, partGainGlobale: global.partGain });
+        delete mesures.exemples;
+        exemples = m.exemples;
+      }
+    }
+    return { code: "martingale", niveau, cle, donnees: mesures, mesures, exemples };
   }
 
   /**
@@ -558,7 +680,15 @@
     const partNonProteges = renforts ? nonProteges / renforts : 0;
     const partEnsemble = renforts ? ensemble / renforts : 0;
     // sans stop connu (signal) : un renfort qui se ferme avec la position renforcée compte comme non protégé
-    const grilleReelle = stopConnu ? partNonProteges >= r.partRenfortsNonProteges : partEnsemble >= r.partRenfortsNonProteges;
+    // Grille réelle : renforts SANS stop crédible, OU renforts qui se ferment en PANIER avec la position renforcée (≥ 80 %).
+    // Le panier démasque une grille « déguisée » qui pose un stop lointain sur chaque position (contre-vérification du
+    // 26/11/2026 : 14 grilles connues sur 80 reconnues sans ce critère) ; les robots multi-stratégies du Market ferment
+    // leurs renforts avec la position renforcée dans 6 à 67 % des cas seulement, les grilles connues dans 95 à 100 %.
+    // Stops décoratifs (jamais touchés) : on ne parle de grille que si le robot EMPILE vraiment (≥ 5 décisions ouvertes
+    // ensemble, GridEA) ; un robot qui coupe ses pertes lui-même sans empiler n'est pas une grille (Allylla : limite en
+    // dollars, 3 positions au plus) — c'est l'affaire du contrôle du stop-loss.
+    const sansStopCredible = stopConnu && partNonProteges >= r.partRenfortsNonProteges && (!decisions.stopsDecoratifs || simMax >= r.pileGrilleAlerte);
+    const grilleReelle = sansStopCredible || partEnsemble >= r.partRenfortsPanier || (!stopConnu && partEnsemble >= r.partRenfortsNonProteges);
     const mesures = { simMax, defav: renforts, decisions: decisions.length, part: +part.toFixed(3), hausses,
       nonProteges, partNonProteges: +partNonProteges.toFixed(3), partEnsemble: +partEnsemble.toFixed(3), stopConnu };
     let niveau = "ok", cle = "grille_ok";
@@ -788,8 +918,12 @@
       const corr = sxx > 0 && syy > 0 ? sxy / Math.sqrt(sxx * syy) : 0;
       const vmin = minDe(ys), vmax = maxDe(ys);
       const soldeMax = maxDe(xs);
+      const risques = D.map((d) => d.risqueAuStop).filter((x) => x !== null && x !== undefined).sort((a, b) => a - b);
       taille = { correlation: +corr.toFixed(3), mult: vmin > 0 ? +(vmax / vmin).toFixed(1) : null, soldeMax: +soldeMax.toFixed(2),
-        suitSolde: corr >= 0.5 && vmin > 0 && vmax / vmin >= 10 };
+        suitSolde: corr >= 0.5 && vmin > 0 && vmax / vmin >= 10,
+        // risque d'une décision si son stop est touché, en % du compte (médiane et 95e centile) : ce que le robot met en jeu
+        risqueAuStopMedian: risques.length ? +risques[risques.length >> 1].toFixed(4) : null,
+        risqueAuStopP95: risques.length ? +risques[Math.min(risques.length - 1, Math.floor(0.95 * risques.length))].toFixed(4) : null };
     }
     return {
       pireSerie: { pertes: pire.n, montant: +pire.perte.toFixed(2), pctDepot: depot ? +(-pire.perte / depot).toFixed(4) : null,
@@ -848,7 +982,7 @@
     };
   }
 
-  const api = { parseMt5Report, parseSignalCsv, decode, reconstruirePositions, regrouperPaniers, construireDecisions, auditer, REGLAGES, fmtT, parseNum, parseTime, _rows: rows };
+  const api = { parseMt5Report, parseSignalCsv, decode, reconstruirePositions, regrouperPaniers, construireDecisions, compterHausses, strategieDe, strategiesUtilisables, auditer, REGLAGES, fmtT, parseNum, parseTime, _rows: rows };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LaboEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);
