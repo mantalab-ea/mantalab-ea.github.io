@@ -9,7 +9,11 @@
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
 <link rel="apple-touch-icon" href="marque/apple-touch-icon.png">
+<script src="langue.js"></script>
 <link rel="canonical" href="https://mantalab-ea.github.io/">
+<link rel="alternate" hreflang="fr" href="https://mantalab-ea.github.io/">
+<link rel="alternate" hreflang="en" href="https://mantalab-ea.github.io/en/">
+<link rel="alternate" hreflang="x-default" href="https://mantalab-ea.github.io/en/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MantaLab">
 <meta property="og:title" content="MantaLab — votre robot MT5 cache-t-il une martingale ?">
@@ -465,6 +469,7 @@
 </style>
 <!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://mantalab-ea.github.io/#mantalab","name":"MantaLab","url":"https://mantalab-ea.github.io/","logo":"https://mantalab-ea.github.io/marque/mantalab-logo.png"},{"@type":"WebSite","@id":"https://mantalab-ea.github.io/#site","name":"MantaLab","url":"https://mantalab-ea.github.io/","inLanguage":["fr","en"],"publisher":{"@id":"https://mantalab-ea.github.io/#mantalab"}},{"@type":"WebApplication","name":"Vérificateur de rapports MT5 MantaLab","url":"https://mantalab-ea.github.io/","applicationCategory":"FinanceApplication","operatingSystem":"Web browser","inLanguage":"fr","isAccessibleForFree":true,"description":"Analyse gratuite, dans le navigateur, d'un rapport du testeur de stratégie MetaTrader 5 : détecte martingale, grille / moyenne à la baisse, absence de stop-loss, trades ultra-courts et règles de prop firm non respectées. Le fichier ne quitte pas l'ordinateur.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"publisher":{"@id":"https://mantalab-ea.github.io/#mantalab"}}]}</script>
 </head>
 <body>
 <div id="voile" hidden><span data-t="voile">Lâchez le fichier pour l'analyser</span></div>
@@ -1270,7 +1275,7 @@
   window.LaboTextes = T;
 
   let langue = "fr";
-  try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
+  langue = window.LaboLangue ? window.LaboLangue.langue : langue;   // langue de l'adresse (langue.js)
   let dernier = null; // { resultat, avertissements, exemple }
 
   function pc(x, dec = 0) { return (x * 100).toFixed(dec).replace(".", langue === "fr" ? "," : ".") + (langue === "fr" ? " %" : "%"); }
@@ -1568,7 +1573,7 @@
 
   document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => {
     langue = b.dataset.lang;
-    try { localStorage.setItem("labo-langue", langue); } catch (e) {}
+    if (window.LaboLangue && window.LaboLangue.choisir(langue)) return;   // autre adresse : /en/ ou racine
     appliquerLangue();
   }));
 

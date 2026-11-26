@@ -1,0 +1,1738 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Sécurité (audit du 25/11/2026) : la page ne peut charger ou envoyer des données qu'à ces adresses-là. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab-commandes.mantalab.workers.dev https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<title>MantaLab — independent MT5 robot (EA) audit: martingale, grid, prop firm</title>
+<link rel="icon" href="/marque/mantalab-icone.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="48x48" href="/marque/mantalab-icone-48.png">
+<link rel="apple-touch-icon" href="/marque/apple-touch-icon.png">
+<script src="/langue.js"></script>
+<link rel="canonical" href="https://mantalab-ea.github.io/en/">
+<link rel="alternate" hreflang="fr" href="https://mantalab-ea.github.io/">
+<link rel="alternate" hreflang="en" href="https://mantalab-ea.github.io/en/">
+<link rel="alternate" hreflang="x-default" href="https://mantalab-ea.github.io/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MantaLab">
+<meta property="og:title" content="MantaLab — is your MT5 robot hiding a martingale?">
+<meta property="og:description" content="Check any MetaTrader 5 trading robot (EA) for free: martingale, grid, stop-loss, prop firm rules. Independent audit by MantaLab.">
+<meta property="og:url" content="https://mantalab-ea.github.io/en/">
+<meta property="og:image" content="https://mantalab-ea.github.io/marque/mantalab-logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Drop the MetaTrader 5 strategy tester report of any robot: martingale, grid, stop-loss and prop firm rules checked in seconds, without the file leaving your computer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  /* Direction : un labo, pas une startup. Noir et blanc, une seule famille (Archivo ; titres et grands chiffres en étroit, aux grandes
+     tailles), alignement à gauche, filets fins. Le rouge n'apparaît QUE pour le danger : la perte cachée, le tampon. */
+  :root {
+    --fond: #ffffff; --fond-2: #f7f7f8; --encre: #0c0d10; --encre-2: #5d6068; --encre-3: #8a8d95;
+    --filet: rgba(12, 13, 16, .09); --filet-fort: rgba(12, 13, 16, .16);
+    --danger: #d2261a; --danger-doux: rgba(210, 38, 26, .09);
+    --ok: #137a3e; --attention: #a8620a; --alerte: #c4231a; --inconnu: #6b6f78; --focus: #2b6cf6;
+    --rouge: #d62917; --rouge-fonce: #b51f12;
+    --fiche: var(--fond); --surface: var(--fond); --surface-2: var(--fond-2); --trait: var(--filet); --encre-douce: var(--encre-2);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fond: #0b0c0e; --fond-2: #121317; --encre: #f2f3f5; --encre-2: #9a9ca3; --encre-3: #6c6f77;
+      --filet: rgba(255, 255, 255, .08); --filet-fort: rgba(255, 255, 255, .15);
+      --danger: #ff5b4b; --danger-doux: rgba(255, 91, 75, .12); --ok: #3ccb7f; --attention: #f0b03f; --alerte: #ff6b5c; --inconnu: #8b8f98;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fond: #0b0c0e; --fond-2: #121317; --encre: #f2f3f5; --encre-2: #9a9ca3; --encre-3: #6c6f77;
+    --filet: rgba(255, 255, 255, .08); --filet-fort: rgba(255, 255, 255, .15);
+    --danger: #ff5b4b; --danger-doux: rgba(255, 91, 75, .12); --ok: #3ccb7f; --attention: #f0b03f; --alerte: #ff6b5c; --inconnu: #8b8f98;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 4.5rem; }
+  body { margin: 0; background: var(--fond); color: var(--encre); font: 400 1rem/1.55 "Archivo", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+  .contenu { max-width: 70rem; margin: 0 auto; padding: 0 1.5rem; }
+  .chiffres-tab, .nb { font-variant-numeric: tabular-nums; }
+
+  /* ----- En-tête ----- */
+  header.barre { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--fond) 82%, transparent);
+    backdrop-filter: saturate(180%) blur(16px); -webkit-backdrop-filter: saturate(180%) blur(16px); border-bottom: 1px solid var(--filet); }
+  .barre .contenu { display: flex; align-items: center; gap: 2rem; height: 4rem; }
+  .barre .logo { height: 1.9rem; }
+  @media (max-width: 30rem) { .barre .logo { height: 1.6rem; } }
+  .marque { display: flex; flex: none; }
+  .logo { height: 1.45rem; width: auto; display: block; } .logo-sombre { display: none; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display: none; } :root:not([data-theme="light"]) .logo-sombre { display: block; } }
+  :root[data-theme="dark"] .logo-clair { display: none; } :root[data-theme="dark"] .logo-sombre { display: block; }
+  nav.liens { display: flex; gap: 1.75rem; font-size: .875rem; color: var(--encre-2); }
+  nav.liens a { text-decoration: none; transition: color .15s; } nav.liens a:hover { color: var(--encre); }
+  .barre .droite { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+  .langue { display: flex; gap: .15rem; font-size: .8rem; }
+  .langue button { font: 500 .8rem/1 "Archivo", sans-serif; background: none; border: 0; color: var(--encre-3); padding: .35rem .3rem; cursor: pointer; }
+  .langue button[aria-pressed="true"] { color: var(--encre); }
+  .bouton { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; white-space: nowrap; text-decoration: none; cursor: pointer;
+    font: 500 .9375rem/1 "Archivo", sans-serif; letter-spacing: -.005em; padding: .78rem 1.15rem; border-radius: 9px;
+    background: var(--rouge); color: #fff; border: 1px solid var(--rouge); transition: background-color .15s, opacity .15s; }
+  .bouton:hover { background: var(--rouge-fonce); border-color: var(--rouge-fonce); }
+  .bouton.second { background: transparent; color: var(--encre); border-color: var(--filet-fort); }
+  .bouton.second:hover { background: transparent; border-color: var(--encre-2); }
+  .bouton.petit { padding: .55rem .85rem; font-size: .85rem; border-radius: 8px; }
+  .bouton .court { display: none; }
+  @media (max-width: 58rem) { nav.liens { display: none; } }
+  @media (max-width: 30rem) { .bouton .long { display: none; } .bouton .court { display: inline; } .barre .contenu { gap: 1rem; } }
+
+  /* ----- Héros ----- */
+  .heros { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 3.5rem; align-items: center; padding: 5.5rem 0 4.5rem; }
+  .heros h1 { font-weight: 600; font-size: clamp(2.5rem, 5.4vw, 4.35rem); line-height: 1.02; letter-spacing: -.045em; margin: 0 0 1.4rem; text-wrap: balance; }
+  .heros .sous { font-size: clamp(1.05rem, 1.5vw, 1.2rem); line-height: 1.5; color: var(--encre-2); margin: 0 0 1rem; max-width: 34rem; text-wrap: pretty; }
+  .heros .ia { font-size: .95rem; color: var(--encre-2); margin: 0 0 2rem; max-width: 34rem; }
+  .heros .ia b { color: var(--encre); font-weight: 500; }
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .heros .bouton { padding: .78rem 1rem; }
+  @media (max-width: 62rem) { .heros { grid-template-columns: 1fr; gap: 3rem; padding: 3.5rem 0 3rem; } }
+
+  /* Le visuel : une vraie courbe d'audit */
+  .preuve { margin: 0; border: 1px solid var(--filet); border-radius: 14px; background: var(--fond); overflow: hidden;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02), 0 24px 48px -28px rgba(0,0,0,.28); }
+  .preuve-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: .85rem 1.1rem; border-bottom: 1px solid var(--filet); font-size: .8rem; color: var(--encre-2); }
+  .preuve-tete b { font-weight: 500; color: var(--encre); }
+  .preuve-chiffres { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--filet); }
+  .preuve-chiffres div { padding: .9rem 1.1rem; border-right: 1px solid var(--filet); }
+  .preuve-chiffres div:last-child { border-right: 0; }
+  .preuve-chiffres span { display: block; font-size: .75rem; color: var(--encre-2); margin-bottom: .2rem; }
+  .preuve-chiffres b { font-weight: 600; font-size: 1.35rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 30rem) { .preuve-chiffres div { padding: .75rem .8rem; } .preuve-chiffres b { font-size: 1.1rem; } .preuve-tete { flex-direction: column; gap: .15rem; } }
+  .preuve-chiffres .rouge b { color: var(--danger); }
+  .graphe { position: relative; padding: .9rem .6rem .4rem; }
+  .graphe svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .graphe .base { stroke: var(--filet-fort); stroke-dasharray: 2 4; }
+  .graphe .solde { fill: none; stroke: var(--encre); stroke-width: 1.6; }
+  .graphe .equite { fill: none; stroke: var(--danger); stroke-width: 1.1; }
+  .graphe .zone-cachee { fill: var(--danger-doux); }
+  .graphe text { font: 500 10.5px "Archivo", sans-serif; fill: var(--encre-2); }
+  .graphe .t-rouge { fill: var(--danger); }
+  .graphe .repere { stroke: var(--danger); stroke-width: 1; }
+  .graphe .trace { stroke-dasharray: 1; stroke-dashoffset: 1; animation: tracer 1.6s cubic-bezier(.6,.05,.2,1) .2s forwards; }
+  .graphe .equite.trace { animation-delay: .7s; }
+  .graphe .apparait { opacity: 0; animation: apparaitre .5s ease 1.8s forwards; }
+  @keyframes tracer { to { stroke-dashoffset: 0; } }
+  @keyframes apparaitre { to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .graphe .trace { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; } .graphe .apparait { animation: none; opacity: 1; } }
+  .preuve figcaption { padding: .75rem 1.1rem .95rem; font-size: .8rem; color: var(--encre-2); border-top: 1px solid var(--filet); }
+  .legende { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; padding: .8rem 1.1rem 0; font-size: .78rem; color: var(--encre-2); }
+  .legende span::before { content: ""; display: inline-block; width: 1.1rem; height: 0; border-top: 2px solid var(--encre); vertical-align: middle; margin-right: .45rem; }
+  .legende .l-equite::before { border-top: 1.5px solid var(--danger); }
+  .preuve .tampon-mini { position: absolute; top: 1.3rem; left: 1.2rem; font: 700 .68rem/1 "Archivo", sans-serif; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--danger); border: 1.5px solid var(--danger); border-radius: 5px; padding: .3rem .45rem; transform: rotate(-4deg); background: var(--fond); }
+
+
+  /* ----- Le haut de page : une machine (déposer à gauche, verdict à droite) ----- */
+  .machine { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 3.5rem; align-items: center;
+    min-height: calc(100svh - 3.75rem); padding: 2.5rem 0 3rem; }
+  .machine h1 { font-size: clamp(2.3rem, 4.5vw, 3.85rem); margin-bottom: 1rem; }
+  .machine .sous { margin-bottom: 1.6rem; }
+  .depot { position: relative; display: grid; justify-items: start; gap: .3rem; cursor: pointer; color: #fff; background: var(--rouge);
+    border: 0; border-radius: 16px; padding: 1.5rem 1.6rem 1.6rem; box-shadow: 0 22px 44px -26px rgba(214, 41, 23, .75);
+    transition: transform .18s ease, box-shadow .18s ease, background-color .18s; }
+  .depot:hover, .depot.survol { transform: translateY(-2px); box-shadow: 0 28px 52px -26px rgba(214, 41, 23, .85); }
+  .depot.survol { background: var(--rouge-fonce); }
+  .depot .icone { width: 2.6rem; height: 2.6rem; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.16); margin-bottom: .5rem; }
+  .depot strong { font-weight: 600; font-size: 1.15rem; letter-spacing: -.015em; line-height: 1.3; }
+  .depot small { color: rgba(255,255,255,.82); font-size: .9rem; }
+  .depot .faux-bouton { margin-top: .9rem; background: #fff; color: var(--rouge); font: 600 .9rem/1 "Archivo", sans-serif; padding: .7rem 1rem; border-radius: 9px; }
+  .depot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .depot .tactile { display: none; }
+  @media (hover: none) { .depot .bureau { display: none; } .depot .tactile { display: inline; } }
+  .depot:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
+  /* Analyse en cours : barre de progression au pied du bloc, texte des étapes */
+  .depot { overflow: hidden; }
+  .depot::after { content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: rgba(255,255,255,.9); }
+  .depot.en-cours { pointer-events: none; }
+  .depot.en-cours::after { animation: progression var(--duree-analyse, 1.2s) cubic-bezier(.4,.1,.2,1) forwards; }
+  .depot.en-cours .faux-bouton { opacity: .55; }
+  @keyframes progression { to { width: 100%; } }
+  .depot.analyse-faite .icone { background: #fff; color: var(--rouge); }
+  /* Le verdict arrive : glisse, puis un liseré rouge s'éteint */
+  .verdict.arrive { animation: arrivee .5s cubic-bezier(.2,.8,.2,1) both, liseré 1.6s ease .35s both; }
+  @keyframes arrivee { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+  @keyframes liseré { from { box-shadow: 0 0 0 3px var(--rouge), 0 24px 48px -28px rgba(0,0,0,.28); } to { box-shadow: 0 0 0 0 transparent, 0 24px 48px -28px rgba(0,0,0,.28); } }
+  @media (prefers-reduced-motion: reduce) { .verdict.arrive { animation: none; } .depot.en-cours::after { animation-duration: .01s; } }
+  .machine .exemples { margin-top: 1rem; }
+  .etiquette { margin: 0 0 .6rem; font-size: .8rem; color: var(--encre-3); }
+  @media (max-width: 62rem) { .machine { grid-template-columns: 1fr; gap: 2.5rem; min-height: 0; padding: 2.5rem 0 3rem; } }
+
+  /* Verdict du fichier déposé, à la place de l'exemple */
+  .verdict { border: 1px solid var(--filet); border-radius: 14px; background: var(--fond); overflow: hidden; box-shadow: 0 1px 1px rgba(0,0,0,.02), 0 24px 48px -28px rgba(0,0,0,.28); }
+  .verdict-tete { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; padding: 1.2rem 1.2rem 1rem; border-bottom: 1px solid var(--filet); }
+  .verdict-tete h2 { margin: 0 0 .2rem; font-weight: 600; font-size: 1.3rem; letter-spacing: -.025em; overflow-wrap: anywhere; }
+  .verdict-tete .meta { font-size: .8rem; color: var(--encre-2); }
+  .verdict .tampon { opacity: 1; font-size: .95rem; }
+  .verdict .tampon.pose { opacity: 0; }
+  .verdict-notes { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--filet); }
+  .verdict-notes div { padding: .9rem 1.2rem; }
+  .verdict-notes div + div { border-left: 1px solid var(--filet); }
+  .verdict-notes span { display: block; font-size: .75rem; color: var(--encre-2); }
+  .verdict-notes b { font-weight: 600; font-size: 1.9rem; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .verdict-notes b small { font-size: .45em; color: var(--encre-2); font-weight: 500; letter-spacing: 0; }
+  .verdict-notes .bon b { color: var(--ok); } .verdict-notes .moyen b { color: var(--attention); } .verdict-notes .faible b { color: var(--alerte); }
+  .verdict ul { list-style: none; margin: 0; padding: .4rem 1.2rem; }
+  .verdict li { display: grid; grid-template-columns: 7.5rem 1fr; gap: .8rem; padding: .65rem 0; border-bottom: 1px solid var(--filet); font-size: .88rem; align-items: baseline; }
+  .verdict li:last-child { border-bottom: 0; }
+  .verdict li b { font-weight: 600; }
+  .verdict-pied { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: space-between; padding: .9rem 1.2rem; background: var(--fond-2); border-top: 1px solid var(--filet); font-size: .85rem; color: var(--encre-2); }
+  @media (max-width: 30rem) { .verdict li { grid-template-columns: 1fr; gap: .1rem; } .verdict-tete { grid-template-columns: 1fr; } }
+
+  /* Déposer n'importe où sur la page */
+  #voile { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(214, 41, 23, .93); color: #fff;
+    font-weight: 600; font-size: clamp(1.5rem, 4vw, 2.4rem); letter-spacing: -.03em; text-align: center; padding: 2rem; }
+  #voile[hidden] { display: none; }
+  #voile span { border: 2px dashed rgba(255,255,255,.7); border-radius: 22px; padding: 2.5rem 3rem; }
+
+  /* Bandeau rouge */
+  .bandeau { background: var(--rouge); color: #fff; }
+  .bandeau .contenu { padding-top: 1.15rem; padding-bottom: 1.15rem; font-size: 1.02rem; text-align: center; text-wrap: balance; }
+  .bandeau b { font-weight: 600; }
+  #audit { padding-top: 2.5rem; } #audit .fiche { margin-top: 0; }
+  .precision .grand { color: var(--rouge); }
+
+  /* ----- Essai ----- */
+  .bloc { border-top: 1px solid var(--filet); padding: 4.5rem 0; }
+  .bloc-tete { margin-bottom: 2.2rem; }
+  .bloc-tete h2 { max-width: calc(50% - 1.5rem); }
+  @media (max-width: 52rem) { .bloc-tete h2 { max-width: none; } }
+  .bloc-tete h2 { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
+  .bloc-sous { margin: .9rem 0 0; color: var(--encre-2); font-size: 1.05rem; }
+  @media (min-width: 64rem) { .bloc-sous { white-space: nowrap; } }
+
+  .exemples { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline; color: var(--encre-2); font-size: .875rem; }
+  .exemples button { font: 500 .875rem/1.4 "Archivo", sans-serif; background: none; border: 0; padding: 0; color: var(--encre); cursor: pointer;
+    text-decoration: underline; text-decoration-color: var(--filet-fort); text-underline-offset: 3px; }
+  .exemples button:hover { text-decoration-color: var(--encre); }
+  .confidentiel { margin: .6rem 0 0; font-size: .8rem; color: var(--encre-3); }
+  .partage { margin-top: 1rem; border: 1px solid var(--filet); border-radius: 12px; padding: .85rem 1rem; display: grid; gap: .4rem; }
+  .partage[hidden] { display: none; }
+  .partage label { display: flex; gap: .65rem; align-items: flex-start; font-size: .88rem; color: var(--encre-2); line-height: 1.45; cursor: pointer; }
+  .partage input { margin: .18rem 0 0; width: 1.05rem; height: 1.05rem; accent-color: var(--rouge); flex: none; }
+  .partage b { color: var(--encre); font-weight: 600; }
+  .partage-etat { margin: 0; font-size: .8rem; color: var(--encre-3); padding-left: 1.7rem; }
+  .partage-etat:empty { display: none; }
+  .erreur { margin-top: 1.25rem; border: 1px solid color-mix(in srgb, var(--alerte) 35%, transparent); background: color-mix(in srgb, var(--alerte) 6%, var(--fond)); padding: .9rem 1rem; border-radius: 10px; font-size: .95rem; }
+
+  /* ----- Vérifications : un tableau, pas des cartes ----- */
+  .mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+  .mc { border: 1px solid var(--filet); border-radius: 12px; padding: 1.1rem 1.2rem 1.15rem; }
+  .mc-n { display: block; font-weight: 600; font-size: 1.9rem; line-height: 1; letter-spacing: -.045em; color: var(--rouge); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mc h3 { margin: .7rem 0 .25rem; font-weight: 600; font-size: .95rem; letter-spacing: -.01em; }
+  .mc p { margin: 0; font-size: .85rem; line-height: 1.45; color: var(--encre-2); }
+  @media (max-width: 52rem) { .mini { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 34rem) { .mini { grid-template-columns: 1fr; } }
+  .verifs { border-top: 1px solid var(--encre); }
+  .verif { display: grid; grid-template-columns: 11rem minmax(0, 1.25fr) minmax(0, 1fr); gap: 2rem; padding: 1.35rem 0; border-bottom: 1px solid var(--filet); align-items: baseline; }
+  .verif h3 { margin: 0; font-weight: 600; font-size: 1.05rem; letter-spacing: -.015em; }
+  .verif p { margin: 0; color: var(--encre-2); font-size: .95rem; }
+  .verif .constat { font-size: .85rem; color: var(--encre); display: flex; gap: .55rem; align-items: baseline; }
+  .verif .constat::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: var(--danger); transform: translateY(-.05rem); }
+  @media (max-width: 52rem) { .verif { grid-template-columns: 1fr; gap: .35rem; } }
+  .cmp { border-top: 1px solid var(--encre); }
+  .cmp-l { display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--filet); }
+  .cmp-l > div { padding: 1.05rem 1rem 1.05rem 0; }
+  .cmp-tete > div { font-size: .8rem; color: var(--encre-2); padding: .9rem 1rem .9rem 0; }
+  .cmp-tete .nous { color: var(--rouge); font-weight: 600; }
+  .cmp-q { font-weight: 600; letter-spacing: -.01em; }
+  .cmp-c { display: flex; gap: .6rem; align-items: baseline; font-size: .9rem; color: var(--encre-2); }
+  .cmp-c::before { flex: none; width: 1.15rem; height: 1.15rem; border-radius: 50%; display: inline-grid; place-items: center; font-size: .72rem; font-weight: 700; transform: translateY(.15rem); }
+  .cmp-c.oui::before { content: "✓"; background: var(--encre); color: var(--fond); }
+  .cmp-c.non::before { content: "✕"; background: var(--fond-2); color: var(--encre-3); }
+  .cmp-c.partiel::before { content: "~"; background: var(--fond-2); color: var(--encre-2); }
+  .cmp-c.nous { color: var(--encre); font-weight: 500; }
+  .cmp-lib { display: none; font-size: .72rem; color: var(--encre-3); font-weight: 400; }
+  .cmp-c.nous.oui::before { background: var(--rouge); color: #fff; }
+  .cmp-l > .nous { background: color-mix(in srgb, var(--rouge) 5%, transparent); padding-left: 1rem; }
+  @media (max-width: 52rem) {
+    .cmp-tete { display: none; }
+    .cmp-l { grid-template-columns: 1fr; padding: 1rem 0; }
+    .cmp-l > div { padding: .25rem 0; }
+    .cmp-l > .nous { padding: .5rem .7rem; border-radius: 8px; margin-top: .3rem; }
+    .cmp-lib { display: block; }
+  }
+
+  /* ----- Précision ----- */
+  .precision { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: end; }
+  .precision .grand { font-weight: 600; font-size: clamp(4.5rem, 12vw, 9rem); letter-spacing: -.06em; line-height: .9; font-variant-numeric: tabular-nums; }
+  .precision .grand + p { margin: 1.7rem 0 0; color: var(--encre-2); max-width: 28rem; }
+  .faits { border-top: 1px solid var(--encre); }
+  .fait { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--filet); align-items: baseline; }
+  .fait b { font-weight: 600; font-size: 1.3rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .fait span { color: var(--encre-2); font-size: .9rem; }
+  @media (max-width: 52rem) { .precision { grid-template-columns: 1fr; gap: 2rem; } }
+
+  /* ----- Étapes ----- */
+  .etapes { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+  .etapes h3 { font-weight: 600; font-size: 1.05rem; letter-spacing: -.015em; margin: 0 0 1rem; padding-bottom: .8rem; border-bottom: 1px solid var(--encre); }
+  .etapes ol { list-style: none; counter-reset: e; margin: 0; padding: 0; }
+  .etapes li { counter-increment: e; display: grid; grid-template-columns: 1.6rem 1fr; padding: .7rem 0; border-bottom: 1px solid var(--filet); color: var(--encre-2); font-size: .93rem; }
+  .etapes li::before { content: counter(e); color: var(--encre); font-weight: 500; font-variant-numeric: tabular-nums; }
+  @media (max-width: 52rem) { .etapes { grid-template-columns: 1fr; gap: 2.5rem; } }
+
+  /* ----- Offre ----- */
+  .offre { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; align-items: center; }
+  .offre h2 { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0 0 1rem; text-wrap: balance; }
+  .offre .texte > p { color: var(--encre-2); margin: 0 0 1.6rem; max-width: 30rem; }
+  .offre .prix { display: flex; align-items: baseline; gap: .6rem; margin-bottom: 1.4rem; }
+  .offre .prix b { font-weight: 600; font-size: 3.25rem; letter-spacing: -.05em; line-height: 1; }
+  .offre .prix span { color: var(--encre-2); font-size: .95rem; }
+  .offre ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--encre); }
+  .offre li { padding: .85rem 0; border-bottom: 1px solid var(--filet); font-size: .95rem; }
+  @media (max-width: 52rem) { .offre { grid-template-columns: 1fr; gap: 2rem; } }
+
+  .titre-bloc { font-weight: 600; font-size: clamp(1.75rem, 3.2vw, 2.6rem); line-height: 1.08; letter-spacing: -.035em; margin: 0 0 1.5rem; text-wrap: balance; }
+  footer { border-top: 1px solid var(--filet); padding: 2.5rem 0 3.5rem; font-size: .8rem; color: var(--encre-3); }
+  footer .contenu { display: grid; grid-template-columns: 10rem 1fr; gap: 1rem 3rem; }
+  footer .logo { height: 1.2rem; opacity: .9; }
+  footer p { margin: 0 0 .6rem; max-width: 50rem; }
+  @media (max-width: 40rem) { footer .contenu { grid-template-columns: 1fr; } }
+
+  /* ----- La fiche de résultat ----- */
+  #resultat:empty { display: none; }
+  .fiche { margin-top: 2rem; border: 1px solid var(--filet); border-radius: 14px; background: var(--fond); padding: 1.6rem 1.5rem 1.8rem; position: relative; overflow: hidden;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02), 0 24px 48px -32px rgba(0,0,0,.25); }
+  .fiche-tete { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: start; }
+  .fiche-tete h2 { font-weight: 600; letter-spacing: -.03em; font-size: 1.6rem; margin: 0 0 .25rem; overflow-wrap: anywhere; }
+  .fiche-tete .meta { color: var(--encre-2); font-size: .875rem; font-variant-numeric: tabular-nums; }
+  .tampon { --c: var(--inconnu); font: 700 clamp(.95rem, 2.4vw, 1.2rem)/1.05 "Archivo", sans-serif; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--c); border: 2px solid var(--c); border-radius: 7px; padding: .45rem .75rem .4rem; text-align: center;
+    transform: rotate(-4deg); margin: .4rem .2rem 0 0; white-space: nowrap; opacity: 0; }
+  .tampon small { display: block; font-weight: 500; text-transform: none; letter-spacing: 0; font-size: .58em; margin-top: .2rem; opacity: .8; }
+  .tampon.pose { animation: poser .4s cubic-bezier(.2,1.5,.4,1) forwards; }
+  @keyframes poser { from { opacity: 0; transform: rotate(-10deg) scale(1.4); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .tampon.pose { animation: none; opacity: 1; } }
+  .tampon.eleve { --c: var(--alerte); } .tampon.moyen { --c: var(--attention); } .tampon.faible { --c: var(--ok); }
+  .prop { margin: 1.25rem 0 1.5rem; padding: .8rem 1rem; border-radius: 9px; background: var(--fond-2); font-weight: 500; font-size: .92rem; }
+  .prop .oui { color: var(--ok); } .prop .non { color: var(--alerte); }
+  .lignes { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--encre); }
+  .ligne { border-bottom: 1px solid var(--filet); }
+  .ligne details summary, .ligne .simple { list-style: none; display: grid; grid-template-columns: 8.5rem 1fr; gap: 1rem; padding: .95rem 0; align-items: baseline; }
+  .ligne details summary { cursor: pointer; }
+  .ligne details summary::-webkit-details-marker { display: none; }
+  .statut { font: 500 .8rem/1.3 "Archivo", sans-serif; display: inline-flex; align-items: baseline; gap: .45rem; }
+  .statut::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; transform: translateY(-.05rem); }
+  .statut.ok { color: var(--ok); } .statut.attention { color: var(--attention); } .statut.alerte { color: var(--alerte); } .statut.inconnu { color: var(--inconnu); }
+  .ligne h3 { margin: 0; font: 600 .95rem/1.35 "Archivo", sans-serif; letter-spacing: -.01em; }
+  .ligne .resume { margin: .2rem 0 0; color: var(--encre-2); font-size: .9rem; }
+  .ligne .detail { padding: 0 0 1rem 9.5rem; font-size: .88rem; color: var(--encre-2); }
+  .ligne .detail ul { margin: .25rem 0; padding-left: 1.1rem; }
+  .ligne summary:hover h3 { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--filet-fort); }
+  .notes-100 { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 1.4rem 0 0; border-top: 1px solid var(--filet); border-bottom: 1px solid var(--filet); }
+  .note-bloc { padding: 1rem 0; --c: var(--inconnu); }
+  .note-bloc + .note-bloc { border-left: 1px solid var(--filet); padding-left: 1.25rem; }
+  .note-bloc.bon { --c: var(--ok); } .note-bloc.moyen { --c: var(--attention); } .note-bloc.faible { --c: var(--alerte); }
+  .note-bloc summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto 1fr; gap: .1rem .9rem; align-items: baseline; }
+  .note-bloc summary::-webkit-details-marker { display: none; }
+  .note-chiffre { grid-row: span 2; font-weight: 600; letter-spacing: -.05em; font-size: 2.6rem; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
+  .note-chiffre small { font-size: .34em; font-weight: 500; color: var(--encre-2); margin-left: .1rem; letter-spacing: 0; }
+  .note-nom { font: 600 .95rem/1.3 "Archivo", sans-serif; }
+  .note-sous { color: var(--encre-2); font-size: .82rem; line-height: 1.35; }
+  .note-detail { margin: .8rem 1rem 0 0; padding: 0; list-style: none; font-size: .82rem; }
+  .note-detail li { display: flex; justify-content: space-between; gap: 1rem; padding: .3rem 0; border-top: 1px solid var(--filet); }
+  .note-detail b { font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .partie { margin-top: 2.2rem; }
+  .partie > h3 { font-weight: 600; letter-spacing: -.02em; font-size: 1.15rem; margin: 0 0 .35rem; }
+  .partie > p.intro { margin: 0 0 .8rem; color: var(--encre-2); font-size: .88rem; }
+  .table-defile { overflow-x: auto; border-top: 1px solid var(--encre); }
+  table.challenges { width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
+  table.challenges th, table.challenges td { text-align: left; padding: .65rem .5rem .65rem 0; border-bottom: 1px solid var(--filet); vertical-align: top; }
+  table.challenges th { font: 500 .75rem/1.3 "Archivo", sans-serif; color: var(--encre-2); }
+  table.challenges td.chiffre { font-weight: 600; font-size: 1rem; white-space: nowrap; }
+  table.challenges td small { display: block; font: 400 .75rem/1.35 "Archivo", sans-serif; color: var(--encre-2); }
+  .haut { color: var(--ok); } .milieu { color: var(--attention); } .bas { color: var(--alerte); }
+  .remarques { margin: .8rem 0 0; padding-left: 1.1rem; font-size: .82rem; color: var(--encre-2); }
+  .remarques li { margin-bottom: .25rem; }
+  .notes { margin-top: 1.5rem; font-size: .85rem; color: var(--encre-2); }
+  .notes p { margin: .3rem 0; }
+  .depot-signal { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .5rem; }
+  .depot-signal input { font: inherit; width: 9rem; padding: .45rem .65rem; border: 1px solid var(--filet-fort); border-radius: 8px; background: var(--fond); color: var(--encre); }
+  .depot-signal button { font: 500 .85rem/1 "Archivo", sans-serif; padding: .55rem .9rem; border: 0; border-radius: 8px; background: var(--encre); color: var(--fond); cursor: pointer; }
+  @media (max-width: 40rem) {
+    .fiche { padding: 1.2rem 1rem 1.4rem; }
+    .fiche-tete { grid-template-columns: 1fr; } .tampon { justify-self: start; }
+    .ligne details summary, .ligne .simple { grid-template-columns: 1fr; gap: .25rem; }
+    .ligne .detail { padding-left: 0; }
+    .notes-100 { grid-template-columns: 1fr; } .note-bloc + .note-bloc { border-left: 0; padding-left: 0; border-top: 1px solid var(--filet); }
+    table.challenges thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    table.challenges tr { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem 1rem; padding: .8rem 0; border-bottom: 1px solid var(--filet); }
+    table.challenges td { display: block; padding: 0; border: 0; }
+    table.challenges td:first-child, table.challenges td:nth-child(2) { grid-column: 1 / -1; }
+    table.challenges td[data-l]::before { content: attr(data-l); display: block; font: 400 .74rem/1.3 "Archivo", sans-serif; color: var(--encre-2); }
+  }
+
+  /* ---- Coulisses : carrousel des 6 vérifications (texte à gauche, figure du principe à droite) ---- */
+  .cl { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "fen fleche" "bas bas" "note note"; column-gap: 1.75rem; margin-top: 2.6rem; }
+  .cl-fenetre { grid-area: fen; overflow: hidden; border-top: 1px solid var(--encre); touch-action: pan-y; }
+  .cl-piste { display: flex; transition: transform .75s cubic-bezier(.65, 0, .25, 1); will-change: transform; }
+  .cl-diapo { flex: 0 0 100%; min-width: 0; overflow: hidden; display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 4rem; align-items: center; padding: 2.8rem 0 2.6rem; }
+  .cl-texte h3 { font-stretch: 72%; font-weight: 750; font-size: clamp(1.5rem, 2.5vw, 2.05rem); line-height: 1.06; letter-spacing: -.005em; margin: 0 0 1.1rem; text-wrap: balance; }
+  .cl-phrase { font-size: 1.08rem; line-height: 1.62; margin: 0 0 1.7rem; max-width: 31rem; text-wrap: pretty; }
+  .cl-calcul { font-size: .875rem; line-height: 1.62; color: var(--encre-2); margin: 0; padding-top: 1rem; border-top: 1px solid var(--filet); max-width: 31rem; text-wrap: pretty; }
+  .cl-calcul span:first-child { color: var(--encre); font-weight: 600; }
+  .cl-figure { margin: 0; }
+  .cl-figure svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .cl-suivant { grid-area: fleche; align-self: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+    background: var(--fond); color: var(--encre); border: 1px solid var(--filet-fort); transition: border-color .2s, transform .2s cubic-bezier(.2, .8, .2, 1); }
+  .cl-suivant:hover { border-color: var(--encre); transform: translateX(3px); }
+  .cl-bas { grid-area: bas; display: flex; align-items: center; gap: 1.25rem; padding-top: .9rem; border-top: 1px solid var(--filet); }
+  .cl-temps { display: flex; gap: .4rem; flex: 1; max-width: 21rem; }
+  .cl-temps button { flex: 1; height: 1.5rem; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; }
+  .cl-temps i { display: block; width: 100%; height: 2px; background: var(--filet-fort); position: relative; overflow: hidden; border-radius: 1px; }
+  .cl-temps i::after { content: ""; position: absolute; inset: 0; background: var(--encre); transform: scaleX(0); transform-origin: left; }
+  .cl-temps .vu i::after { transform: scaleX(1); }
+  .cl-temps .actif i::after { animation: cl-remplir 10s linear forwards; }
+  .cl-temps button:hover i { background: var(--encre-3); }
+  .cl:hover .cl-temps .actif i::after, .cl:focus-within .cl-temps .actif i::after, .cl.pause .cl-temps .actif i::after { animation-play-state: paused; }
+  .cl.statique .cl-temps .actif i::after { animation: none; transform: scaleX(1); }
+  .cl.statique .cl-piste { transition: none; }
+  @keyframes cl-remplir { to { transform: scaleX(1); } }
+  .cl-compte { font-size: .8rem; color: var(--encre-2); font-variant-numeric: tabular-nums; }
+  .cl-compte b { color: var(--encre); font-weight: 600; }
+  .cl-note { grid-area: note; font-size: .78rem; color: var(--encre-3); margin: .9rem 0 0; }
+
+  /* Figures : mêmes codes que la fiche PDF (noir = ce que montre le vendeur, rouge = le danger) */
+  .f-lbl { font: 400 13.5px "Archivo", system-ui, sans-serif; fill: var(--encre-2); }
+  .f-lbl-rouge { fill: var(--rouge); }
+  .f-fort { fill: var(--encre); font-weight: 600; }
+  .f-titre { font: 600 14.5px "Archivo", system-ui, sans-serif; fill: var(--encre); }
+  .f-val { font: 600 13px "Archivo", system-ui, sans-serif; fill: var(--rouge); text-anchor: middle; }
+  .f-axe { stroke: var(--filet-fort); stroke-width: 1; }
+  .f-gris, .f-barres-sain rect { fill: var(--encre-3); }
+  .f-rouge, .f-barres-martin rect { fill: var(--rouge); }
+  .f-prix { fill: none; stroke: var(--encre); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .f-prix-suite, .f-prix-cache { fill: none; stroke: var(--encre-3); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .f-niveaux line { stroke: var(--encre-3); stroke-width: 1; stroke-dasharray: 2 4; }
+  .f-entrees circle { fill: var(--fond); stroke: var(--rouge); stroke-width: 2; }
+  .f-moyen { stroke: var(--rouge); stroke-width: 1.5; stroke-dasharray: 7 4; }
+  .f-cloture { stroke: var(--encre); stroke-width: 1; }
+  .f-entree { stroke: var(--filet-fort); stroke-width: 1; stroke-dasharray: 2 4; }
+  .f-stop { stroke: var(--encre); stroke-width: 2.2; }
+  .f-stop-virtuel { stroke: var(--encre-2); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; }
+  .f-coupure { fill: var(--fond-2); stroke: var(--filet-fort); stroke-dasharray: 3 3; }
+  .f-impact circle { fill: var(--encre); }
+  .f-impact-rouge circle { fill: var(--rouge); }
+  .f-ecart, .f-fleche { fill: none; stroke: var(--rouge); stroke-width: 1.5; }
+  .f-solde, .f-solde-ech { fill: none; stroke: var(--encre); stroke-width: 2.2; stroke-linejoin: round; }
+  .f-equite, .f-equite-ech { fill: none; stroke: var(--rouge); stroke-width: 1.4; stroke-linejoin: round; }
+  .f-creux { fill: var(--rouge); opacity: .13; }
+  .f-depart { stroke: var(--encre-3); stroke-width: 1; stroke-dasharray: 3 4; }
+  .f-objectif { stroke: var(--encre); stroke-width: 1; }
+  .f-limite { stroke: var(--rouge); stroke-width: 1; }
+  .f-faisceau path { fill: none; stroke: var(--encre-3); stroke-width: 1; opacity: .3; }
+  .f-faisceau path.perte { stroke: var(--rouge); opacity: .55; }
+  .f-vendeur { fill: none; stroke: var(--encre); stroke-width: 2.4; stroke-linejoin: round; }
+  .f-essais path { fill: none; stroke: var(--encre-3); stroke-width: 1.3; stroke-linejoin: round; }
+  .f-essais path.reussi { stroke: var(--encre); }
+  .f-essais path.elimine { stroke: var(--rouge); opacity: .75; }
+  .f-essais circle { fill: var(--encre); }
+  .f-essais .croix { stroke: var(--rouge); stroke-width: 2; stroke-linecap: round; }
+
+  /* Animations : rejouées à chaque arrivée d'une diapositive */
+  .f-trace { stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .cl-diapo.actif .f-trace { animation: f-tracer 1.7s cubic-bezier(.6, .05, .2, 1) both; }
+  .cl-diapo.actif .f-prix-suite.f-trace, .cl-diapo.actif .f-prix-cache.f-trace { animation-delay: .9s; }
+  .cl-diapo.actif .f-equite.f-trace { animation-delay: .5s; animation-duration: 2s; }
+  .cl-diapo.actif .f-vendeur.f-trace { animation-delay: .8s; }
+  .cl-diapo.actif .f-barres-martin rect, .cl-diapo.actif .f-entrees circle { transform-box: fill-box; }
+  .cl-diapo.actif .f-barres-martin rect { transform-origin: 50% 100%; animation: f-pousser .65s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.25s + var(--i) * .15s); }
+  .cl-diapo.actif .f-entrees circle { transform-origin: center; animation: f-poser .45s cubic-bezier(.2, 1.6, .4, 1) both; animation-delay: calc(.35s + var(--i) * .24s); }
+  .cl-diapo.actif .f-niveaux line { animation: f-fondu .5s ease both; animation-delay: calc(.45s + var(--i) * .24s); }
+  .cl-diapo.actif :is(.f-valeurs, .f-moyen, .f-cloture, .f-creux, .f-ecart, .f-fleche, .f-impact, .f-lbl-rouge, .f-vendeur-lbl) { animation: f-fondu .5s ease 1.5s both; }
+  .cl-diapo.actif .f-faisceau { animation: f-fondu .9s ease both; }
+  .cl-diapo.actif .f-essais g { animation: f-fondu .4s ease both; animation-delay: calc(.2s + var(--i) * .08s); }
+  @keyframes f-tracer { from { stroke-dashoffset: 1; } }
+  @keyframes f-pousser { from { transform: scaleY(0); } }
+  @keyframes f-poser { from { transform: scale(0); } }
+  @keyframes f-fondu { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .cl-diapo.actif * { animation: none !important; } }
+
+  @media (max-width: 56rem) {
+    .cl { grid-template-areas: "fen fen" "bas fleche" "note note"; column-gap: 1rem; }
+    .cl-diapo { grid-template-columns: minmax(0, 1fr); gap: 1.8rem; padding: 2rem 0 1.6rem; }
+    .cl-bas { border-top: 0; padding-top: 0; }
+    .cl-suivant { margin-top: 0; }
+    .f-lbl { font-size: 15.5px; } .f-titre { font-size: 16.5px; } .f-val { font-size: 15px; }
+    .f-mobile-non { display: none; }
+  }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
+</style>
+<!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
+<script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://mantalab-ea.github.io/#mantalab","name":"MantaLab","url":"https://mantalab-ea.github.io/","logo":"https://mantalab-ea.github.io/marque/mantalab-logo.png"},{"@type":"WebSite","@id":"https://mantalab-ea.github.io/#site","name":"MantaLab","url":"https://mantalab-ea.github.io/","inLanguage":["fr","en"],"publisher":{"@id":"https://mantalab-ea.github.io/#mantalab"}},{"@type":"WebApplication","name":"MantaLab MT5 report checker","url":"https://mantalab-ea.github.io/en/","applicationCategory":"FinanceApplication","operatingSystem":"Web browser","inLanguage":"en","isAccessibleForFree":true,"description":"Free in-browser analysis of a MetaTrader 5 strategy tester report: detects martingale, grid / averaging down, missing stop-losses, ultra-short trades and prop firm rule breaches. The file never leaves the computer.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"publisher":{"@id":"https://mantalab-ea.github.io/#mantalab"}}]}</script>
+</head>
+<body>
+<div id="voile" hidden><span data-t="voile">Drop the file to analyse it</span></div>
+<header class="barre">
+  <div class="contenu">
+    <a class="marque" href="#haut" aria-label="MantaLab"><img class="logo logo-clair" src="/marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="/marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"></a>
+    <nav class="liens" aria-label="Sections">
+      <a href="#haut" data-t="nav_essai">Check a robot</a>
+      <a href="#verifs" data-t="nav_verifs">Checks</a>
+      <a href="#precision" data-t="nav_precision">Accuracy</a>
+      <a href="methode.html" data-t="nav_methode">Method</a>
+      <a href="#offre" data-t="nav_offre">Pricing</a>
+    </nav>
+    <div class="droite">
+      <div class="langue" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" aria-pressed="false">FR</button>
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      </div>
+      <a class="bouton petit" href="commande.html"><span class="long" data-t="nav_cta">Get a robot audited</span><span class="court" data-t="nav_cta_court">€19 audit</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="haut">
+  <div class="contenu">
+    <section class="heros machine">
+      <div class="gauche">
+        <h1 data-t="titre">Is this robot hiding a martingale?</h1>
+        <p class="sous" data-t="sous_titre">Drop its test report or its signal history. In seconds you know what it really does: martingale, grid, stops, hidden losses.</p>
+        <label class="depot" id="depot">
+          <span class="icone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4"/></svg></span>
+          <strong data-t="depot_titre">Drop a test report (.html) or a signal history (.csv)</strong>
+          <small><span class="bureau" data-t="depot_aide">Drop it anywhere on the page, or pick it.</span><span class="tactile" data-t="depot_aide_tactile">Tap to pick the file on your phone.</span></small>
+          <span class="faux-bouton" aria-hidden="true" data-t="depot_bouton">Choose a file</span>
+          <input type="file" id="fichier" accept=".htm,.html,.csv" aria-describedby="confidentiel">
+        </label>
+        <div class="exemples">
+          <span data-t="exemples">No file at hand? See an example:</span>
+          <button type="button" data-exemple="martingale" data-t="ex_martingale">a martingale robot</button>
+          <button type="button" data-exemple="grille" data-t="ex_grille">a grid robot</button>
+          <button type="button" data-exemple="propre" data-t="ex_propre">a clean robot</button>
+        </div>
+        <p class="confidentiel" id="confidentiel" data-t="confidentiel">Free, no sign-up. The file is read in your browser: it is not sent anywhere unless you choose to share the results.</p>
+        <div id="erreur" class="erreur" role="alert" hidden></div>
+        <div class="partage" id="partage" hidden>
+          <label><input type="checkbox" id="partage-case"><span data-h="partage_texte"><b>Share these results anonymously</b> to improve the MantaLab database: trades and measures only, without your name, account number or broker.</span></label>
+          <p class="partage-etat" id="partage-etat" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="droite" id="apercu" aria-live="polite">
+        <div id="apercu-exemple">
+          <p class="etiquette" data-t="apercu_exemple">Example: what the audit sees and the seller doesn't show</p>
+          <figure class="preuve">
+            <div class="preuve-tete"><span data-h="g_tete"><b>Lab martingale robot</b>, GBPUSD</span><span data-t="g_periode">Nov 2025 – Nov 2026</span></div>
+            <div class="preuve-chiffres">
+              <div><span data-t="g_l1">One-year result</span><b data-t="g_v1">+69.7%</b></div>
+              <div><span data-t="g_l2">Worst balance drop</span><b data-t="g_v2">−10.9%</b></div>
+              <div class="rouge"><span data-t="g_l3">Worst equity drop</span><b data-t="g_v3">−20.0%</b></div>
+            </div>
+            <div class="legende"><span class="l-solde" data-t="g_solde">Balance: what the seller shows</span><span class="l-equite" data-t="g_equite">Equity: money actually at risk</span></div>
+            <div class="graphe">
+              <span class="tampon-mini" data-t="g_tampon">High risk</span>
+              <svg viewBox="0 0 560 268" role="img" aria-labelledby="graphe-titre">
+              <title id="graphe-titre" data-t="g_alt">A martingale robot's curve: the balance rises steadily while equity drops to −20% with losses left open.</title>
+              <line class="base" x1="8" x2="552" y1="201.2" y2="201.2"/>
+              <text x="552" y="215.2" text-anchor="end" data-t="g_depot">deposit</text>
+              <path class="zone-cachee apparait" d="M8.0 199.0 L10.1 198.1 L12.2 198.3 L14.3 219.2 L16.4 185.1 L18.5 185.8 L20.6 183.6 L22.6 183.1 L24.7 182.2 L26.8 179.8 L28.9 177.9 L31.0 177.7 L33.1 181.4 L35.2 178.1 L37.3 176.6 L39.4 175.8 L41.5 177.7 L43.6 175.6 L45.7 180.5 L47.8 174.3 L49.8 195.5 L51.9 168.2 L54.0 167.8 L56.1 165.5 L58.2 168.2 L60.3 168.2 L62.4 168.2 L64.5 169.8 L66.6 167.7 L68.7 166.0 L70.8 166.0 L72.9 165.7 L75.0 164.2 L77.0 162.2 L79.1 161.3 L81.2 160.8 L83.3 160.1 L85.4 161.3 L87.5 167.7 L89.6 163.8 L91.7 165.8 L93.8 173.1 L95.9 161.4 L98.0 160.7 L100.1 159.8 L102.2 159.8 L104.2 160.1 L106.3 156.5 L108.4 151.8 L110.5 150.1 L112.6 150.5 L114.7 146.3 L116.8 150.0 L118.9 144.8 L121.0 142.6 L123.1 140.5 L125.2 139.7 L127.3 137.4 L129.4 136.4 L131.4 134.7 L133.5 136.8 L135.6 135.6 L137.7 135.8 L139.8 128.9 L141.9 126.2 L144.0 125.7 L146.1 123.9 L148.2 124.4 L150.3 129.3 L152.4 133.5 L154.5 119.1 L156.6 119.5 L158.6 115.3 L160.7 112.8 L162.8 112.9 L164.9 114.0 L167.0 120.3 L169.1 110.4 L171.2 107.2 L173.3 114.1 L175.4 124.0 L177.5 107.3 L179.6 106.5 L181.7 104.5 L183.8 104.4 L185.8 99.8 L187.9 101.0 L190.0 96.3 L192.1 95.1 L194.2 94.8 L196.3 91.3 L198.4 89.3 L200.5 87.4 L202.6 85.1 L204.7 84.6 L206.8 84.6 L208.9 83.7 L211.0 81.7 L213.0 82.5 L215.1 77.3 L217.2 74.4 L219.3 74.8 L221.4 73.2 L223.5 70.3 L225.6 70.5 L227.7 69.1 L229.8 67.9 L231.9 65.3 L234.0 65.7 L236.1 63.9 L238.2 61.8 L240.2 60.7 L242.3 60.6 L244.4 58.4 L246.5 58.0 L248.6 58.1 L250.7 63.7 L252.8 49.6 L254.9 51.7 L257.0 48.6 L259.1 46.8 L261.2 45.9 L263.3 44.5 L265.4 43.4 L267.4 46.4 L269.5 39.1 L271.6 40.8 L273.7 44.9 L275.8 40.9 L277.9 40.1 L280.0 38.2 L282.1 38.4 L284.2 41.6 L286.3 46.6 L288.4 57.2 L290.5 38.3 L292.6 42.4 L294.6 42.4 L296.7 41.8 L298.8 41.3 L300.9 43.3 L303.0 39.2 L305.1 40.0 L307.2 39.5 L309.3 39.6 L311.4 35.4 L313.5 35.4 L315.6 34.1 L317.7 33.4 L319.8 31.7 L321.8 29.2 L323.9 30.1 L326.0 28.3 L328.1 27.9 L330.2 28.8 L332.3 25.9 L334.4 26.0 L336.5 25.0 L338.6 25.9 L340.7 36.0 L342.8 22.5 L344.9 22.1 L347.0 26.0 L349.0 19.3 L351.1 17.0 L353.2 16.4 L355.3 15.2 L357.4 14.3 L359.5 14.2 L361.6 11.2 L363.7 13.9 L365.8 10.8 L367.9 9.7 L370.0 11.7 L372.1 11.5 L374.2 10.2 L376.2 10.0 L378.3 21.0 L380.4 21.0 L382.5 20.1 L384.6 20.2 L386.7 26.1 L388.8 24.0 L390.9 26.3 L393.0 39.5 L395.1 17.4 L397.2 18.0 L399.3 21.9 L401.4 18.1 L403.4 17.4 L405.5 15.5 L407.6 14.4 L409.7 13.1 L411.8 14.8 L413.9 11.3 L416.0 11.1 L418.1 10.1 L420.2 8.0 L422.3 8.3 L424.4 22.3 L426.5 19.8 L428.6 19.1 L430.6 21.0 L432.7 18.3 L434.8 17.4 L436.9 15.0 L439.0 15.8 L441.1 17.2 L443.2 16.0 L445.3 14.2 L447.4 14.1 L449.5 12.0 L451.6 30.0 L453.7 55.3 L455.8 54.4 L457.8 56.2 L459.9 53.5 L462.0 54.3 L464.1 54.7 L466.2 53.1 L468.3 52.9 L470.4 52.6 L472.5 56.3 L474.6 49.7 L476.7 47.8 L478.8 46.6 L480.9 45.4 L483.0 44.6 L485.0 43.3 L487.1 42.5 L489.2 44.3 L491.3 44.2 L493.4 46.0 L495.5 45.5 L497.6 45.1 L499.7 44.2 L501.8 44.1 L503.9 45.4 L506.0 42.2 L508.1 44.7 L510.2 33.7 L512.2 32.1 L514.3 29.7 L516.4 30.4 L518.5 32.0 L520.6 37.6 L522.7 22.8 L524.8 22.3 L526.9 22.8 L529.0 22.4 L531.1 21.5 L533.2 21.0 L535.3 20.9 L537.4 17.1 L539.4 17.6 L541.5 16.2 L543.6 15.8 L545.7 16.0 L547.8 15.5 L549.9 12.4 L552.0 13.1 L552.0 16.4 L549.9 26.9 L547.8 16.1 L545.7 17.1 L543.6 16.6 L541.5 17.6 L539.4 20.7 L537.4 20.9 L535.3 22.4 L533.2 25.0 L531.1 23.5 L529.0 24.6 L526.9 24.1 L524.8 23.3 L522.7 67.1 L520.6 50.0 L518.5 37.4 L516.4 32.7 L514.3 32.1 L512.2 33.9 L510.2 74.1 L508.1 51.7 L506.0 49.5 L503.9 48.9 L501.8 44.9 L499.7 45.9 L497.6 45.6 L495.5 50.6 L493.4 46.5 L491.3 60.1 L489.2 46.6 L487.1 48.5 L485.0 44.6 L483.0 48.1 L480.9 46.9 L478.8 49.1 L476.7 50.5 L474.6 58.4 L472.5 62.8 L470.4 53.5 L468.3 53.7 L466.2 61.7 L464.1 55.0 L462.0 55.2 L459.9 57.3 L457.8 57.0 L455.8 56.0 L453.7 55.6 L451.6 47.9 L449.5 15.2 L447.4 14.3 L445.3 16.6 L443.2 18.0 L441.1 19.7 L439.0 17.0 L436.9 17.8 L434.8 18.6 L432.7 21.6 L430.6 21.6 L428.6 20.7 L426.5 39.5 L424.4 24.0 L422.3 8.6 L420.2 12.3 L418.1 13.9 L416.0 11.7 L413.9 16.9 L411.8 16.3 L409.7 15.2 L407.6 16.1 L405.5 17.4 L403.4 18.8 L401.4 21.9 L399.3 23.4 L397.2 19.1 L395.1 39.5 L393.0 43.6 L390.9 26.8 L388.8 26.1 L386.7 27.6 L384.6 21.1 L382.5 21.4 L380.4 28.8 L378.3 23.4 L376.2 10.7 L374.2 12.0 L372.1 13.6 L370.0 12.2 L367.9 12.4 L365.8 15.6 L363.7 15.1 L361.6 19.6 L359.5 14.8 L357.4 17.3 L355.3 17.3 L353.2 17.4 L351.1 19.5 L349.0 27.7 L347.0 26.6 L344.9 23.4 L342.8 54.0 L340.7 48.1 L338.6 28.6 L336.5 26.6 L334.4 26.5 L332.3 28.8 L330.2 29.6 L328.1 31.7 L326.0 33.5 L323.9 30.9 L321.8 32.7 L319.8 34.5 L317.7 34.6 L315.6 39.0 L313.5 36.3 L311.4 39.6 L309.3 40.1 L307.2 43.6 L305.1 40.4 L303.0 43.3 L300.9 43.4 L298.8 43.1 L296.7 43.7 L294.6 43.2 L292.6 44.2 L290.5 68.4 L288.4 70.2 L286.3 48.0 L284.2 43.9 L282.1 39.7 L280.0 40.7 L277.9 41.6 L275.8 50.3 L273.7 51.8 L271.6 41.9 L269.5 46.4 L267.4 50.7 L265.4 45.2 L263.3 46.7 L261.2 47.3 L259.1 53.2 L257.0 55.7 L254.9 54.5 L252.8 78.5 L250.7 64.4 L248.6 59.7 L246.5 59.7 L244.4 63.4 L242.3 61.6 L240.2 62.5 L238.2 64.8 L236.1 65.9 L234.0 66.9 L231.9 71.6 L229.8 69.3 L227.7 71.7 L225.6 70.7 L223.5 73.9 L221.4 75.0 L219.3 75.6 L217.2 77.7 L215.1 85.0 L213.0 82.5 L211.0 84.6 L208.9 88.9 L206.8 86.1 L204.7 88.2 L202.6 89.5 L200.5 89.3 L198.4 92.0 L196.3 96.7 L194.2 96.2 L192.1 96.4 L190.0 101.2 L187.9 103.3 L185.8 106.8 L183.8 106.4 L181.7 107.2 L179.6 111.2 L177.5 129.6 L175.4 127.8 L173.3 114.8 L171.2 110.4 L169.1 120.3 L167.0 124.0 L164.9 117.7 L162.8 114.2 L160.7 119.2 L158.6 119.5 L156.6 121.5 L154.5 133.5 L152.4 134.3 L150.3 134.1 L148.2 125.9 L146.1 126.0 L144.0 127.7 L141.9 130.0 L139.8 156.1 L137.7 137.7 L135.6 141.2 L133.5 139.7 L131.4 137.1 L129.4 138.3 L127.3 140.0 L125.2 141.0 L123.1 144.4 L121.0 146.7 L118.9 150.0 L116.8 153.1 L114.7 154.1 L112.6 153.3 L110.5 152.3 L108.4 156.5 L106.3 160.1 L104.2 160.2 L102.2 160.1 L100.1 163.7 L98.0 162.5 L95.9 202.9 L93.8 175.0 L91.7 168.1 L89.6 174.6 L87.5 174.1 L85.4 164.2 L83.3 161.7 L81.2 161.8 L79.1 162.5 L77.0 164.4 L75.0 172.6 L72.9 166.8 L70.8 166.0 L68.7 168.7 L66.6 169.9 L64.5 176.4 L62.4 173.7 L60.3 168.2 L58.2 169.9 L56.1 168.5 L54.0 182.8 L51.9 195.8 L49.8 205.4 L47.8 183.4 L45.7 186.1 L43.6 187.7 L41.5 180.1 L39.4 176.9 L37.3 178.3 L35.2 192.6 L33.1 185.6 L31.0 178.5 L28.9 180.4 L26.8 182.3 L24.7 183.5 L22.6 184.4 L20.6 185.8 L18.5 186.3 L16.4 241.4 L14.3 252.0 L12.2 199.9 L10.1 199.8 L8.0 201.8 Z"/>
+              <path class="equite trace" pathLength="1" d="M8.0 201.8L10.1 199.8L12.2 199.9L14.3 252.0L16.4 241.4L18.5 186.3L20.6 185.8L22.6 184.4L24.7 183.5L26.8 182.3L28.9 180.4L31.0 178.5L33.1 185.6L35.2 192.6L37.3 178.3L39.4 176.9L41.5 180.1L43.6 187.7L45.7 186.1L47.8 183.4L49.8 205.4L51.9 195.8L54.0 182.8L56.1 168.5L58.2 169.9L60.3 168.2L62.4 173.7L64.5 176.4L66.6 169.9L68.7 168.7L70.8 166.0L72.9 166.8L75.0 172.6L77.0 164.4L79.1 162.5L81.2 161.8L83.3 161.7L85.4 164.2L87.5 174.1L89.6 174.6L91.7 168.1L93.8 175.0L95.9 202.9L98.0 162.5L100.1 163.7L102.2 160.1L104.2 160.2L106.3 160.1L108.4 156.5L110.5 152.3L112.6 153.3L114.7 154.1L116.8 153.1L118.9 150.0L121.0 146.7L123.1 144.4L125.2 141.0L127.3 140.0L129.4 138.3L131.4 137.1L133.5 139.7L135.6 141.2L137.7 137.7L139.8 156.1L141.9 130.0L144.0 127.7L146.1 126.0L148.2 125.9L150.3 134.1L152.4 134.3L154.5 133.5L156.6 121.5L158.6 119.5L160.7 119.2L162.8 114.2L164.9 117.7L167.0 124.0L169.1 120.3L171.2 110.4L173.3 114.8L175.4 127.8L177.5 129.6L179.6 111.2L181.7 107.2L183.8 106.4L185.8 106.8L187.9 103.3L190.0 101.2L192.1 96.4L194.2 96.2L196.3 96.7L198.4 92.0L200.5 89.3L202.6 89.5L204.7 88.2L206.8 86.1L208.9 88.9L211.0 84.6L213.0 82.5L215.1 85.0L217.2 77.7L219.3 75.6L221.4 75.0L223.5 73.9L225.6 70.7L227.7 71.7L229.8 69.3L231.9 71.6L234.0 66.9L236.1 65.9L238.2 64.8L240.2 62.5L242.3 61.6L244.4 63.4L246.5 59.7L248.6 59.7L250.7 64.4L252.8 78.5L254.9 54.5L257.0 55.7L259.1 53.2L261.2 47.3L263.3 46.7L265.4 45.2L267.4 50.7L269.5 46.4L271.6 41.9L273.7 51.8L275.8 50.3L277.9 41.6L280.0 40.7L282.1 39.7L284.2 43.9L286.3 48.0L288.4 70.2L290.5 68.4L292.6 44.2L294.6 43.2L296.7 43.7L298.8 43.1L300.9 43.4L303.0 43.3L305.1 40.4L307.2 43.6L309.3 40.1L311.4 39.6L313.5 36.3L315.6 39.0L317.7 34.6L319.8 34.5L321.8 32.7L323.9 30.9L326.0 33.5L328.1 31.7L330.2 29.6L332.3 28.8L334.4 26.5L336.5 26.6L338.6 28.6L340.7 48.1L342.8 54.0L344.9 23.4L347.0 26.6L349.0 27.7L351.1 19.5L353.2 17.4L355.3 17.3L357.4 17.3L359.5 14.8L361.6 19.6L363.7 15.1L365.8 15.6L367.9 12.4L370.0 12.2L372.1 13.6L374.2 12.0L376.2 10.7L378.3 23.4L380.4 28.8L382.5 21.4L384.6 21.1L386.7 27.6L388.8 26.1L390.9 26.8L393.0 43.6L395.1 39.5L397.2 19.1L399.3 23.4L401.4 21.9L403.4 18.8L405.5 17.4L407.6 16.1L409.7 15.2L411.8 16.3L413.9 16.9L416.0 11.7L418.1 13.9L420.2 12.3L422.3 8.6L424.4 24.0L426.5 39.5L428.6 20.7L430.6 21.6L432.7 21.6L434.8 18.6L436.9 17.8L439.0 17.0L441.1 19.7L443.2 18.0L445.3 16.6L447.4 14.3L449.5 15.2L451.6 47.9L453.7 55.6L455.8 56.0L457.8 57.0L459.9 57.3L462.0 55.2L464.1 55.0L466.2 61.7L468.3 53.7L470.4 53.5L472.5 62.8L474.6 58.4L476.7 50.5L478.8 49.1L480.9 46.9L483.0 48.1L485.0 44.6L487.1 48.5L489.2 46.6L491.3 60.1L493.4 46.5L495.5 50.6L497.6 45.6L499.7 45.9L501.8 44.9L503.9 48.9L506.0 49.5L508.1 51.7L510.2 74.1L512.2 33.9L514.3 32.1L516.4 32.7L518.5 37.4L520.6 50.0L522.7 67.1L524.8 23.3L526.9 24.1L529.0 24.6L531.1 23.5L533.2 25.0L535.3 22.4L537.4 20.9L539.4 20.7L541.5 17.6L543.6 16.6L545.7 17.1L547.8 16.1L549.9 26.9L552.0 16.4"/>
+              <path class="solde trace" pathLength="1" d="M8.0 199.0L10.1 198.1L12.2 198.3L14.3 219.2L16.4 185.1L18.5 185.8L20.6 183.6L22.6 183.1L24.7 182.2L26.8 179.8L28.9 177.9L31.0 177.7L33.1 181.4L35.2 178.1L37.3 176.6L39.4 175.8L41.5 177.7L43.6 175.6L45.7 180.5L47.8 174.3L49.8 195.5L51.9 168.2L54.0 167.8L56.1 165.5L58.2 168.2L60.3 168.2L62.4 168.2L64.5 169.8L66.6 167.7L68.7 166.0L70.8 166.0L72.9 165.7L75.0 164.2L77.0 162.2L79.1 161.3L81.2 160.8L83.3 160.1L85.4 161.3L87.5 167.7L89.6 163.8L91.7 165.8L93.8 173.1L95.9 161.4L98.0 160.7L100.1 159.8L102.2 159.8L104.2 160.1L106.3 156.5L108.4 151.8L110.5 150.1L112.6 150.5L114.7 146.3L116.8 150.0L118.9 144.8L121.0 142.6L123.1 140.5L125.2 139.7L127.3 137.4L129.4 136.4L131.4 134.7L133.5 136.8L135.6 135.6L137.7 135.8L139.8 128.9L141.9 126.2L144.0 125.7L146.1 123.9L148.2 124.4L150.3 129.3L152.4 133.5L154.5 119.1L156.6 119.5L158.6 115.3L160.7 112.8L162.8 112.9L164.9 114.0L167.0 120.3L169.1 110.4L171.2 107.2L173.3 114.1L175.4 124.0L177.5 107.3L179.6 106.5L181.7 104.5L183.8 104.4L185.8 99.8L187.9 101.0L190.0 96.3L192.1 95.1L194.2 94.8L196.3 91.3L198.4 89.3L200.5 87.4L202.6 85.1L204.7 84.6L206.8 84.6L208.9 83.7L211.0 81.7L213.0 82.5L215.1 77.3L217.2 74.4L219.3 74.8L221.4 73.2L223.5 70.3L225.6 70.5L227.7 69.1L229.8 67.9L231.9 65.3L234.0 65.7L236.1 63.9L238.2 61.8L240.2 60.7L242.3 60.6L244.4 58.4L246.5 58.0L248.6 58.1L250.7 63.7L252.8 49.6L254.9 51.7L257.0 48.6L259.1 46.8L261.2 45.9L263.3 44.5L265.4 43.4L267.4 46.4L269.5 39.1L271.6 40.8L273.7 44.9L275.8 40.9L277.9 40.1L280.0 38.2L282.1 38.4L284.2 41.6L286.3 46.6L288.4 57.2L290.5 38.3L292.6 42.4L294.6 42.4L296.7 41.8L298.8 41.3L300.9 43.3L303.0 39.2L305.1 40.0L307.2 39.5L309.3 39.6L311.4 35.4L313.5 35.4L315.6 34.1L317.7 33.4L319.8 31.7L321.8 29.2L323.9 30.1L326.0 28.3L328.1 27.9L330.2 28.8L332.3 25.9L334.4 26.0L336.5 25.0L338.6 25.9L340.7 36.0L342.8 22.5L344.9 22.1L347.0 26.0L349.0 19.3L351.1 17.0L353.2 16.4L355.3 15.2L357.4 14.3L359.5 14.2L361.6 11.2L363.7 13.9L365.8 10.8L367.9 9.7L370.0 11.7L372.1 11.5L374.2 10.2L376.2 10.0L378.3 21.0L380.4 21.0L382.5 20.1L384.6 20.2L386.7 26.1L388.8 24.0L390.9 26.3L393.0 39.5L395.1 17.4L397.2 18.0L399.3 21.9L401.4 18.1L403.4 17.4L405.5 15.5L407.6 14.4L409.7 13.1L411.8 14.8L413.9 11.3L416.0 11.1L418.1 10.1L420.2 8.0L422.3 8.3L424.4 22.3L426.5 19.8L428.6 19.1L430.6 21.0L432.7 18.3L434.8 17.4L436.9 15.0L439.0 15.8L441.1 17.2L443.2 16.0L445.3 14.2L447.4 14.1L449.5 12.0L451.6 30.0L453.7 55.3L455.8 54.4L457.8 56.2L459.9 53.5L462.0 54.3L464.1 54.7L466.2 53.1L468.3 52.9L470.4 52.6L472.5 56.3L474.6 49.7L476.7 47.8L478.8 46.6L480.9 45.4L483.0 44.6L485.0 43.3L487.1 42.5L489.2 44.3L491.3 44.2L493.4 46.0L495.5 45.5L497.6 45.1L499.7 44.2L501.8 44.1L503.9 45.4L506.0 42.2L508.1 44.7L510.2 33.7L512.2 32.1L514.3 29.7L516.4 30.4L518.5 32.0L520.6 37.6L522.7 22.8L524.8 22.3L526.9 22.8L529.0 22.4L531.1 21.5L533.2 21.0L535.3 20.9L537.4 17.1L539.4 17.6L541.5 16.2L543.6 15.8L545.7 16.0L547.8 15.5L549.9 12.4L552.0 13.1"/>
+              <line class="repere apparait" x1="16.4" x2="16.4" y1="185.1" y2="241.4"/>
+              <text class="t-rouge apparait" x="24.4" y="244.4" data-t="g_repere">losses still open</text>
+            </svg>
+            </div>
+            <figcaption data-t="g_legende">MantaLab lab test, equity recomputed minute by minute. A seller's report shows the balance; the audit also measures what is still open.</figcaption>
+          </figure>
+        </div>
+        <div id="apercu-verdict" hidden></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="bandeau"><div class="contenu" data-h="ia">Robot built with ChatGPT or Claude? <b>Nobody has checked it before you.</b> Drop its test report here.</div></div>
+
+  <section class="bloc" id="audit" hidden aria-label="Audit complet">
+    <div class="contenu"><div id="resultat"></div></div>
+  </section>
+
+  <section class="bloc" id="verifs" aria-labelledby="verifs-titre">
+    <div class="contenu">
+      <div class="bloc-tete">
+        <h2 id="verifs-titre" data-t="verifs_titre">What happens behind the scenes</h2>
+        <p class="bloc-sous" data-t="verifs_sous">Six checks, in plain words. The maths is right below for anyone who wants to dig in.</p>
+      </div>
+      <!-- Coulisses : 6 vérifications, une par diapositive (texte simple + calcul, figure du principe).
+           Défilement : flèche, clavier, glissé au doigt, et automatique toutes les 10 s quand la section est visible. -->
+      <div class="cl" id="coulisses" role="region" aria-roledescription="carrousel" aria-labelledby="verifs-titre">
+        <div class="cl-fenetre">
+          <div class="cl-piste" aria-live="off">
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="1">
+              <div class="cl-texte">
+                <h3 data-t="c1_t">What the robot does right after a loss</h3>
+                <p class="cl-phrase" data-t="c1_p">A sound robot keeps the same size. A martingale doubles it to win the loss back: it holds for months, until the losing streak that wipes the account.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">The maths: </span><span data-t="c1_c">after every loss, we compare the size of the next position with the previous one. Alert if the size goes up in a large share of cases, or several times in a row. A single 0.01-lot step is ignored: it is rounding, not a strategy.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f1t"><title id="f1t" data-t="f1_alt">Size after each loss: flat for a sound robot, doubling up to 64 times for a martingale.</title>
+                  <line class="f-axe" x1="36" y1="272" x2="504" y2="272"/>
+                  <g class="f-legende"><rect x="36" y="18" width="11" height="11" class="f-gris"/><text x="54" y="28" class="f-lbl" data-t="f1_sain">Sound robot: same size</text>
+                    <rect x="232" y="18" width="11" height="11" class="f-rouge"/><text x="250" y="28" class="f-lbl" data-t="f1_martin">Martingale: size doubles</text></g>
+                  <g class="f-barres-sain">
+                    <rect x="52" y="266" width="22" height="6"/><rect x="118" y="266" width="22" height="6"/><rect x="184" y="266" width="22" height="6"/><rect x="250" y="266" width="22" height="6"/>
+                    <rect x="316" y="266" width="22" height="6"/><rect x="382" y="266" width="22" height="6"/><rect x="448" y="266" width="22" height="6"/></g>
+                  <g class="f-barres-martin">
+                    <rect style="--i:0" x="76" y="266.6" width="22" height="5.4"/><rect style="--i:1" x="142" y="261.2" width="22" height="10.8"/><rect style="--i:2" x="208" y="250.4" width="22" height="21.6"/>
+                    <rect style="--i:3" x="274" y="228.8" width="22" height="43.2"/><rect style="--i:4" x="340" y="185.6" width="22" height="86.4"/><rect style="--i:5" x="406" y="99.2" width="22" height="172.8"/>
+                    <rect style="--i:6" x="472" y="56" width="22" height="216"/></g>
+                  <g class="f-valeurs"><text x="285" y="220" class="f-val">×8</text><text x="351" y="177" class="f-val">×16</text><text x="417" y="91" class="f-val">×32</text><text x="483" y="48" class="f-val f-fort">×64</text></g>
+                  <text x="36" y="296" class="f-lbl" data-t="f1_debut">1st loss</text><text x="504" y="296" class="f-lbl" text-anchor="end" data-t="f1_fin">7th loss in a row</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="2">
+              <div class="cl-texte">
+                <h3 data-t="c2_t">Positions that pile up when price goes the wrong way</h3>
+                <p class="cl-phrase" data-t="c2_p">Instead of taking a loss, a grid buys again lower, again and again, with ever larger lots. As long as price comes back, all is well. The day it doesn't, everything goes at once.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">The maths: </span><span data-t="c2_c">we replay every position's opening and closing to the second. Several positions in the same direction, at ever worse prices, with lots growing by at least 25%: that is a grid. A few isolated additions across hundreds of trades don't count.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f2t"><title id="f2t" data-t="f2_alt">Price falls, the robot opens five ever larger positions, then closes the whole basket when price climbs back to the average price.</title>
+                  <g class="f-niveaux">
+                    <line style="--i:0" x1="52" y1="80" x2="410" y2="80"/><line style="--i:1" x1="111" y1="115" x2="410" y2="115"/><line style="--i:2" x1="160" y1="150" x2="410" y2="150"/>
+                    <line style="--i:3" x1="207" y1="185" x2="410" y2="185"/><line style="--i:4" x1="276" y1="220" x2="410" y2="220"/></g>
+                  <line class="f-moyen" x1="276" y1="165" x2="410" y2="165"/>
+                  <text x="282" y="158" class="f-lbl f-lbl-rouge" data-t="f2_moyen">basket average price</text>
+                  <path class="f-prix f-trace" pathLength="1" d="M36 64 L52 80 L70 95 L85 85 L111 115 L130 108 L160 150 L175 138 L207 185 L220 170 L250 215 L265 205 L276 220 L290 238 L320 225 L360 190 L400 170 L410 165"/>
+                  <path class="f-prix-suite f-trace" pathLength="1" d="M410 165 L440 150 L480 138 L504 132"/>
+                  <g class="f-entrees">
+                    <circle style="--i:0" cx="52" cy="80" r="4.5"/><circle style="--i:1" cx="111" cy="115" r="5.6"/><circle style="--i:2" cx="160" cy="150" r="7"/>
+                    <circle style="--i:3" cx="207" cy="185" r="8.8"/><circle style="--i:4" cx="276" cy="220" r="11"/></g>
+                  <line class="f-cloture" x1="410" y1="40" x2="410" y2="272"/>
+                  <text x="418" y="40" class="f-lbl" data-t="f2_cloture1">basket closed</text><text x="418" y="56" class="f-lbl" data-t="f2_cloture2">all at once</text>
+                  <text x="36" y="296" class="f-lbl" data-t="f2_legende">Each dot is a new position, larger than the one before.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="3">
+              <div class="cl-texte">
+                <h3 data-t="c3_t">Does the stop-loss really exist?</h3>
+                <p class="cl-phrase" data-t="c3_p">A real stop sits at the broker: it protects you even if your computer shuts down. Many robots keep it in their own memory. One outage, one wild open, and the loss runs far past it.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">The maths: </span><span data-t="c3_c">we check whether every position has a stop recorded at the broker. If not, we look for a ceiling: losses that always stop at the same distance. The stop then exists, but only inside the robot.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f3t"><title id="f3t" data-t="f3_alt">Left, the stop held by the broker closes the position at its level. Right, the stop kept by the robot does nothing during an outage and the loss goes much further.</title>
+                  <text x="24" y="28" class="f-titre" data-t="f3_courtier">Stop at the broker</text>
+                  <text x="276" y="28" class="f-titre" data-t="f3_virtuel">“Virtual” stop, inside the robot</text>
+                  <line class="f-entree" x1="24" y1="84" x2="244" y2="84"/><line class="f-entree" x1="276" y1="84" x2="496" y2="84"/>
+                  <line class="f-stop" x1="24" y1="170" x2="244" y2="170"/>
+                  <line class="f-stop f-stop-virtuel" x1="276" y1="170" x2="496" y2="170"/>
+                  <text x="244" y="162" class="f-lbl" text-anchor="end" data-t="f3_stop">stop</text>
+                  <text x="380" y="162" class="f-lbl" text-anchor="end" data-t="f3_stop_memoire">stop in memory</text>
+                  <rect class="f-coupure" x="386" y="48" width="58" height="224"/>
+                  <text x="415" y="62" class="f-lbl" text-anchor="middle" data-t="f3_coupure1">terminal</text><text x="415" y="76" class="f-lbl" text-anchor="middle" data-t="f3_coupure2">stopped</text>
+                  <path class="f-prix f-trace" pathLength="1" d="M24 84 L52 96 L76 88 L104 122 L122 112 L150 170"/>
+                  <path class="f-prix-suite f-trace" pathLength="1" d="M150 170 L178 204 L200 196 L244 236"/>
+                  <path class="f-prix f-trace" pathLength="1" d="M276 84 L304 96 L328 88 L356 122 L374 112 L386 140"/>
+                  <path class="f-prix-cache f-trace" pathLength="1" d="M386 140 L410 176 L428 168 L444 238"/>
+                  <path class="f-prix-suite f-trace" pathLength="1" d="M444 238 L470 244 L496 236"/>
+                  <g class="f-impact"><circle cx="150" cy="170" r="5"/></g>
+                  <g class="f-impact f-impact-rouge"><circle cx="444" cy="238" r="5"/></g>
+                  <path class="f-ecart" d="M462 172 L462 236 M457 172 L467 172 M457 236 L467 236"/>
+                  <text x="496" y="266" class="f-lbl f-lbl-rouge" text-anchor="end" data-t="f3_ecart">extra loss</text>
+                  <text x="24" y="296" class="f-lbl" data-t="f3_ferme">Closed where planned.</text>
+                  <text x="276" y="296" class="f-lbl f-lbl-rouge" data-t="f3_file">Closed much lower, on restart.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="4">
+              <div class="cl-texte">
+                <h3 data-t="c4_t">The losses the seller's report doesn't show</h3>
+                <p class="cl-phrase" data-t="c4_p">The report plots the balance, which only moves when positions close. In between, the account can sink 20% while the curve stays calm.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">The maths: </span><span data-t="c4_c">the lab takes prices minute by minute and revalues every open position. Average gap with MetaTrader on the worst drawdown: 0.05 points.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f4t"><title id="f4t" data-t="f4_alt">The balance climbs in regular steps while equity, minute by minute, sinks deeply between two closes.</title>
+                  <g class="f-legende"><line x1="36" y1="24" x2="56" y2="24" class="f-solde-ech"/><text x="62" y="28" class="f-lbl" data-t="f4_solde">Balance: what the seller shows</text>
+                    <line x1="270" y1="24" x2="290" y2="24" class="f-equite-ech"/><text x="296" y="28" class="f-lbl" data-t="f4_equite">Equity: what the account goes through</text></g>
+                  <path class="f-creux" d="M236 150 L250 168 L264 160 L280 196 L296 186 L312 232 L322 222 L332 262 L340 240 L350 196 L360 170 L370 150 Z"/>
+                  <path class="f-equite f-trace" pathLength="1" d="M36 206 L52 200 L66 210 L84 196 L100 204 L120 186 L136 192 L152 180 L170 188 L190 174 L210 180 L236 150 L250 168 L264 160 L280 196 L296 186 L312 232 L322 222 L332 262 L340 240 L350 196 L360 170 L370 150 L392 142 L410 150 L430 136 L452 128 L476 120 L504 112"/>
+                  <path class="f-solde f-trace" pathLength="1" d="M36 206 L120 206 L120 186 L236 186 L236 150 L370 150 L370 150 L452 150 L452 128 L504 128 L504 112"/>
+                  <path class="f-fleche" d="M332 266 L332 292"/>
+                  <text x="340" y="290" class="f-lbl f-lbl-rouge" data-t="f4_creux">the hidden dip</text>
+                  <text x="36" y="296" class="f-lbl" data-t="f4_note">The balance only moves on closing.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="5">
+              <div class="cl-texte">
+                <h3 data-t="c5_t">Skill, or a lucky streak?</h3>
+                <p class="cl-phrase" data-t="c5_p">A seller can try a hundred settings and only show you the best one. We build a thousand possible pasts from the robot's real days, and check whether the gain still holds.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">The maths: </span><span data-t="c5_c">block resampling by month, 1,000 draws. Then Bailey and López de Prado's “deflated” Sharpe: the robot must beat the best of 100 random tries, not just zero.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f5t" data-figure="faisceau"><title id="f5t" data-t="f5_alt">A bundle of curves: possible pasts of the same robot. The curve the seller shows is among the best; part of the others end in a loss.</title>
+                  <line class="f-depart" x1="36" y1="176" x2="504" y2="176"/>
+                  <g class="f-faisceau"></g>
+                  <path class="f-vendeur f-trace" pathLength="1" d=""/>
+                  <text class="f-lbl f-fort f-vendeur-lbl" x="504" y="40" text-anchor="end" data-t="f5_vendeur">the seller's curve</text>
+                  <text x="36" y="296" class="f-lbl" data-t="f5_trait">Each line: one possible past. Dotted: starting capital.</text>
+                  <text x="36" y="316" class="f-lbl f-lbl-rouge" data-t="f5_rouge">In red: those ending in a loss.</text>
+                </svg>
+              </figure>
+            </article>
+
+            <article class="cl-diapo" role="group" aria-roledescription="diapositive" data-n="6">
+              <div class="cl-texte">
+                <h3 data-t="c6_t">Would it pass a prop firm challenge?</h3>
+                <p class="cl-phrase" data-t="c6_p">One bad day is enough to fail a challenge. We run it thousands of times under the official rules of FTMO, FundedNext and The5ers, and give you its real odds.</p>
+                <p class="cl-calcul"><span data-t="c_calcul">The maths: </span><span data-t="c6_c">1,000 simulated challenges for each firm, plus a challenge restarted on every day of the real history. Target, maximum daily loss measured at the worst moment of the day, maximum overall loss: rules read on the firms' own websites.</span></p>
+              </div>
+              <figure class="cl-figure">
+                <svg viewBox="0 0 520 320" role="img" aria-labelledby="f6t" data-figure="challenges"><title id="f6t" data-t="f6_alt">Challenge attempts: some reach the target, others hit the maximum loss or lose too much in one day.</title>
+                  <line class="f-objectif" x1="36" y1="64" x2="504" y2="64"/>
+                  <line class="f-depart" x1="36" y1="164" x2="504" y2="164"/>
+                  <line class="f-limite" x1="36" y1="264" x2="504" y2="264"/>
+                  <text x="504" y="56" class="f-lbl" text-anchor="end" data-t="f6_objectif">target +10%</text>
+                  <text x="504" y="156" class="f-lbl" text-anchor="end" data-t="f6_depart">start</text>
+                  <text x="504" y="282" class="f-lbl f-lbl-rouge" text-anchor="end" data-t="f6_limite">max loss −10%</text>
+                  <g class="f-essais"></g>
+                  <text x="36" y="306" class="f-lbl" data-t="f6_legende">Black dot: passed. Red cross: failed (daily loss or overall loss).</text>
+                </svg>
+              </figure>
+            </article>
+
+          </div>
+        </div>
+        <button type="button" class="cl-suivant" aria-controls="coulisses" data-t-aria="c_suivant">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="cl-bas">
+          <div class="cl-temps" role="tablist" data-t-aria="c_choix">
+            <button type="button" role="tab" data-va="0"><i></i></button><button type="button" role="tab" data-va="1"><i></i></button><button type="button" role="tab" data-va="2"><i></i></button>
+            <button type="button" role="tab" data-va="3"><i></i></button><button type="button" role="tab" data-va="4"><i></i></button><button type="button" role="tab" data-va="5"><i></i></button>
+          </div>
+          <span class="cl-compte" aria-hidden="true"><b>1</b> / 6</span>
+        </div>
+        <p class="cl-note" data-t="c_note">The figures illustrate the principle of each calculation. A given robot's results are in its report.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc" id="plus" aria-labelledby="plus-titre">
+    <div class="contenu">
+      <div class="bloc-tete">
+        <h2 id="plus-titre" data-t="plus_titre">What we do that others don't</h2>
+        <p class="bloc-sous" data-t="plus_sous">An analysis tool only reads the seller's report. The MantaLab lab tests the robot itself.</p>
+      </div>
+      <div class="cmp" role="table" aria-labelledby="plus-titre">
+        <div class="cmp-l cmp-tete" role="row"><div role="columnheader"></div>
+          <div role="columnheader" data-t="cmp_col_v">The seller's report</div><div role="columnheader" data-t="cmp_col_o">A tool that reads the report</div>
+          <div role="columnheader" class="nous" data-t="cmp_col_m">The MantaLab lab</div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c1">Martingale, grid, missing stops</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">The seller's report</small><span data-t="cmp_c1_v">Rarely disclosed</span></span></div>
+          <div class="cmp-c oui" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">A tool that reads the report</small><span data-t="cmp_c1_o">Detected</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">The MantaLab lab</small><span data-t="cmp_c1_m">Detected, with a published error rate</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c2">Robot tested by an independent third party</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">The seller's report</small><span data-t="cmp_c2_v">No, it's the seller</span></span></div>
+          <div class="cmp-c non" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">A tool that reads the report</small><span data-t="cmp_c2_o">No, it reads the report it's given</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">The MantaLab lab</small><span data-t="cmp_c2_m">Yes: the official demo, or your file</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c3">Real conditions: delays, broker ticks, another year</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">The seller's report</small><span data-t="cmp_c3_v">One chosen period</span></span></div>
+          <div class="cmp-c non" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">A tool that reads the report</small><span data-t="cmp_c3_o">Impossible without re-running the test</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">The MantaLab lab</small><span data-t="cmp_c3_m">4 scenarios in every audit</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c4">Hidden losses, minute by minute</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">The seller's report</small><span data-t="cmp_c4_v">Balance curve only</span></span></div>
+          <div class="cmp-c non" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">A tool that reads the report</small><span data-t="cmp_c4_o">Impossible: the report has no prices</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">The MantaLab lab</small><span data-t="cmp_c4_m">Measured, 0.05 point from MetaTrader</span></span></div></div>
+        <div class="cmp-l" role="row"><div class="cmp-q" role="rowheader" data-t="cmp_c5">Robots built with ChatGPT or Claude</div>
+          <div class="cmp-c non" role="cell" data-col="vendeur"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_v">The seller's report</small><span data-t="cmp_c5_v">No seller</span></span></div>
+          <div class="cmp-c partiel" role="cell" data-col="outil"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_o">A tool that reads the report</small><span data-t="cmp_c5_o">Only if you run the test yourself</span></span></div>
+          <div class="cmp-c oui nous" role="cell" data-col="nous"><span class="cmp-t"><small class="cmp-lib" data-t="cmp_col_m">The MantaLab lab</small><span data-t="cmp_c5_m">Send the file, the lab does the rest</span></span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc" id="precision" aria-labelledby="precision-titre">
+    <div class="contenu precision">
+      <div>
+        <h2 class="titre-bloc" id="precision-titre" data-t="precision_titre">We publish our error rate</h2>
+        <div class="grand" data-compte data-t="c1_v">98.8%</div>
+        <p data-t="c1_l">correct verdicts: 582 out of 589, on 209 test robots whose behaviour we know exactly, across 19 markets. The 7 errors are published, one by one.</p>
+        <p><a href="methode.html" data-t="precision_lien">Our method and our 7 errors, one by one</a></p>
+      </div>
+      <div class="faits">
+        <div class="fait"><b data-compte data-t="c2_v">29 / 29</b><span data-t="c2_l">verdicts confirmed on 10 real reference robots</span></div>
+        <div class="fait"><b data-compte data-t="c3_v">0.05 pt</b><span data-t="c3_l">average gap with MetaTrader on drawdown, recomputed minute by minute</span></div>
+        <div class="fait"><b data-compte data-t="c4_v">6</b><span data-t="c4_l">prop-firm challenges simulated with their official rules</span></div>
+        <div class="fait"><b data-compte data-t="c5_v">589</b><span data-t="c5_l">verdicts checked one by one: 582 correct, the 7 errors published</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc" id="comment" aria-labelledby="comment-titre">
+    <div class="contenu">
+      <div class="bloc-tete">
+        <h2 id="comment-titre" data-t="comment_titre">How it works</h2>
+        <p class="bloc-sous" data-t="comment_sous">Two possible files. Both are read in your browser and never leave your computer.</p>
+      </div>
+      <div class="etapes">
+        <div>
+          <h3 data-t="rapport_titre">A robot's test report</h3>
+          <ol><li data-t="etape1">In MetaTrader 5, open the Strategy Tester (Ctrl+R) and pick the robot — a Market demo works too.</li><li data-t="etape2">Test at least 1 to 3 years, with “Every tick based on real ticks” modelling.</li><li data-t="etape3">When the test ends, Backtest tab: right-click → Report → HTML (Internet Explorer).</li><li data-t="etape4">Drop that .html file above.</li></ol>
+        </div>
+        <div>
+          <h3 data-t="signal_titre">Auditing an MQL5 signal (a live account you would copy)</h3>
+          <ol><li data-t="signal1">Log in on mql5.com (free account) and open the signal page.</li><li data-t="signal2">Most complete: open the signal address followed by /export/history (for example mql5.com/en/signals/2265877/export/history). The “History” button in the History tab works too, but without the stop-loss.</li><li data-t="signal3">Drop that .csv file above. It is analysed in your browser, like a test report.</li></ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc" id="offre" aria-labelledby="offre-titre">
+    <div class="contenu offre">
+      <div class="texte">
+        <h2 id="offre-titre" data-t="offre_titre">Thinking about buying a robot?</h2>
+        <p data-t="offre_texte">The seller's report shows what the seller wants you to see. The MantaLab lab runs the robot itself and gives you an independent report:</p>
+        <div class="prix"><b data-t="offre_prix">€19</b><span data-t="offre_prix_sous">per robot, PDF report within 48 h</span></div>
+        <div class="actions">
+          <a class="bouton" href="commande.html" data-t="offre_commander">Get a robot audited</a>
+          <a class="bouton second" href="/exemple/multimartin.html" target="_blank" rel="noopener" data-t="offre_exemple">See a sample report</a>
+        </div>
+      </div>
+      <ul>
+        <li data-t="offre_1">martingale, grid, virtual stops: what the robot really does, not what its manual says;</li>
+        <li data-t="offre_2">the worst observed: losing streak, maximum exposure, drawdown;</li>
+        <li data-t="offre_3">3 scenarios over 5 years of market data: ideal execution, real ticks, delays;</li>
+        <li data-t="offre_4">safety and solidity scores, 6 prop-firm challenges simulated, as a PDF, within 48 h.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="contenu">
+    <div><img class="logo logo-clair" src="/marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="/marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"></div>
+    <div>
+      <p data-t="pied1">This report describes the robot's observed behaviour in the test provided. It is not investment advice. Past results do not guarantee future results.</p>
+      <p data-t="pied2">Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 209 tests of robots with known behaviour across 19 markets (98.8% correct verdicts: 582 out of 589). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.</p>
+      <p><a href="/legal.html" data-t="pied_legal">Legal notice and privacy (in French)</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="/engine.js"></script>
+<script src="/analyses.js"></script>
+<script src="/exemples.js"></script>
+<script>
+(function () {
+  "use strict";
+  const E = window.LaboEngine;
+  const AN = window.LaboAnalyses;
+
+  const T = {
+    fr: {
+      marque_sous: "— test indépendant de robots MT5",
+      titre: "Ce robot cache‑t‑il une martingale ?",
+      sous_titre: "Déposez son rapport de test ou l'historique de son signal. En quelques secondes, vous savez ce qu'il fait vraiment : martingale, grille, stops, pertes cachées.",
+      ia: "Robot créé avec ChatGPT ou Claude ? <b>Personne ne l'a vérifié avant vous.</b> Déposez son rapport de test ici.",
+      depot_titre: "Déposez un rapport de test (.html) ou l'historique d'un signal (.csv)",
+      depot_aide: "Glissez-le n'importe où sur la page, ou choisissez-le.", depot_aide_tactile: "Touchez pour choisir le fichier sur votre téléphone.",
+      exemples: "Pas de fichier sous la main ? Voir un exemple :",
+      ex_martingale: "un robot à martingale", ex_grille: "un robot à grille", ex_propre: "un robot propre",
+      confidentiel: "Gratuit, sans inscription. Le fichier est lu dans votre navigateur : il n'est envoyé nulle part, sauf si vous choisissez de partager les résultats.",
+      partage_texte: "<b>Partager anonymement ces résultats</b> pour enrichir la base MantaLab : trades et mesures seulement, sans votre nom, votre numéro de compte ni votre courtier.",
+      partage_envoi: "Envoi…", partage_ok: "Merci : résultats ajoutés à la base.", partage_deja: "Merci : ces résultats étaient déjà dans la base.",
+      partage_err: "Le partage a échoué. Réessayez plus tard.", partage_gros: "Ce rapport est trop volumineux pour être partagé.",
+      apercu_exemple: "Exemple : ce que l'audit voit et que le vendeur ne montre pas", apercu_votre: "Votre verdict",
+      analyse_etapes: ["Lecture des trades…", "Martingale et grille…", "Stop-loss…", "Solidité et challenges…"],
+      depot_fait: "✓ Fichier analysé", depot_autre: "Analyser un autre fichier",
+      apercu_voir: "Voir l'audit complet", apercu_pied: "Notes, solidité, 6 challenges, exemples datés.", apercu_rien: "Aucun comportement dangereux repéré dans ce fichier.",
+      voile: "Lâchez le fichier pour l'analyser",
+      nav_essai: "Vérifier un robot", nav_methode: "Méthode", nav_precision: "Précision", nav_verifs: "Vérifications", nav_offre: "Tarif",
+      cta_essai: "Analyser un rapport gratuitement", cta_audit: "Audit complet, 19 €",
+      g_tete: "<b>Robot de laboratoire à martingale</b>, GBPUSD", g_periode: "nov. 2025 – nov. 2026",
+      g_l1: "Résultat sur un an", g_v1: "+69,7 %", g_l2: "Pire recul du solde", g_v2: "−10,9 %", g_l3: "Pire recul de l'équité", g_v3: "−20,0 %",
+      g_depot: "dépôt", g_solde: "Solde : ce que montre le vendeur", g_equite: "Équité : l'argent réellement exposé", g_repere: "pertes encore ouvertes",
+      g_tampon: "Risque élevé", g_alt: "Courbe d'un robot à martingale : le solde monte régulièrement, l'équité plonge à −20 % pendant que des pertes restent ouvertes.",
+      g_legende: "Test du labo MantaLab, équité recalculée minute par minute. Un rapport de vendeur montre le solde ; l'audit mesure aussi ce qui reste ouvert.",
+      essai_titre: "Vérifiez un robot en quelques secondes", essai_sous: "Martingale, grille, stop-loss, notes sur 100 et six challenges de prop firms. Gratuit, sans inscription.",
+      depot_bouton: "Choisir un fichier",
+      v1_ex: "VR Overturn : sa mise grimpe jusqu'à 43,8 fois celle de départ, après 41 pertes sur 41.",
+      v2_ex: "GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros.",
+      v3_ex: "MultiMartin : aucun stop chez le courtier. 97 % des pertes sont coupées par le robot lui-même.",
+      v4_ex: "Moving Average : 94 % de chances d'un vrai avantage… 17 % une fois la sur-optimisation comptée.",
+      v5_ex: "GridPro Panel : 31 % perdus en une seule journée. FTMO en tolère 5 %.",
+      v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres.",
+      plus_titre: "Ce que nous faisons, et que les autres ne font pas", plus_sous: "Un outil d'analyse ne lit que le rapport du vendeur. Le labo MantaLab teste le robot lui-même.",
+      cmp_col_v: "Le rapport du vendeur", cmp_col_o: "Un outil qui lit le rapport", cmp_col_m: "Le labo MantaLab",
+      cmp_c1: "Martingale, grille, stops absents", cmp_c1_v: "Rarement signalés", cmp_c1_o: "Détectés", cmp_c1_m: "Détectés, avec un taux d'erreur publié",
+      cmp_c2: "Robot testé par un tiers indépendant", cmp_c2_v: "Non, c'est le vendeur", cmp_c2_o: "Non, il lit le rapport qu'on lui donne", cmp_c2_m: "Oui : la démo officielle, ou votre fichier",
+      cmp_c3: "Conditions réelles : retards, ticks du courtier, autre année", cmp_c3_v: "Une période choisie", cmp_c3_o: "Impossible sans relancer le test", cmp_c3_m: "4 scénarios à chaque audit",
+      cmp_c4: "Pertes cachées, minute par minute", cmp_c4_v: "Courbe de solde seulement", cmp_c4_o: "Impossible : le rapport ne contient pas les cours", cmp_c4_m: "Mesurées, 0,05 point d'écart avec MetaTrader",
+      cmp_c5: "Robots faits avec ChatGPT ou Claude", cmp_c5_v: "Pas de vendeur", cmp_c5_o: "Seulement si vous faites le test vous-même", cmp_c5_m: "Envoyez le fichier, le labo s'occupe du reste",
+      sch_legende: "Schéma simplifié, d'après l'exemple cité.", sch_1: "gain", sch_2: "perte", sch_3: "Taille de chaque position", sch_4: "Après chaque perte, la mise double", sch_5: "Prix", sch_6: "7 positions achetées pendant la baisse,", sch_7: "toutes encore ouvertes", sch_8: "97 % des pertes coupées ici →", sch_9: "petite perte", sch_10: "grosse perte", sch_11: "Nombre de pertes, par distance au prix d'entrée", sch_12: "Aucun stop chez le courtier : c'est le robot qui coupe", sch_13: "Chances d'un vrai avantage", sch_14: "Une fois la sur-optimisation comptée", sch_15: "−31 % en un jour", sch_16: "limite FTMO : −5 % par jour", sch_17: "Résultat de chaque journée", sch_18: "Chaque ordre du compte, dans le temps", sch_19: "En rouge : 2 à 7 ordres passés ensemble", sch_20: "comptés comme une seule décision", sch_21: "temps →",
+      precision_titre: "Nous publions notre taux d'erreur", precision_lien: "Notre méthode et nos 7 erreurs, une par une",
+      c5_v: "589", c5_l: "verdicts vérifiés un par un : 582 justes, les 7 erreurs publiées",
+      nav_verifs_ancien: "", nav_comment: "Comment ça marche", nav_cta: "Faire auditer un robot", nav_cta_court: "Audit à 19 €",
+      pastille: "Audit indépendant de robots MetaTrader 5",
+      c1_v: "98,8 %", c1_l: "de verdicts justes : 582 sur 589, sur 209 robots de test dont nous connaissons exactement le comportement, sur 19 marchés. Les 7 erreurs sont publiées, une par une.",
+      c2_v: "29 / 29", c2_l: "verdicts conformes sur 10 vrais robots de référence",
+      c3_v: "0,05 pt", c3_l: "d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute",
+      c4_v: "6", c4_l: "challenges de prop firms simulés avec leurs règles officielles",
+      verifs_titre: "Ce qui se passe derrière", verifs_sous: "Six vérifications, en mots simples. Le calcul est juste en dessous, pour ceux qui veulent creuser.",
+      c_calcul: "Le calcul : ", c_suivant: "Vérification suivante", c_choix: "Choisir une vérification",
+      c_note: "Les figures illustrent le principe de chaque calcul. Les résultats d'un robot précis sont dans sa fiche.",
+      c1_t: "Ce que fait le robot juste après une perte",
+      c1_p: "Un robot sain garde la même mise. Une martingale la double pour se refaire : ça tient des mois, jusqu'à la série de pertes qui vide le compte.",
+      c1_c: "après chaque perte, on compare la taille de la position suivante à la précédente. Alerte si la mise augmente dans une grande part des cas, ou plusieurs fois d'affilée. Un seul cran de 0,01 lot est ignoré : c'est un arrondi, pas une stratégie.",
+      f1_alt: "Mise après chaque perte : elle reste au même niveau pour un robot sain, elle double jusqu'à 64 fois pour une martingale.",
+      f1_sain: "Robot sain : même mise", f1_martin: "Martingale : la mise double", f1_debut: "1re perte", f1_fin: "7e perte d'affilée",
+      c2_t: "Les positions qui s'empilent quand le prix part du mauvais côté",
+      c2_p: "Au lieu d'accepter une perte, une grille rachète plus bas, encore et encore, avec des lots de plus en plus gros. Tant que le prix revient, tout va bien. Le jour où il ne revient pas, tout part en même temps.",
+      c2_c: "on rejoue l'ouverture et la fermeture de chaque position à la seconde près. Plusieurs positions dans le même sens, à des prix de plus en plus défavorables, avec des lots qui grossissent d'au moins 25\u00a0% : c'est une grille. Quelques renforts isolés sur des centaines de trades ne comptent pas.",
+      f2_alt: "Le prix baisse, le robot ouvre cinq positions de plus en plus grosses, puis ferme tout le panier quand le prix remonte jusqu'au prix moyen.",
+      f2_moyen: "prix moyen du panier", f2_cloture1: "panier fermé", f2_cloture2: "d'un coup",
+      f2_legende: "Chaque rond est une nouvelle position, plus grosse que la précédente.",
+      c3_t: "Le stop-loss existe-t-il vraiment ?",
+      c3_p: "Un vrai stop est posé chez le courtier : il protège même si votre ordinateur s'éteint. Beaucoup de robots le gardent dans leur mémoire. Une coupure, une ouverture agitée, et la perte file bien au-delà.",
+      c3_c: "on vérifie si chaque position a un stop enregistré chez le courtier. Sinon, on cherche un plafond : des pertes qui s'arrêtent toujours à la même distance. Le stop existe alors, mais seulement dans le robot.",
+      f3_alt: "À gauche, le stop posé chez le courtier ferme la position à son niveau. À droite, le stop gardé par le robot ne joue pas pendant une coupure et la perte va bien plus loin.",
+      f3_courtier: "Stop chez le courtier", f3_virtuel: "Stop « virtuel », dans le robot", f3_stop: "stop", f3_stop_memoire: "stop en mémoire",
+      f3_coupure1: "terminal", f3_coupure2: "arrêté", f3_ecart: "perte en trop",
+      f3_ferme: "Fermé au niveau prévu.", f3_file: "Fermé bien plus bas, au retour.",
+      c4_t: "Les pertes que le rapport du vendeur ne montre pas",
+      c4_p: "Le rapport trace le solde, qui ne bouge qu'à la fermeture des positions. Entre deux, le compte peut plonger de 20\u00a0% sans que la courbe ne bronche.",
+      c4_c: "le labo reprend les cours minute par minute et recalcule la valeur de chaque position encore ouverte. Écart moyen avec MetaTrader sur le pire recul : 0,05 point.",
+      f4_alt: "Le solde monte en marches régulières alors que l'équité, minute par minute, plonge profondément entre deux fermetures.",
+      f4_solde: "Solde : ce que montre le vendeur", f4_equite: "Équité : ce que le compte subit",
+      f4_creux: "le creux caché", f4_note: "Le solde ne bouge qu'à la fermeture.",
+      c5_t: "Du talent, ou un coup de chance ?",
+      c5_p: "Un vendeur peut essayer cent réglages et ne vous montrer que le meilleur. On crée mille passés possibles avec les vraies journées du robot, et on regarde si le gain tient toujours.",
+      c5_c: "rééchantillonnage par blocs d'un mois, 1 000 tirages. Puis le Sharpe « dégonflé » de Bailey et López de Prado : le robot doit battre le meilleur de 100 essais faits au hasard, pas seulement zéro.",
+      f5_alt: "Un faisceau de courbes : les passés possibles du même robot. La courbe montrée par le vendeur est parmi les meilleures ; une partie des autres finit en perte.",
+      f5_depart: "capital de départ", f5_vendeur: "la courbe du vendeur", f5_trait: "Chaque trait : un passé possible. Pointillés : le capital de départ.", f5_rouge: "En rouge : ceux qui finissent en perte.",
+      c6_t: "Passerait-il un challenge de prop firm ?",
+      c6_p: "Un seul mauvais jour suffit à perdre un challenge. On le fait passer des milliers de fois avec les règles officielles de FTMO, FundedNext et The5ers, et on vous donne ses vraies chances.",
+      c6_c: "1 000 challenges simulés pour chaque firme, plus un challenge relancé chaque jour de l'historique réel. Objectif, perte maximale par jour mesurée au pire moment de la journée, perte maximale totale : les règles lues sur les sites des firmes.",
+      f6_alt: "Des essais de challenge : certains atteignent l'objectif, d'autres touchent la perte maximale ou perdent trop en une journée.",
+      f6_objectif: "objectif +10\u00a0%", f6_depart: "départ", f6_limite: "perte max −10\u00a0%",
+      f6_legende: "Point noir : réussi. Croix rouge : éliminé (perte du jour ou perte totale).",
+      v1_n: "43,8×", v2_n: "7", v3_n: "97 %", v4_n: "94 → 17 %", v5_n: "−31 %", v6_n: "212", v1_t: "Martingale", v1_p: "Le robot augmente-t-il sa mise pour se refaire après une perte ?",
+      v2_t: "Grille", v2_p: "Empile-t-il des positions quand le prix va contre lui ?",
+      v3_t: "Stop-loss", v3_p: "Vrai stop chez le courtier, stop « virtuel »… ou rien du tout ?",
+      v4_t: "Solidité des gains", v4_p: "Avantage réel, ou simple chance ?",
+      v5_t: "Challenges de prop firms", v5_p: "Passerait-il un challenge FTMO, FundedNext ou The5ers ?",
+      v6_t: "Signaux MQL5", v6_p: "Un compte réel à copier ? Mêmes vérifications, sur de l'argent réel.",
+      comment_sous: "Deux fichiers possibles. Tous deux sont lus dans votre navigateur et ne quittent pas votre ordinateur.",
+      rapport_titre: "Le rapport de test d'un robot",
+      offre_prix: "19 €", offre_prix_sous: "par robot, fiche PDF sous 48 h",
+      comment_titre: "Comment ça marche",
+      etape1: "Dans MetaTrader 5, ouvrez le testeur de stratégie (Ctrl+R) et choisissez le robot, même une version démo du Market.",
+      etape2: "Testez au moins 1 à 3 ans, en modélisation « Chaque tick basé sur des ticks réels ».",
+      etape3: "À la fin du test, onglet Backtest : clic droit → Rapport → HTML (Internet Explorer).",
+      etape4: "Déposez ce fichier .html ci-dessus.",
+      pied_legal: "Mentions légales et confidentialité",
+      pied1: "Ce rapport décrit le comportement observé du robot dans le test fourni. Ce n'est pas un conseil en investissement. Les résultats passés ne préjugent pas des résultats futurs.",
+      pied2: "Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 209 tests de robots au comportement connu sur 19 marchés (98,8 % de verdicts justes : 582 sur 589). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
+      offre_titre: "Vous hésitez avant d'acheter un robot ?",
+      offre_texte: "Le rapport du vendeur montre ce qu'il veut bien montrer. Le labo MantaLab fait tourner le robot lui-même et vous remet une fiche indépendante :",
+      offre_1: "martingale, grille, stops virtuels : ce que le robot fait vraiment, pas ce que dit sa notice ;",
+      offre_2: "le pire observé : série de pertes, exposition maximale, drawdown ;",
+      offre_3: "3 scénarios sur 5 ans de marché : exécution idéale, ticks réels, retards ;",
+      offre_4: "notes de sécurité et de solidité, 6 challenges de prop firms simulés, en PDF, sous 48 h.",
+      offre_commander: "Faire auditer un robot",
+      offre_exemple: "Voir une fiche d'exemple",
+      analyse: "Analyse en cours…",
+      erreur_lecture: "Impossible de lire ce fichier : ",
+      erreur_html: "Choisissez le rapport .html du testeur de MetaTrader 5, ou l'historique .csv exporté depuis la page d'un signal MQL5.",
+      signal_titre: "Auditer un signal MQL5 (un compte réel copié)",
+      signal1: "Connectez-vous sur mql5.com (compte gratuit) et ouvrez la page du signal.",
+      signal2: "Le plus complet : ouvrez l'adresse du signal suivie de /export/history (par exemple mql5.com/fr/signals/2265877/export/history). Le bouton « History » de l'onglet Historique marche aussi, mais sans le stop-loss.",
+      signal3: "Déposez ce fichier .csv ci-dessus. Il est analysé dans votre navigateur, comme un rapport de test.",
+      depot_signal: "Dépôt initial du signal (indiqué sur sa page) :",
+      recalculer: "Recalculer",
+      risque: { eleve: "Risque élevé", moyen: "Risque moyen", faible: "Risque faible", inconnu: "Indéterminé" },
+      tampon_sous: "comportement observé",
+      prop_oui: "Compatible avec un challenge de prop firm classique (5 % / jour, 10 % max) :",
+      oui: "oui", non: "non", indetermine: "indéterminé",
+      raisons: { prop: "limites de perte dépassées", trades_courts: "trades ultra-courts (risque HFT)", martingale: "martingale (interdite ou mal vue chez beaucoup de prop firms)", grille: "grille (interdite ou mal vue chez beaucoup de prop firms)" },
+      erreur_aucune: "aucune transaction trouvée. Vérifiez que c'est bien le rapport .html du testeur de stratégie MetaTrader 5.",
+      statut: { ok: "Rien à signaler", attention: "À surveiller", alerte: "Alerte", inconnu: "Pas assez de données" },
+      titres: { martingale: "Martingale", grille: "Grille / moyenne à la baisse", stop_loss: "Stop-loss", trades_courts: "Trades ultra-courts", profil: "Gains et pertes", prop: "Règles de prop firm" },
+      exemples_obs: "Exemples observés :",
+      meta: (b, r) => `${b.symbole}${b.periode ? " " + b.periode : ""}, du ${E.fmtT(b.debut).slice(0, 10)} au ${E.fmtT(b.fin).slice(0, 10)} : ${r.resume.positions} positions, résultat net ${fmtArgent(r.resume.net)}`,
+      exemple_label: "Exemple simulé",
+      avert: "Remarques de lecture :",
+      avertissements: { directions: (a) => `${a.n} transaction(s) avec un sens entrée/sortie non reconnu : déduit du profit.`, ordres: () => "Table des ordres introuvable : le stop-loss ne peut pas être vérifié.", depot: () => "Dépôt initial introuvable : 10 000 supposé. Les pourcentages en dépendent.", lignes_ignorees: (a) => `${a.n} ligne(s) illisible(s) ignorée(s).`, export_positions: () => "Export « History » : une ligne par position, sans le motif de clôture.", mouvements: (a) => `${a.n} dépôt(s) ou retrait(s) en cours de route (${fmtSigne(a.total)}) : ils ne comptent ni comme gains ni comme pertes.` },
+      note_nom: { securite: "Sécurité", solidite: "Solidité" },
+      note_sous: { securite: "Le robot prend-il des risques cachés ?", solidite: "Ses gains sont-ils solides, ou dus à la chance ?" },
+      note_niveau: { bon: "bon", moyen: "moyen", faible: "faible", inconnu: "pas assez de données" },
+      note_rien: "Aucun point retiré.",
+      note_detail: {
+        martingale_alerte: "Martingale", martingale_attention: "Hausses de mise après une perte",
+        grille_alerte: "Grille", grille_attention: "Renforts de positions perdantes",
+        stop_manquant_alerte: "Pas de stop-loss", stop_manquant_attention: "Positions parfois sans stop-loss", stop_virtuel: "Stop « virtuel » seulement",
+        profil_alerte: "Petits gains, grosses pertes", latentes_alerte: "Pertes latentes cachées", latentes_attention: "Pertes latentes importantes",
+        drawdown_30: "Drawdown d'équité d'au moins 30 %", drawdown_20: "Drawdown d'équité d'au moins 20 %", serie_20: "Série de pertes d'au moins 20 % du dépôt", compte_ruine: "Compte ruiné pendant le test",
+        psr: "Avantage probablement réel", dsr: "… même en cas de sur-optimisation", historique: "Test assez long pour conclure", stabilite: "Gagnant dans chaque période",
+        dependance: "Ne dépend pas de quelques gros gains", bootstrap: "Résiste aux variantes de l'historique", plafond_risque_cache: "Plafond : risque caché dans des pertes rares",
+        plafond_risque_eleve: "Plafond : risque élevé", plafond_risque_moyen: "Plafond : risque moyen",
+      },
+      statut_sol: { ok: "Solide", attention: "Fragile", alerte: "Faible", inconnu: "Pas assez de données" },
+      sol_titre: "Solidité des gains",
+      sol_intro: (s) => `Calculée sur ${s.jours} jours de cotation. Les gains d'un robot peuvent venir d'un vrai avantage, ou de la chance et d'un réglage collé au passé.`,
+      sol_inconnu: (s) => `Pas assez de données pour conclure : ${s.jours} jours et ${s.positions} positions (il en faut au moins 20 et 30).`,
+      sol_titres: { psr: "Avantage réel ?", dsr: "Sur-optimisation", historique: "Durée du test", stabilite: "Stabilité dans le temps", dependance: "Dépendance aux gros gains", bootstrap: "Variantes de l'historique" },
+      sol: {
+        psr: (s) => `Probabilité que l'avantage soit réel : ${pc(s.psr)}. Ce calcul (Bailey et López de Prado) tient compte de la durée du test et des pertes extrêmes. Sharpe annuel : ${num(s.sharpeAnnuel, 2)}.`,
+        dsr: (s) => `Si le vendeur a essayé ${s.essaisSupposes} réglages et gardé le meilleur : ${pc(s.dsr)}. Un résultat élevé ici protège contre la sur-optimisation.`,
+        historique: (s) => s.minJours === null ? "Le robot ne gagne pas en moyenne : aucune durée de test ne pourrait prouver un avantage." : s.historiqueSuffisant ? `Assez long : ${s.jours} jours, il en fallait ${s.minJours} pour conclure à 95 %.` : `Trop court : ${s.jours} jours, il en faudrait ${s.minJours > 2520 ? "plus de 10 ans de cotation" : num(s.minJours)} pour conclure à 95 %.`,
+        stabilite: (s) => `Gagnant dans ${s.tranchesPositives} période(s) sur ${s.tranches.length} de même durée : ${s.tranches.map((t) => fmtSigne(t.net)).join(", ")}.`,
+        dependance: (s) => `Résultat total ${fmtSigne(s.net)}. Sans ses 5 meilleurs trades : ${fmtSigne(s.sansTop5)}. Sans ses ${s.top5pctN} meilleurs (5 %) : ${fmtSigne(s.sansTop5pct)}.`,
+        bootstrap: (s) => `Sur ${s.bootstrap.tirages} variantes de l'historique (mois tirés au hasard) : ${pc(s.bootstrap.pPerte)} finissent en perte. Drawdown médian ${pc(s.bootstrap.ddMedian)}, ${pc(s.bootstrap.ddP95)} dans les 5 % pires cas.`,
+      },
+      integ_titre: "Intégrité du test",
+      integ_titres: { latentes: "Pertes latentes", trous: "Trous d'activité", lisse: "Courbe trop régulière" },
+      integ: {
+        latentes: (c) => c.niveau === "inconnu" ? "Le rapport ne donne pas le drawdown d'équité." : c.niveau === "ok" ? `Le pire recul de l'équité (${pc(c.mesures.ddEquite, 1)}) correspond à celui du solde (${pc(c.mesures.ddSolde, 1)}) : pas de pertes cachées dans des positions restées ouvertes.` : `Le pire recul de l'équité (${pc(c.mesures.ddEquite, 1)}) vaut ${num(c.mesures.ratio, 1)} fois celui du solde (${pc(c.mesures.ddSolde, 1)}) : le robot garde des positions perdantes ouvertes, invisibles sur la courbe de solde.`,
+        trous: (c) => c.niveau === "inconnu" ? "Pas assez de positions pour juger." : c.niveau === "ok" ? "Aucune longue période sans trader." : `${c.mesures.trous} période(s) sans aucune position, la plus longue de ${c.mesures.plusLong} jours (${c.exemples.map((t) => E.fmtT(t.debut).slice(0, 10) + " → " + E.fmtT(t.fin).slice(0, 10)).join(", ")}), alors qu'il ouvre d'habitude une position toutes les ${num(c.mesures.ecartMedianHeures, 0)} h. Filtre de dates, marge insuffisante ou robot bloqué : à comprendre avant d'acheter.`,
+        lisse: (c) => c.niveau === "ok" ? `Courbe de solde sans régularité suspecte (R² ${num(c.mesures.r2, 3)}).` : `Courbe de solde presque parfaitement droite (R² ${num(c.mesures.r2, 3)}) avec ${pc(c.mesures.taux)} de trades gagnants : signature fréquente d'une martingale ou d'un test retouché.`,
+      },
+      chal_titre: "Simulation de challenges de prop firms",
+      chal_intro: (c) => `Règles officielles relevées le 22/11/2026. Deux mesures : ${c.tirages} variantes de l'historique (blocs d'un mois tirés au hasard), et le challenge lancé chaque jour du vrai historique, dans l'ordre exact des trades. Jamais plus long que la durée du test.`,
+      chal_cols: ["Challenge", "Objectif, perte par jour, perte max", "Réussite", "Historique réel", "Meilleure taille"],
+      chal_regles: (r) => `${r.phases.map((x) => pc(x)).join(" puis ")}, ${pc(r.jour)} par jour, ${pc(r.max)} au total${r.suiveur ? " suiveuse" : ""}`,
+      chal_reussite: (t) => (t.joursMedian ? `en ${t.joursMedian} jours de cotation (médiane)` : ""),
+      chal_reel: (r) => (r.reussite === null ? "pas conclu" : pc(r.reussite)),
+      chal_reel_sous: (r) => (r.reussite !== null ? `sur ${r.departs} départs` : r.departs ? `trop peu de départs (${r.departs})` : "test trop court"),
+      chal_taille: (m) => `×${num(m.k, 2)} : ${pc(m.reussite)}`,
+      chal_inconnu: "Pas assez de jours de trading pour simuler un challenge.",
+      chal_rem: {
+        base: "Calcul sur les positions fermées, jour par jour : une perte latente d'une position encore ouverte n'est pas vue.",
+        optimiste: "Ce robot garde des pertes latentes importantes : en vrai challenge, il ferait moins bien que cette simulation.",
+        eleve: "Robot à risque élevé : réussir un challenge ne veut pas dire garder le compte financé. Martingales et grilles finissent souvent par une grosse perte, et beaucoup de prop firms les interdisent. Aucune taille n'est conseillée.",
+        quick_strike: (c) => `FundedNext limite les positions de moins de 30 secondes à 30 % : ce robot en a ${pc(c.partMoins30s)}.`,
+        selonCompte: "The5ers : limites de 3 à 5 % par jour et 8 à 10 % au total selon le compte ; simulé avec 5 % et 10 %. Leur perte journalière se calcule sur le solde du début de journée, pas sur le capital initial.",
+        taille: "Taille = taille des positions par rapport au test (×0,5 = deux fois plus petites).",
+      },
+      txt: {
+        pas_assez: (d) => `Pas assez de trades pour conclure (${d.n}).`,
+        martingale_alerte: (d) => `Après une perte, le robot augmente la taille de la position suivante dans ${pc(d.part)} des cas (${d.hausses} fois), jusqu'à ${d.chaineMax} fois d'affilée. Sa plus grosse position fait ${d.mult}× la plus petite.`,
+        martingale_attention: (d) => `Le robot augmente parfois sa taille après une perte (${d.hausses} fois sur ${d.apresPerte}), sans schéma systématique.`,
+        martingale_ok: () => "Aucune augmentation de taille après une perte.",
+        martingale_grille: (d) => `Le robot augmente sa mise à chaque renfort d'une position perdante encore ouverte (${d.haussesGrille} fois sur ${d.defav} renforts) : martingale « de grille ». Sa plus grosse position fait ${d.mult}× la plus petite.`,
+        grille_alerte: (d) => `Le robot ouvre de nouvelles positions dans le même sens pendant que le prix va contre lui (${d.defav} fois), jusqu'à ${d.simMax} positions ouvertes en même temps.`,
+        grille_attention: (d) => `Le robot a parfois renforcé une position perdante (${d.defav} fois, ${d.simMax} positions au maximum).`,
+        grille_ok: (d) => `Pas de renforcement de positions perdantes (au plus ${d.simMax} position(s) dans le même sens en même temps).`,
+        stop_ok: () => "Les positions sont ouvertes avec un stop-loss.",
+        stop_pose_apres: (d) => `Le stop-loss n'est pas dans l'ordre d'entrée, mais il est posé chez le courtier juste après l'ouverture : ${pc(d.partParSL)} des pertes se ferment par ce stop.`,
+        stop_manquant: (d) => `${pc(d.part)} des positions sont ouvertes sans stop-loss.`,
+        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Presque aucune" : "Aucune"} perte ne se ferme sur un stop-loss du courtier (${d.pertesParSL} sur ${d.pertes})` : `Aucun stop-loss n'est transmis au courtier (${pc(d.part)} des positions)`}, mais le robot coupe lui-même ses pertes ${d.variable ? `à une distance qui suit la volatilité du marché : ${pc(d.partProches)} des pertes se ferment au même écart, relativement aux pertes voisines.` : `à distance fixe : ${pc(d.partProches)} des pertes se ferment vers ${d.points} points.`} C'est un stop « virtuel » : il protège tant que MetaTrader tourne, pas si le terminal plante ou perd la connexion.`,
+        stop_inconnu: () => "Le rapport ne contient pas l'information de stop-loss.",
+        stop_export_positions: () => "Cet export (bouton « History ») ne dit pas comment chaque position s'est fermée : impossible de vérifier le stop-loss. Pour le vérifier, utilisez l'export des transactions : adresse du signal suivie de /export/history.",
+        stop_constate: (d) => `Le fichier ne donne pas le stop d'entrée, mais ${pc(d.partParSL)} des pertes (${d.pertesParSL} sur ${d.pertes}) se ferment sur un stop-loss du courtier : le robot en utilise un.`,
+        stop_absent_probable: (d) => `Aucune des ${d.pertes} pertes ne se ferme sur un stop-loss du courtier : le robot n'en pose probablement pas. Les pertes sont coupées à la main ou par le robot, sans plafond visible.`,
+        stop_partiel: (d) => `Seules ${d.pertesParSL} pertes sur ${d.pertes} se ferment sur un stop-loss du courtier. Soit le stop n'est pas systématique, soit le robot ferme ses pertes avant de l'atteindre : un stop jamais touché ne laisse aucune trace dans l'historique.`,
+        courts_alerte: (d) => `${pc(d.part)} des positions durent moins de ${d.seuil} s : risque d'être classé HFT / tick scalping par une prop firm.`,
+        courts_attention: (d) => `${pc(d.part)} des positions durent moins de ${d.seuil} s.`,
+        courts_ok: (d) => `Très peu de positions durent moins de ${d.seuil} s.`,
+        profil_alerte: (d) => `${pc(d.taux)} de trades gagnants, mais une perte moyenne ${d.ratio}× plus grosse que le gain moyen : beaucoup de petits gains, de rares grosses pertes.`,
+        profil_ok: (d) => `${pc(d.taux)} de trades gagnants ; perte moyenne = ${d.ratio}× le gain moyen.`,
+        prop_alerte: (d) => "Ne passerait pas un challenge classique : " + d.problemes.map((p) => p.type === "jour" ? `perte de ${pc(p.pct, 1)} sur une journée (${p.jour}), limite ${pc(p.limite)}` : p.type === "total" ? `perte totale de ${pc(p.pct, 1)} du dépôt, limite ${pc(p.limite)}` : `drawdown d'équité de ${pc(p.pct, 1)} selon le rapport`).join(" ; ") + ".",
+        prop_ok: (d) => "Reste dans les limites d'un challenge classique" + (d.avecEquite ? "." : " (calcul sur le solde : les pertes latentes ne sont pas prises en compte)."),
+      },
+      ex: {
+        martingale: (e) => e.perte === undefined ? `${E.fmtT(e.t)} : ${e.rang}e position ouverte sur ${e.symbole} avec ${e.v1} lot, la précédente en avait ${e.v0} (×${(e.v1 / e.v0).toFixed(1)})` : `${E.fmtT(e.t)} : après une perte de ${fmtArgent(e.perte)} sur ${e.v0} lot, nouvelle position de ${e.v1} lot (×${(e.v1 / e.v0).toFixed(1)})`,
+        grille: (e) => `${E.fmtT(e.t)} : ${e.rang}e position ${e.sens === "buy" ? "à l'achat" : "à la vente"} sur ${e.symbole} à ${e.prix}, la précédente était à ${e.avant}`,
+        stop_loss: (e) => `${E.fmtT(e.t)} : ${e.sens === "buy" ? "achat" : "vente"} de ${e.v} lot sans stop-loss${e.virtuel ? " chez le courtier" : ""}`,
+      },
+    },
+    en: {
+      marque_sous: "— independent MT5 robot testing",
+      titre: "Is this robot hiding a martingale?",
+      sous_titre: "Drop its test report or its signal history. In seconds you know what it really does: martingale, grid, stops, hidden losses.",
+      ia: "Robot built with ChatGPT or Claude? <b>Nobody has checked it before you.</b> Drop its test report here.",
+      depot_titre: "Drop a test report (.html) or a signal history (.csv)",
+      depot_aide: "Drop it anywhere on the page, or pick it.", depot_aide_tactile: "Tap to pick the file on your phone.",
+      exemples: "No file at hand? See an example:",
+      ex_martingale: "a martingale robot", ex_grille: "a grid robot", ex_propre: "a clean robot",
+      confidentiel: "Free, no sign-up. The file is read in your browser: it is not sent anywhere unless you choose to share the results.",
+      partage_texte: "<b>Share these results anonymously</b> to improve the MantaLab database: trades and measures only, without your name, account number or broker.",
+      partage_envoi: "Sending…", partage_ok: "Thank you: results added to the database.", partage_deja: "Thank you: these results were already in the database.",
+      partage_err: "Sharing failed. Please try again later.", partage_gros: "This report is too large to be shared.",
+      apercu_exemple: "Example: what the audit sees and the seller doesn't show", apercu_votre: "Your verdict",
+      analyse_etapes: ["Reading the trades…", "Martingale and grid…", "Stop-loss…", "Solidity and challenges…"],
+      depot_fait: "✓ File analysed", depot_autre: "Analyse another file",
+      apercu_voir: "See the full audit", apercu_pied: "Scores, solidity, 6 challenges, dated examples.", apercu_rien: "No dangerous behaviour found in this file.",
+      voile: "Drop the file to analyse it",
+      nav_essai: "Check a robot", nav_methode: "Method", nav_precision: "Accuracy", nav_verifs: "Checks", nav_offre: "Pricing",
+      cta_essai: "Analyse a report for free", cta_audit: "Full audit, €19",
+      g_tete: "<b>Lab martingale robot</b>, GBPUSD", g_periode: "Nov 2025 – Nov 2026",
+      g_l1: "One-year result", g_v1: "+69.7%", g_l2: "Worst balance drop", g_v2: "−10.9%", g_l3: "Worst equity drop", g_v3: "−20.0%",
+      g_depot: "deposit", g_solde: "Balance: what the seller shows", g_equite: "Equity: money actually at risk", g_repere: "losses still open",
+      g_tampon: "High risk", g_alt: "A martingale robot's curve: the balance rises steadily while equity drops to −20% with losses left open.",
+      g_legende: "MantaLab lab test, equity recomputed minute by minute. A seller's report shows the balance; the audit also measures what is still open.",
+      essai_titre: "Check a robot in seconds", essai_sous: "Martingale, grid, stop-loss, scores out of 100 and six prop-firm challenges. Free, no sign-up.",
+      depot_bouton: "Choose a file",
+      v1_ex: "VR Overturn: its size climbs up to 43.8 times the starting size, after 41 losses out of 41.",
+      v2_ex: "GridPro Panel: up to 7 positions open against the market, each addition larger.",
+      v3_ex: "MultiMartin: no stop at the broker. 97% of losses are cut by the robot itself.",
+      v4_ex: "Moving Average: 94% chance of a real edge… 17% once over-optimisation is counted.",
+      v5_ex: "GridPro Panel: 31% lost in a single day. FTMO allows 5%.",
+      v6_ex: "A gold signal: 212 of 575 entries placed as baskets of 2 to 7 orders.",
+      plus_titre: "What we do that others don't", plus_sous: "An analysis tool only reads the seller's report. The MantaLab lab tests the robot itself.",
+      cmp_col_v: "The seller's report", cmp_col_o: "A tool that reads the report", cmp_col_m: "The MantaLab lab",
+      cmp_c1: "Martingale, grid, missing stops", cmp_c1_v: "Rarely disclosed", cmp_c1_o: "Detected", cmp_c1_m: "Detected, with a published error rate",
+      cmp_c2: "Robot tested by an independent third party", cmp_c2_v: "No, it's the seller", cmp_c2_o: "No, it reads the report it's given", cmp_c2_m: "Yes: the official demo, or your file",
+      cmp_c3: "Real conditions: delays, broker ticks, another year", cmp_c3_v: "One chosen period", cmp_c3_o: "Impossible without re-running the test", cmp_c3_m: "4 scenarios in every audit",
+      cmp_c4: "Hidden losses, minute by minute", cmp_c4_v: "Balance curve only", cmp_c4_o: "Impossible: the report has no prices", cmp_c4_m: "Measured, 0.05 point from MetaTrader",
+      cmp_c5: "Robots built with ChatGPT or Claude", cmp_c5_v: "No seller", cmp_c5_o: "Only if you run the test yourself", cmp_c5_m: "Send the file, the lab does the rest",
+      sch_legende: "Simplified diagram, based on the example above.", sch_1: "win", sch_2: "loss", sch_3: "Size of each position", sch_4: "After each loss, the size doubles", sch_5: "Price", sch_6: "7 positions bought on the way down,", sch_7: "all still open", sch_8: "97% of losses cut here →", sch_9: "small loss", sch_10: "large loss", sch_11: "Number of losses, by distance from entry price", sch_12: "No stop at the broker: the robot cuts them itself", sch_13: "Chance of a real edge", sch_14: "Once over-optimisation is counted", sch_15: "−31% in one day", sch_16: "FTMO limit: −5% per day", sch_17: "Result of each day", sch_18: "Every order on the account, over time", sch_19: "In red: 2 to 7 orders placed together", sch_20: "counted as a single decision", sch_21: "time →",
+      precision_titre: "We publish our error rate", precision_lien: "Our method and our 7 errors, one by one",
+      c5_v: "589", c5_l: "verdicts checked one by one: 582 correct, the 7 errors published",
+      nav_verifs_ancien: "", nav_comment: "How it works", nav_cta: "Get a robot audited", nav_cta_court: "€19 audit",
+      pastille: "Independent audit of MetaTrader 5 robots",
+      c1_v: "98.8%", c1_l: "correct verdicts: 582 out of 589, on 209 test robots whose behaviour we know exactly, across 19 markets. The 7 errors are published, one by one.",
+      c2_v: "29 / 29", c2_l: "verdicts confirmed on 10 real reference robots",
+      c3_v: "0.05 pt", c3_l: "average gap with MetaTrader on drawdown, recomputed minute by minute",
+      c4_v: "6", c4_l: "prop-firm challenges simulated with their official rules",
+      verifs_titre: "What happens behind the scenes", verifs_sous: "Six checks, in plain words. The maths is right below for anyone who wants to dig in.",
+      c_calcul: "The maths: ", c_suivant: "Next check", c_choix: "Choose a check",
+      c_note: "The figures illustrate the principle of each calculation. A given robot's results are in its report.",
+      c1_t: "What the robot does right after a loss",
+      c1_p: "A sound robot keeps the same size. A martingale doubles it to win the loss back: it holds for months, until the losing streak that wipes the account.",
+      c1_c: "after every loss, we compare the size of the next position with the previous one. Alert if the size goes up in a large share of cases, or several times in a row. A single 0.01-lot step is ignored: it is rounding, not a strategy.",
+      f1_alt: "Size after each loss: flat for a sound robot, doubling up to 64 times for a martingale.",
+      f1_sain: "Sound robot: same size", f1_martin: "Martingale: size doubles", f1_debut: "1st loss", f1_fin: "7th loss in a row",
+      c2_t: "Positions that pile up when price goes the wrong way",
+      c2_p: "Instead of taking a loss, a grid buys again lower, again and again, with ever larger lots. As long as price comes back, all is well. The day it doesn't, everything goes at once.",
+      c2_c: "we replay every position's opening and closing to the second. Several positions in the same direction, at ever worse prices, with lots growing by at least 25%: that is a grid. A few isolated additions across hundreds of trades don't count.",
+      f2_alt: "Price falls, the robot opens five ever larger positions, then closes the whole basket when price climbs back to the average price.",
+      f2_moyen: "basket average price", f2_cloture1: "basket closed", f2_cloture2: "all at once",
+      f2_legende: "Each dot is a new position, larger than the one before.",
+      c3_t: "Does the stop-loss really exist?",
+      c3_p: "A real stop sits at the broker: it protects you even if your computer shuts down. Many robots keep it in their own memory. One outage, one wild open, and the loss runs far past it.",
+      c3_c: "we check whether every position has a stop recorded at the broker. If not, we look for a ceiling: losses that always stop at the same distance. The stop then exists, but only inside the robot.",
+      f3_alt: "Left, the stop held by the broker closes the position at its level. Right, the stop kept by the robot does nothing during an outage and the loss goes much further.",
+      f3_courtier: "Stop at the broker", f3_virtuel: "“Virtual” stop, inside the robot", f3_stop: "stop", f3_stop_memoire: "stop in memory",
+      f3_coupure1: "terminal", f3_coupure2: "stopped", f3_ecart: "extra loss",
+      f3_ferme: "Closed where planned.", f3_file: "Closed much lower, on restart.",
+      c4_t: "The losses the seller's report doesn't show",
+      c4_p: "The report plots the balance, which only moves when positions close. In between, the account can sink 20% while the curve stays calm.",
+      c4_c: "the lab takes prices minute by minute and revalues every open position. Average gap with MetaTrader on the worst drawdown: 0.05 points.",
+      f4_alt: "The balance climbs in regular steps while equity, minute by minute, sinks deeply between two closes.",
+      f4_solde: "Balance: what the seller shows", f4_equite: "Equity: what the account goes through",
+      f4_creux: "the hidden dip", f4_note: "The balance only moves on closing.",
+      c5_t: "Skill, or a lucky streak?",
+      c5_p: "A seller can try a hundred settings and only show you the best one. We build a thousand possible pasts from the robot's real days, and check whether the gain still holds.",
+      c5_c: "block resampling by month, 1,000 draws. Then Bailey and López de Prado's “deflated” Sharpe: the robot must beat the best of 100 random tries, not just zero.",
+      f5_alt: "A bundle of curves: possible pasts of the same robot. The curve the seller shows is among the best; part of the others end in a loss.",
+      f5_depart: "starting capital", f5_vendeur: "the seller's curve", f5_trait: "Each line: one possible past. Dotted: starting capital.", f5_rouge: "In red: those ending in a loss.",
+      c6_t: "Would it pass a prop firm challenge?",
+      c6_p: "One bad day is enough to fail a challenge. We run it thousands of times under the official rules of FTMO, FundedNext and The5ers, and give you its real odds.",
+      c6_c: "1,000 simulated challenges for each firm, plus a challenge restarted on every day of the real history. Target, maximum daily loss measured at the worst moment of the day, maximum overall loss: rules read on the firms' own websites.",
+      f6_alt: "Challenge attempts: some reach the target, others hit the maximum loss or lose too much in one day.",
+      f6_objectif: "target +10%", f6_depart: "start", f6_limite: "max loss −10%",
+      f6_legende: "Black dot: passed. Red cross: failed (daily loss or overall loss).",
+      v1_n: "43.8×", v2_n: "7", v3_n: "97%", v4_n: "94 → 17%", v5_n: "−31%", v6_n: "212", v1_t: "Martingale", v1_p: "Does the robot raise its size after a loss to win it back?",
+      v2_t: "Grid", v2_p: "Does it stack positions while price moves against it?",
+      v3_t: "Stop-loss", v3_p: "A real broker stop, a “virtual” stop… or none at all?",
+      v4_t: "Solidity of gains", v4_p: "A real edge, or just luck?",
+      v5_t: "Prop-firm challenges", v5_p: "Would it pass an FTMO, FundedNext or The5ers challenge?",
+      v6_t: "MQL5 signals", v6_p: "A live account to copy? Same checks, on real money.",
+      comment_sous: "Two possible files. Both are read in your browser and never leave your computer.",
+      rapport_titre: "A robot's test report",
+      offre_prix: "€19", offre_prix_sous: "per robot, PDF report within 48 h",
+      comment_titre: "How it works",
+      etape1: "In MetaTrader 5, open the Strategy Tester (Ctrl+R) and pick the robot — a Market demo works too.",
+      etape2: "Test at least 1 to 3 years, with “Every tick based on real ticks” modelling.",
+      etape3: "When the test ends, Backtest tab: right-click → Report → HTML (Internet Explorer).",
+      etape4: "Drop that .html file above.",
+      pied_legal: "Legal notice and privacy (in French)",
+      pied1: "This report describes the robot's observed behaviour in the test provided. It is not investment advice. Past results do not guarantee future results.",
+      pied2: "Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 209 tests of robots with known behaviour across 19 markets (98.8% correct verdicts: 582 out of 589). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.",
+      offre_titre: "Thinking about buying a robot?",
+      offre_texte: "The seller's report shows what the seller wants you to see. The MantaLab lab runs the robot itself and gives you an independent report:",
+      offre_1: "martingale, grid, virtual stops: what the robot really does, not what its manual says;",
+      offre_2: "the worst observed: losing streak, maximum exposure, drawdown;",
+      offre_3: "3 scenarios over 5 years of market data: ideal execution, real ticks, delays;",
+      offre_4: "safety and solidity scores, 6 prop-firm challenges simulated, as a PDF, within 48 h.",
+      offre_commander: "Get a robot audited",
+      offre_exemple: "See a sample report",
+      analyse: "Analysing…",
+      erreur_lecture: "Could not read this file: ",
+      erreur_html: "Choose the .html report from the MetaTrader 5 Strategy Tester, or the .csv history exported from an MQL5 signal page.",
+      signal_titre: "Auditing an MQL5 signal (a live account you would copy)",
+      signal1: "Log in on mql5.com (free account) and open the signal page.",
+      signal2: "Most complete: open the signal address followed by /export/history (for example mql5.com/en/signals/2265877/export/history). The “History” button in the History tab works too, but without the stop-loss.",
+      signal3: "Drop that .csv file above. It is analysed in your browser, like a test report.",
+      depot_signal: "Signal initial deposit (shown on its page):",
+      recalculer: "Recalculate",
+      risque: { eleve: "High risk", moyen: "Medium risk", faible: "Low risk", inconnu: "Undetermined" },
+      tampon_sous: "observed behaviour",
+      prop_oui: "Compatible with a standard prop-firm challenge (5% daily, 10% max):",
+      oui: "yes", non: "no", indetermine: "undetermined",
+      raisons: { prop: "loss limits exceeded", trades_courts: "ultra-short trades (HFT risk)", martingale: "martingale (banned or frowned upon by many prop firms)", grille: "grid (banned or frowned upon by many prop firms)" },
+      erreur_aucune: "no deals found. Check that this is the .html report from the MetaTrader 5 Strategy Tester.",
+      statut: { ok: "Nothing to report", attention: "Watch", alerte: "Alert", inconnu: "Not enough data" },
+      titres: { martingale: "Martingale", grille: "Grid / averaging down", stop_loss: "Stop-loss", trades_courts: "Ultra-short trades", profil: "Wins and losses", prop: "Prop-firm rules" },
+      exemples_obs: "Observed examples:",
+      meta: (b, r) => `${b.symbole}${b.periode ? " " + b.periode : ""}, ${E.fmtT(b.debut).slice(0, 10)} to ${E.fmtT(b.fin).slice(0, 10)}: ${r.resume.positions} positions, net result ${fmtArgent(r.resume.net)}`,
+      exemple_label: "Simulated example",
+      avert: "Reading notes:",
+      avertissements: { directions: (a) => `${a.n} deal(s) with an unrecognised in/out direction: inferred from profit.`, ordres: () => "Orders table not found: stop-loss cannot be checked.", depot: () => "Initial deposit not found: 10,000 assumed. Percentages depend on it.", lignes_ignorees: (a) => `${a.n} unreadable line(s) skipped.`, export_positions: () => "“History” export: one line per position, without the closing reason.", mouvements: (a) => `${a.n} deposit(s) or withdrawal(s) along the way (${fmtSigne(a.total)}): counted neither as gains nor losses.` },
+      note_nom: { securite: "Safety", solidite: "Solidity" },
+      note_sous: { securite: "Does the robot take hidden risks?", solidite: "Are its gains solid, or down to luck?" },
+      note_niveau: { bon: "good", moyen: "average", faible: "poor", inconnu: "not enough data" },
+      note_rien: "No points deducted.",
+      note_detail: {
+        martingale_alerte: "Martingale", martingale_attention: "Size increases after a loss",
+        grille_alerte: "Grid", grille_attention: "Adding to losing positions",
+        stop_manquant_alerte: "No stop-loss", stop_manquant_attention: "Positions sometimes without stop-loss", stop_virtuel: "“Virtual” stop only",
+        profil_alerte: "Small wins, large losses", latentes_alerte: "Hidden floating losses", latentes_attention: "Large floating losses",
+        drawdown_30: "Equity drawdown of 30% or more", drawdown_20: "Equity drawdown of 20% or more", serie_20: "Losing streak of 20% of deposit or more", compte_ruine: "Account wiped out during the test",
+        psr: "Edge probably real", dsr: "… even allowing for over-optimisation", historique: "Test long enough to conclude", stabilite: "Profitable in every period",
+        dependance: "Not reliant on a few big wins", bootstrap: "Holds up across history variants", plafond_risque_cache: "Cap: risk hidden in rare losses",
+        plafond_risque_eleve: "Cap: high risk", plafond_risque_moyen: "Cap: medium risk",
+      },
+      statut_sol: { ok: "Solid", attention: "Fragile", alerte: "Weak", inconnu: "Not enough data" },
+      sol_titre: "Solidity of the gains",
+      sol_intro: (s) => `Computed on ${s.jours} trading days. A robot's gains can come from a real edge, or from luck and settings fitted to the past.`,
+      sol_inconnu: (s) => `Not enough data to conclude: ${s.jours} days and ${s.positions} positions (at least 20 and 30 are needed).`,
+      sol_titres: { psr: "Real edge?", dsr: "Over-optimisation", historique: "Test length", stabilite: "Stability over time", dependance: "Reliance on big wins", bootstrap: "History variants" },
+      sol: {
+        psr: (s) => `Probability that the edge is real: ${pc(s.psr)}. This calculation (Bailey and López de Prado) accounts for the test length and extreme losses. Annual Sharpe: ${num(s.sharpeAnnuel, 2)}.`,
+        dsr: (s) => `If the seller tried ${s.essaisSupposes} settings and kept the best: ${pc(s.dsr)}. A high figure here guards against over-optimisation.`,
+        historique: (s) => s.minJours === null ? "The robot does not win on average: no test length could prove an edge." : s.historiqueSuffisant ? `Long enough: ${s.jours} days, ${s.minJours} were needed to conclude at 95%.` : `Too short: ${s.jours} days, ${s.minJours > 2520 ? "more than 10 years of trading" : num(s.minJours)} would be needed to conclude at 95%.`,
+        stabilite: (s) => `Profitable in ${s.tranchesPositives} of ${s.tranches.length} equal periods: ${s.tranches.map((t) => fmtSigne(t.net)).join(", ")}.`,
+        dependance: (s) => `Total result ${fmtSigne(s.net)}. Without its 5 best trades: ${fmtSigne(s.sansTop5)}. Without its ${s.top5pctN} best (5%): ${fmtSigne(s.sansTop5pct)}.`,
+        bootstrap: (s) => `Across ${s.bootstrap.tirages} variants of the history (months drawn at random): ${pc(s.bootstrap.pPerte)} end in a loss. Median drawdown ${pc(s.bootstrap.ddMedian)}, ${pc(s.bootstrap.ddP95)} in the worst 5%.`,
+      },
+      integ_titre: "Test integrity",
+      integ_titres: { latentes: "Floating losses", trous: "Activity gaps", lisse: "Suspiciously smooth curve" },
+      integ: {
+        latentes: (c) => c.niveau === "inconnu" ? "The report does not give the equity drawdown." : c.niveau === "ok" ? `The worst equity decline (${pc(c.mesures.ddEquite, 1)}) matches the balance's (${pc(c.mesures.ddSolde, 1)}): no losses hidden in positions left open.` : `The worst equity decline (${pc(c.mesures.ddEquite, 1)}) is ${num(c.mesures.ratio, 1)} times the balance's (${pc(c.mesures.ddSolde, 1)}): the robot keeps losing positions open, invisible on the balance curve.`,
+        trous: (c) => c.niveau === "inconnu" ? "Not enough positions to judge." : c.niveau === "ok" ? "No long period without trading." : `${c.mesures.trous} period(s) with no position at all, the longest ${c.mesures.plusLong} days (${c.exemples.map((t) => E.fmtT(t.debut).slice(0, 10) + " → " + E.fmtT(t.fin).slice(0, 10)).join(", ")}), while it usually opens a position every ${num(c.mesures.ecartMedianHeures, 0)} h. Date filter, insufficient margin or a stuck robot: worth understanding before buying.`,
+        lisse: (c) => c.niveau === "ok" ? `Balance curve with no suspicious regularity (R² ${num(c.mesures.r2, 3)}).` : `Almost perfectly straight balance curve (R² ${num(c.mesures.r2, 3)}) with ${pc(c.mesures.taux)} winning trades: a common signature of a martingale or an edited test.`,
+      },
+      chal_titre: "Prop-firm challenge simulation",
+      chal_intro: (c) => `Official rules checked on 22/11/2026. Two measures: ${c.tirages} variants of the history (one-month blocks drawn at random), and the challenge started on every day of the real history, in the exact order of the trades. Never longer than the test.`,
+      chal_cols: ["Challenge", "Target, daily loss, max loss", "Pass rate", "Real history", "Best size"],
+      chal_regles: (r) => `${r.phases.map((x) => pc(x)).join(" then ")}, ${pc(r.jour)} daily, ${pc(r.max)} overall${r.suiveur ? " trailing" : ""}`,
+      chal_reussite: (t) => (t.joursMedian ? `in ${t.joursMedian} trading days (median)` : ""),
+      chal_reel: (r) => (r.reussite === null ? "inconclusive" : pc(r.reussite)),
+      chal_reel_sous: (r) => (r.reussite !== null ? `over ${r.departs} starts` : r.departs ? `too few starts (${r.departs})` : "test too short"),
+      chal_taille: (m) => `×${num(m.k, 2)}: ${pc(m.reussite)}`,
+      chal_inconnu: "Not enough trading days to simulate a challenge.",
+      chal_rem: {
+        base: "Computed on closed positions, day by day: a floating loss on a position still open is not seen.",
+        optimiste: "This robot carries large floating losses: in a real challenge it would do worse than this simulation.",
+        eleve: "High-risk robot: passing a challenge does not mean keeping the funded account. Martingales and grids often end in a large loss, and many prop firms ban them. No size is recommended.",
+        quick_strike: (c) => `FundedNext caps positions shorter than 30 seconds at 30%: this robot has ${pc(c.partMoins30s)}.`,
+        selonCompte: "The5ers: limits of 3-5% per day and 8-10% overall depending on the account; simulated with 5% and 10%. Their daily loss is based on the start-of-day balance, not the initial capital.",
+        taille: "Size = position size relative to the test (×0.5 = half as large).",
+      },
+      txt: {
+        pas_assez: (d) => `Not enough trades to conclude (${d.n}).`,
+        martingale_alerte: (d) => `After a loss, the robot increases the size of its next position in ${pc(d.part)} of cases (${d.hausses} times), up to ${d.chaineMax} times in a row. Its largest position is ${d.mult}× its smallest.`,
+        martingale_attention: (d) => `The robot sometimes increases its size after a loss (${d.hausses} times out of ${d.apresPerte}), with no systematic pattern.`,
+        martingale_ok: () => "No size increase after a loss.",
+        martingale_grille: (d) => `The robot increases its size each time it adds to a losing position that is still open (${d.haussesGrille} times out of ${d.defav} additions): a “grid” martingale. Its largest position is ${d.mult}× its smallest.`,
+        grille_alerte: (d) => `The robot opens new positions in the same direction while price moves against it (${d.defav} times), with up to ${d.simMax} positions open at once.`,
+        grille_attention: (d) => `The robot sometimes added to a losing position (${d.defav} times, ${d.simMax} positions at most).`,
+        grille_ok: (d) => `No adding to losing positions (at most ${d.simMax} position(s) in the same direction at once).`,
+        stop_ok: () => "Positions are opened with a stop-loss.",
+        stop_pose_apres: (d) => `The stop-loss is not in the entry order, but it is placed at the broker right after opening: ${pc(d.partParSL)} of losses close on that stop.`,
+        stop_manquant: (d) => `${pc(d.part)} of positions are opened without a stop-loss.`,
+        stop_virtuel: (d) => `${d.deduit ? `${d.pertesParSL ? "Almost no" : "No"} loss closes on a broker stop-loss (${d.pertesParSL} of ${d.pertes})` : `No stop-loss is sent to the broker (${pc(d.part)} of positions)`}, but the robot cuts its own losses ${d.variable ? `at a distance that follows market volatility: ${pc(d.partProches)} of losses close at the same gap relative to neighbouring losses.` : `at a fixed distance: ${pc(d.partProches)} of losses close around ${d.points} points.`} This is a “virtual” stop: it protects while MetaTrader runs, not if the terminal crashes or loses connection.`,
+        stop_inconnu: () => "The report does not include stop-loss information.",
+        stop_export_positions: () => "This export (“History” button) does not say how each position closed: the stop-loss cannot be checked. To check it, use the deals export: the signal address followed by /export/history.",
+        stop_constate: (d) => `The file does not give the entry stop, but ${pc(d.partParSL)} of losses (${d.pertesParSL} of ${d.pertes}) close on a broker stop-loss: the robot uses one.`,
+        stop_absent_probable: (d) => `None of the ${d.pertes} losses closes on a broker stop-loss: the robot probably sets none. Losses are cut manually or by the robot, with no visible cap.`,
+        stop_partiel: (d) => `Only ${d.pertesParSL} of ${d.pertes} losses close on a broker stop-loss. Either the stop is not systematic, or the robot closes losses before reaching it: a stop that is never hit leaves no trace in the history.`,
+        courts_alerte: (d) => `${pc(d.part)} of positions last under ${d.seuil} s: risk of being classed as HFT / tick scalping by a prop firm.`,
+        courts_attention: (d) => `${pc(d.part)} of positions last under ${d.seuil} s.`,
+        courts_ok: (d) => `Very few positions last under ${d.seuil} s.`,
+        profil_alerte: (d) => `${pc(d.taux)} winning trades, but the average loss is ${d.ratio}× the average win: many small wins, rare large losses.`,
+        profil_ok: (d) => `${pc(d.taux)} winning trades; average loss = ${d.ratio}× average win.`,
+        prop_alerte: (d) => "Would fail a standard challenge: " + d.problemes.map((p) => p.type === "jour" ? `${pc(p.pct, 1)} loss in one day (${p.jour}), limit ${pc(p.limite)}` : p.type === "total" ? `${pc(p.pct, 1)} total loss of the deposit, limit ${pc(p.limite)}` : `${pc(p.pct, 1)} equity drawdown according to the report`).join("; ") + ".",
+        prop_ok: (d) => "Stays within a standard challenge's limits" + (d.avecEquite ? "." : " (computed on balance: floating losses are not included)."),
+      },
+      ex: {
+        martingale: (e) => e.perte === undefined ? `${E.fmtT(e.t)}: position #${e.rang} on ${e.symbole} with ${e.v1} lot, previous one had ${e.v0} (×${(e.v1 / e.v0).toFixed(1)})` : `${E.fmtT(e.t)}: after a ${fmtArgent(e.perte)} loss on ${e.v0} lot, next position of ${e.v1} lot (×${(e.v1 / e.v0).toFixed(1)})`,
+        grille: (e) => `${E.fmtT(e.t)}: ${e.rang}th ${e.sens} position on ${e.symbole} at ${e.prix}, previous one at ${e.avant}`,
+        stop_loss: (e) => `${E.fmtT(e.t)}: ${e.sens} ${e.v} lot without stop-loss${e.virtuel ? " at the broker" : ""}`,
+      },
+    },
+  };
+  window.LaboTextes = T;
+
+  let langue = "fr";
+  langue = window.LaboLangue ? window.LaboLangue.langue : langue;   // langue de l'adresse (/langue.js)
+  let dernier = null; // { resultat, avertissements, exemple }
+
+  function pc(x, dec = 0) { return (x * 100).toFixed(dec).replace(".", langue === "fr" ? "," : ".") + (langue === "fr" ? " %" : "%"); }
+  function fmtArgent(v) { return v.toLocaleString(langue === "fr" ? "fr-FR" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function num(x, dec = 0) { return Number(x).toLocaleString(langue === "fr" ? "fr-FR" : "en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+  function fmtSigne(v) { return (v > 0 ? "+" : v < 0 ? "−" : "") + fmtArgent(Math.abs(v)); }
+  function classeTaux(x) { return x >= 0.6 ? "haut" : x >= 0.3 ? "milieu" : "bas"; }
+  function niveauSol(k, s) {
+    switch (k) {
+      case "psr": return s.psr >= 0.95 ? "ok" : s.psr >= 0.75 ? "attention" : "alerte";
+      case "dsr": return s.dsr >= 0.95 ? "ok" : s.dsr >= 0.5 ? "attention" : "alerte";
+      case "historique": return s.historiqueSuffisant ? "ok" : s.minJours === null ? "alerte" : "attention";
+      case "stabilite": return s.tranchesPositives === s.tranches.length ? "ok" : s.tranchesPositives * 2 >= s.tranches.length ? "attention" : "alerte";
+      case "dependance": return s.net <= 0 ? "alerte" : s.sansTop5pct > 0 ? "ok" : s.sansTop5 > 0 ? "attention" : "alerte";
+      case "bootstrap": return s.bootstrap.pPerte <= 0.05 ? "ok" : s.bootstrap.pPerte <= 0.25 ? "attention" : "alerte";
+    }
+    return "inconnu";
+  }
+  function ligneSimple(niveau, statutTxt, titre, texte) {
+    return `<li class="ligne"><div class="simple"><span class="statut ${niveau}">${esc(statutTxt)}</span><div><h3>${esc(titre)}</h3><p class="resume">${esc(texte)}</p></div></div></li>`;
+  }
+  function blocsAnalyses(a, risque) {
+    const L = T[langue], n = a.notes;
+    const note = (k) => {
+      const v = n[k], niv = n[k === "securite" ? "niveauSecurite" : "niveauSolidite"], det = n[k === "securite" ? "detailSecurite" : "detailSolidite"];
+      const lignes = det.length ? det.map((d) => `<li><span>${esc(L.note_detail[d.cle] || d.cle)}</span><b>${d.points > 0 ? "+" : d.points < 0 ? "−" : ""}${Math.abs(d.points)}${d.max ? " / " + d.max : ""}</b></li>`).join("") : `<li><span>${esc(L.note_rien)}</span></li>`;
+      return `<details class="note-bloc ${niv}"><summary><span class="note-chiffre">${v === null ? "–" : v}<small>/100</small></span>
+        <span class="note-nom">${esc(L.note_nom[k])}${langue === "fr" ? " : " : ": "}${esc(L.note_niveau[niv])}</span><span class="note-sous">${esc(L.note_sous[k])}</span></summary>
+        <ul class="note-detail">${lignes}</ul></details>`;
+    };
+    const s = a.solidite;
+    const sol = s.niveau !== "ok"
+      ? ligneSimple("inconnu", L.statut_sol.inconnu, L.sol_titre, L.sol_inconnu(s))
+      : ["psr", "dsr", "historique", "stabilite", "dependance", "bootstrap"].map((k) => { const nv = niveauSol(k, s); return ligneSimple(nv, L.statut_sol[nv], L.sol_titres[k], L.sol[k](s)); }).join("");
+    const integ = a.integrite.constats.map((c) => ligneSimple(c.niveau, L.statut[c.niveau], L.integ_titres[c.code], L.integ[c.code](c))).join("");
+    const ch = a.challenges;
+    let chal;
+    if (ch.niveau !== "ok") chal = `<p class="intro">${esc(L.chal_inconnu)}</p>`;
+    else {
+      const c = L.chal_cols;
+      const lignes = ch.firmes.map((f) => `<tr><td><b>${esc(f.nom)}</b>${f.regles.selonCompte ? " *" : ""}</td><td>${esc(L.chal_regles(f.regles))}</td>
+        <td class="chiffre ${classeTaux(f.taille1.reussite)}" data-l="${esc(c[2])}">${pc(f.taille1.reussite)}<small>${esc(L.chal_reussite(f.taille1))}</small></td>
+        <td class="chiffre${f.reel.reussite === null ? "" : " " + classeTaux(f.reel.reussite)}" data-l="${esc(c[3])}">${esc(L.chal_reel(f.reel))}<small>${esc(L.chal_reel_sous(f.reel))}</small></td>
+        <td class="chiffre" data-l="${esc(c[4])}">${risque === "eleve" ? "—" : esc(L.chal_taille(f.meilleur))}</td></tr>`).join("");
+      const rem = [L.chal_rem.base, L.chal_rem.taille];
+      if (ch.optimiste) rem.unshift(L.chal_rem.optimiste);
+      if (risque === "eleve") rem.unshift(L.chal_rem.eleve);
+      if (ch.firmes.some((f) => f.interdit === "quick_strike")) rem.unshift(L.chal_rem.quick_strike(ch));
+      if (ch.firmes.some((f) => f.regles.selonCompte)) rem.push("* " + L.chal_rem.selonCompte);
+      chal = `<p class="intro">${esc(L.chal_intro(ch))}</p><div class="table-defile"><table class="challenges"><thead><tr>${L.chal_cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead><tbody>${lignes}</tbody></table></div>
+        <ul class="remarques">${rem.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    }
+    return {
+      notes: `<div class="notes-100">${note("securite")}${note("solidite")}</div>`,
+      parties: `<section class="partie"><h3>${esc(L.sol_titre)}</h3>${s.niveau === "ok" ? `<p class="intro">${esc(L.sol_intro(s))}</p>` : ""}<ul class="lignes">${sol}</ul></section>
+        <section class="partie"><h3>${esc(L.integ_titre)}</h3><ul class="lignes">${integ}</ul></section>
+        <section class="partie"><h3>${esc(L.chal_titre)}</h3>${chal}</section>`,
+    };
+  }
+  function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  function compter(evenement) {
+    // Comptage d'usage anonyme (aucune donnée du rapport). Branché quand la page est en ligne.
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: "evt-" + evenement, title: evenement, event: true }); } catch (e) {}
+  }
+
+  function appliquerLangue() {
+    document.documentElement.lang = langue;
+    document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = T[langue][el.dataset.t]; });
+    // data-h : textes du site contenant une mise en valeur (<em>) — jamais de contenu venant d'un fichier déposé
+    document.querySelectorAll("[data-h]").forEach((el) => { el.innerHTML = T[langue][el.dataset.h]; });
+    document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === langue)));
+    if (typeof etatFait === "function" && fichierAnalyse) etatFait();
+    if (dernier) afficher(dernier, false);
+  }
+
+  function afficher({ resultat: r, analyses, avertissements, exemple }, animer = true) {
+    const L = T[langue];
+    const b = r.backtest;
+    const ordre = ["martingale", "grille", "stop_loss", "trades_courts", "profil", "prop"];
+    const lignes = ordre.map((k) => {
+      const c = r.constats[k];
+      const texte = L.txt[c.cle] ? L.txt[c.cle](c.donnees) : "";
+      const exemples = (c.exemples || []).map((e) => (L.ex[k] ? `<li>${esc(L.ex[k](e))}</li>` : "")).join("");
+      return `<li class="ligne"><details>
+        <summary><span class="statut ${c.niveau}">${esc(L.statut[c.niveau])}</span>
+          <div><h3>${esc(L.titres[k])}</h3><p class="resume">${esc(texte)}</p></div></summary>
+        <div class="detail">${exemples ? `<p>${esc(L.exemples_obs)}</p><ul>${exemples}</ul>` : ""}</div>
+      </details></li>`;
+    }).join("");
+    const prop = r.compatibleProp === null ? L.indetermine : r.compatibleProp ? `<span class="oui">${L.oui}</span>`
+      : `<span class="non">${L.non}</span> — ${esc(r.raisonsProp.map((k) => L.raisons[k]).join(", "))}`;
+    const bx = analyses ? blocsAnalyses(analyses, r.risque) : { notes: "", parties: "" };
+    const champDepot = b.source === "signal" && (avertissements || []).some((a) => a.code === "depot")
+      ? `<form class="depot-signal" id="depot-signal"><label for="depot-valeur">${esc(L.depot_signal)}</label><input id="depot-valeur" type="number" min="1" step="any" inputmode="decimal" value="${b.depot}"><button type="submit">${esc(L.recalculer)}</button></form>` : "";
+    const notes = avertissements && avertissements.length ? `<div class="notes"><p>${esc(L.avert)}</p>${avertissements.map((a) => `<p>${esc(L.avertissements[a.code] ? L.avertissements[a.code](a) : a.code)}</p>`).join("")}${champDepot}</div>` : "";
+    document.getElementById("resultat").innerHTML = `
+      <article class="fiche" aria-labelledby="fiche-titre">
+        <div class="fiche-tete">
+          <div>
+            <h2 id="fiche-titre">${esc(exemple ? L.exemple_label + " — " + L["ex_" + exemple] : b.robot)}</h2>
+            <div class="meta">${esc(L.meta(b, r))}</div>
+          </div>
+          <div class="tampon ${r.risque}${animer ? " pose" : ""}" ${animer ? "" : 'style="opacity:.92"'} role="img" aria-label="${esc(L.risque[r.risque])}">${esc(L.risque[r.risque])}<small>${esc(L.tampon_sous)}</small></div>
+        </div>
+        ${bx.notes}
+        <p class="prop">${esc(L.prop_oui)} ${prop}</p>
+        <ul class="lignes">${lignes}</ul>
+        ${bx.parties}
+        ${notes}
+      </article>`;
+    const form = document.getElementById("depot-signal");
+    if (form) form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = parseFloat(document.getElementById("depot-valeur").value);
+      if (!(v > 0)) return;
+      const bt = Object.assign({}, r.backtest, { depot: v });
+      const resultat = E.auditer(bt);
+      dernier = { resultat, analyses: AN.analyser(resultat), avertissements: avertissements.filter((a) => a.code !== "depot"), exemple: null };
+      afficher(dernier, false);
+    });
+    document.getElementById("audit").hidden = false;
+    apercu({ resultat: r, analyses, exemple }, animer);
+  }
+
+  /** Le verdict du fichier déposé prend la place de l'exemple, en haut de page (pas besoin de défiler). */
+  function apercu({ resultat: r, analyses, exemple }, animer) {
+    const L = T[langue], b = r.backtest, n = analyses ? analyses.notes : null;
+    const graves = ["martingale", "grille", "stop_loss", "trades_courts", "profil", "prop"].map((k) => [k, r.constats[k]])
+      .filter(([, c]) => c.niveau === "alerte" || c.niveau === "attention").sort((x, y) => (x[1].niveau === "alerte" ? 0 : 1) - (y[1].niveau === "alerte" ? 0 : 1));
+    const lignes = (graves.length ? graves.slice(0, 4) : [["rien", { niveau: "ok" }]]).map(([k, c]) =>
+      `<li><span class="statut ${c.niveau}">${esc(L.statut[c.niveau])}</span><span>${k === "rien" ? esc(L.apercu_rien) : `<b>${esc(L.titres[k])}.</b> ${esc(L.txt[c.cle] ? L.txt[c.cle](c.donnees).split(/(?<=\.)\s/)[0] : "")}`}</span></li>`).join("");
+    const note = (cle, niv, v) => `<div class="${niv}"><span>${esc(L.note_nom[cle] + (v === null ? " (" + L.note_niveau.inconnu + ")" : ""))}</span><b>${v === null ? "–" : v}<small>/100</small></b></div>`;
+    const el = document.getElementById("apercu-verdict");
+    el.innerHTML = `<p class="etiquette">${esc(exemple ? L.exemple_label : L.apercu_votre)}</p>
+      <article class="verdict${animer ? " arrive" : ""}">
+        <div class="verdict-tete"><div><h2>${esc(exemple ? L["ex_" + exemple] : b.robot)}</h2><div class="meta">${esc(L.meta(b, r))}</div></div>
+          <div class="tampon ${r.risque}${animer ? " pose" : ""}">${esc(L.risque[r.risque])}</div></div>
+        ${n ? `<div class="verdict-notes">${note("securite", n.niveauSecurite, n.securite)}${note("solidite", n.niveauSolidite, n.solidite)}</div>` : ""}
+        <ul>${lignes}</ul>
+        <div class="verdict-pied"><span>${esc(L.apercu_pied)}</span><a class="bouton petit" href="#audit">${esc(L.apercu_voir)}</a></div>
+      </article>`;
+    el.hidden = false;
+    document.getElementById("apercu-exemple").hidden = true;
+    // sur téléphone, le verdict est sous la zone de dépôt : on l'amène à l'écran
+    const haut = el.getBoundingClientRect().top;
+    if (animer && (haut < 0 || haut > innerHeight * 0.7)) el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+
+  function montrerErreur(msg) {
+    const el = document.getElementById("erreur");
+    el.textContent = msg;
+    el.hidden = !msg;
+  }
+
+  // ----- états du bloc de dépôt : on MONTRE que l'analyse a lieu (sinon le résultat instantané passe inaperçu)
+  const blocDepot = document.getElementById("depot");
+  const lent = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
+  let fichierAnalyse = null; // nom affiché dans le bloc une fois l'analyse faite
+  async function etatAnalyse(nom) {
+    const L = T[langue], titre = blocDepot.querySelector("strong"), aide = blocDepot.querySelector("small");
+    blocDepot.classList.remove("analyse-faite");
+    const pas = lent ? 450 : 0;
+    blocDepot.style.setProperty("--duree-analyse", (pas * L.analyse_etapes.length) / 1000 + "s");
+    blocDepot.classList.add("en-cours");
+    aide.textContent = nom;
+    for (const etape of L.analyse_etapes) { titre.textContent = etape; await attendre(pas); }
+  }
+  function etatFait() {
+    blocDepot.classList.remove("en-cours");
+    if (!fichierAnalyse) return;
+    const L = T[langue];
+    blocDepot.classList.add("analyse-faite");
+    blocDepot.querySelector("strong").textContent = L.depot_fait;
+    blocDepot.querySelector("small").textContent = fichierAnalyse;
+    blocDepot.querySelector(".faux-bouton").textContent = L.depot_autre;
+  }
+  function etatRepos() {
+    blocDepot.classList.remove("en-cours", "analyse-faite");
+    fichierAnalyse = null;
+    preparerPartage(null);
+    appliquerLangue();
+  }
+
+  async function lireFichier(f) {
+    montrerErreur("");
+    if (!/\.(html?|csv)$/i.test(f.name)) { montrerErreur(T[langue].erreur_html); return; }
+    const attente = etatAnalyse(f.name);
+    try {
+      const texte = E.decode(await f.arrayBuffer());
+      const signal = /\.csv$/i.test(f.name);
+      const { backtest, avertissements } = signal ? E.parseSignalCsv(texte) : E.parseMt5Report(texte);
+      // export MQL5 « 2265877.history.csv » : le numéro du signal sert de titre
+      if (signal) { const id = /(\d{4,})/.exec(f.name); if (id) backtest.robot = `Signal MQL5 n° ${id[1]}`; }
+      const resultat = E.auditer(backtest);
+      dernier = { resultat, analyses: AN.analyser(resultat), avertissements, exemple: null };
+      await attente;
+      fichierAnalyse = f.name;
+      etatFait();
+      afficher(dernier);
+      preparerPartage(backtest, resultat, signal ? "signal" : "rapport");
+      compter(signal ? "signal-analyse" : "rapport-analyse");
+    } catch (e) {
+      await attente;
+      etatRepos();
+      montrerErreur(T[langue].erreur_lecture + (e.code === "aucune_transaction" ? T[langue].erreur_aucune : e.code === "csv_inconnu" ? T[langue].erreur_html : e.message));
+      compter("rapport-erreur");
+    }
+  }
+
+  // ---- Partage volontaire (case NON cochée par défaut) : trades + mesures, jamais de nom ni de compte ----
+  const SERVEUR = "https://mantalab-commandes.mantalab.workers.dev";
+  let aPartager = null;
+  function preparerPartage(backtest, resultat, source) {
+    const bloc = document.getElementById("partage"), caseP = document.getElementById("partage-case");
+    document.getElementById("partage-etat").textContent = "";
+    caseP.checked = false; caseP.disabled = false;
+    if (!backtest) { aPartager = null; bloc.hidden = true; return; }
+    aPartager = {
+      v: 1, source, robot: backtest.robot || null, symbole: backtest.symbole || null, periode: backtest.periode || null,
+      debut: backtest.debut || null, fin: backtest.fin || null, depot: backtest.depot || null, stats: backtest.stats || {},
+      // commentaire et n° d'ordre retirés : ils peuvent contenir n'importe quoi
+      transactions: (backtest.transactions || []).map((t) => ({ temps: t.temps, symbole: t.symbole, sens: t.sens, entree: t.entree,
+        volume: t.volume, prix: t.prix, commission: t.commission, swap: t.swap, profit: t.profit, stopLoss: t.stopLoss })),
+      verdict: { risque: resultat.risque, compatibleProp: resultat.compatibleProp },
+    };
+    bloc.hidden = false;
+  }
+  document.getElementById("partage-case").addEventListener("change", async (ev) => {
+    const caseP = ev.target, etat = document.getElementById("partage-etat"), L = T[langue];
+    if (!caseP.checked || !aPartager) return;
+    caseP.disabled = true; etat.textContent = L.partage_envoi;
+    try {
+      const gz = await new Response(new Blob([JSON.stringify(aPartager)]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
+      if (gz.byteLength > 1900 * 1024) { etat.textContent = L.partage_gros; caseP.checked = false; return; }
+      const r = await fetch(SERVEUR + "/partages", { method: "POST", body: gz, headers: { "Content-Type": "application/octet-stream" } });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.erreur || r.status);
+      etat.textContent = d.nouveau ? L.partage_ok : L.partage_deja;
+      compter("partage");
+    } catch (e) {
+      etat.textContent = L.partage_err; caseP.checked = false; caseP.disabled = false;
+    }
+  });
+
+  const input = document.getElementById("fichier");
+  input.addEventListener("change", () => { if (input.files[0]) lireFichier(input.files[0]); input.value = ""; });
+  // Liens internes (« Voir l'audit complet », menu) : défilement doux, accélération puis freinage (~0,7 s).
+  function defilerVers(cible) {
+    const depart = scrollY, haut = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const arrivee = Math.max(0, cible.getBoundingClientRect().top + scrollY - haut);
+    if (!lent) { scrollTo(0, arrivee); return; }
+    const duree = Math.min(900, 450 + Math.abs(arrivee - depart) * 0.25), t0 = performance.now();
+    const doux = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+    const pas = (t) => { const x = Math.min(1, (t - t0) / duree); scrollTo(0, depart + (arrivee - depart) * doux(x)); if (x < 1) requestAnimationFrame(pas); };
+    requestAnimationFrame(pas);
+  }
+  document.addEventListener("click", (e) => {
+    const lien = e.target.closest('a[href^="#"]');
+    if (!lien) return;
+    const cible = document.getElementById(lien.getAttribute("href").slice(1));
+    if (!cible || cible.hidden) return;
+    e.preventDefault();
+    defilerVers(cible);
+    history.replaceState(null, "", lien.getAttribute("href"));
+  });
+
+  // Le fichier peut être lâché N'IMPORTE OÙ sur la page : un voile rouge l'indique.
+  const voile = document.getElementById("voile");
+  let profondeur = 0;
+  const avecFichier = (e) => e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+  document.addEventListener("dragenter", (e) => { if (!avecFichier(e)) return; e.preventDefault(); profondeur++; voile.hidden = false; });
+  document.addEventListener("dragover", (e) => { if (avecFichier(e)) e.preventDefault(); });
+  document.addEventListener("dragleave", (e) => { if (!avecFichier(e)) return; if (--profondeur <= 0) { profondeur = 0; voile.hidden = true; } });
+  document.addEventListener("drop", (e) => {
+    if (!avecFichier(e)) return;
+    e.preventDefault(); profondeur = 0; voile.hidden = true;
+    const f = e.dataTransfer.files[0];
+    if (f) lireFichier(f);
+  });
+
+  document.querySelectorAll("[data-exemple]").forEach((btn) => btn.addEventListener("click", async () => {
+    montrerErreur("");
+    const nom = btn.dataset.exemple;
+    await etatAnalyse(T[langue]["ex_" + nom]);
+    const resultat = E.auditer(window.LaboExemples[nom]());
+    dernier = { resultat, analyses: AN.analyser(resultat), avertissements: [], exemple: nom };
+    preparerPartage(null);
+    fichierAnalyse = T[langue]["ex_" + nom];
+    etatFait();
+    afficher(dernier);
+    compter("exemple-" + nom);
+  }));
+
+  document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => {
+    langue = b.dataset.lang;
+    if (window.LaboLangue && window.LaboLangue.choisir(langue)) return;   // autre adresse : /en/ ou racine
+    appliquerLangue();
+  }));
+
+  appliquerLangue();
+
+  // Chiffres qui « montent » quand ils arrivent à l'écran (une seule fois). Tous les nombres du texte s'animent
+  // ensemble, au même format (virgule ou point, décimales, espaces) ; le texte final est déjà dans la page.
+  let jetonCompte = 0;
+  const NOMBRE = /\d{1,3}(?:[\u202f\u00a0 ]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?/g;
+  function animerNombres(el) {
+    const modele = el.textContent, jeton = jetonCompte, morceaux = [];
+    modele.replace(NOMBRE, (m) => { morceaux.push(m); return m; });
+    if (!morceaux.length) return;
+    const cibles = morceaux.map((m) => {
+      const sep = (m.match(/[.,](\d+)$/) || [])[0];
+      return { dec: sep ? sep.length - 1 : 0, marque: sep ? sep[0] : ",", milliers: (m.match(/[\u202f\u00a0 ]/) || [""])[0],
+               v: parseFloat(m.replace(/[\u202f\u00a0 ]/g, "").replace(",", ".")) };
+    });
+    const ecrire = (x) => { let i = 0; el.textContent = modele.replace(NOMBRE, () => {
+      const c = cibles[i++]; let t = (c.v * x).toFixed(c.dec).replace(".", c.marque);
+      if (c.milliers) t = t.replace(/\B(?=(\d{3})+(?!\d))/g, c.milliers);
+      return t; }); };
+    const t0 = performance.now(), duree = 1300;
+    const pas = (t) => {
+      if (jeton !== jetonCompte) return;            // la langue a changé : le texte a été remplacé
+      const k = Math.min(1, (t - t0) / duree), x = 1 - Math.pow(1 - k, 3);
+      ecrire(x);
+      if (k < 1) requestAnimationFrame(pas); else el.textContent = modele;
+    };
+    ecrire(0);
+    requestAnimationFrame(pas);
+  }
+  const animer = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
+  if (animer) {
+    const vus = new IntersectionObserver((entrees) => entrees.forEach((e) => {
+      if (e.isIntersecting) { vus.unobserve(e.target); animerNombres(e.target); }
+    }), { threshold: 0.6 });
+    document.querySelectorAll("[data-compte]").forEach((el) => vus.observe(el));
+  }
+  document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => { jetonCompte++; }, true));
+})();
+</script>
+<script>
+// ---- Coulisses : figures calculées (faisceau, challenges) et carrousel des 6 vérifications ----
+(function () {
+  "use strict";
+  const cl = document.getElementById("coulisses");
+  if (!cl) return;
+  const NS = "http://www.w3.org/2000/svg";
+  // Tirages pseudo-aléatoires reproductibles : la figure est la même à chaque visite.
+  const alea = (g) => () => { g |= 0; g = (g + 0x6d2b79f5) | 0; let t = Math.imul(g ^ (g >>> 15), 1 | g); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const normale = (r) => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+  const chemin = (pts) => "M" + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+  const el = (nom, attrs) => { const e = document.createElementNS(NS, nom); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+  // Figure 5 : 1 000 passés possibles (ici 90 tracés). La courbe du vendeur est la meilleure du lot.
+  const f5 = cl.querySelector('[data-figure="faisceau"]');
+  if (f5) {
+    const r = alea(20261125), N = 60, P = 64, series = [];
+    for (let s = 0; s < N; s++) {
+      let v = 0; const pts = [0];
+      for (let k = 1; k < P; k++) { v += 0.12 + normale(r); pts.push(v); }
+      series.push(pts);
+    }
+    const toutes = series.flat(), min = Math.min(...toutes), max = Math.max(...toutes);
+    const y = (v) => v >= 0 ? 176 - (v / max) * 132 : 176 + (v / min) * 94;   // départ à 176, haut à 44, bas à 270
+    const x = (k) => 36 + (k / (P - 1)) * 468;
+    const g = f5.querySelector(".f-faisceau");
+    let meilleure = 0;
+    series.forEach((pts, s) => {
+      if (pts[P - 1] > series[meilleure][P - 1]) meilleure = s;
+      const p = el("path", { d: chemin(pts.map((v, k) => [x(k), y(v)])) });
+      if (pts[P - 1] < 0) p.setAttribute("class", "perte");
+      g.appendChild(p);
+    });
+    const best = series[meilleure];
+    f5.querySelector(".f-vendeur").setAttribute("d", chemin(best.map((v, k) => [x(k), y(v)])));
+    f5.querySelector(".f-vendeur-lbl").setAttribute("y", Math.max(22, y(best[P - 1]) - 12).toFixed(0));
+  }
+
+  // Figure 6 : essais de challenge (+10 % à atteindre, −5 % par jour et −10 % au total à ne pas toucher).
+  const f6 = cl.querySelector('[data-figure="challenges"]');
+  if (f6) {
+    const r = alea(1185), J = 30, g = f6.querySelector(".f-essais");
+    const x = (k) => 36 + (k / J) * 434, y = (pc) => 164 - pc * 10;
+    for (let s = 0; s < 10; s++) {
+      let v = 0, issue = "", jourFatal = -1; const pts = [[x(0), y(0)]];
+      for (let k = 1; k <= J; k++) {
+        let d = 0.3 + normale(r) * 1.45;
+        if (r() < 0.012) d = -5.2 - r() * 1.5;               // la mauvaise journée qui élimine
+        v += d; pts.push([x(k), y(Math.max(-10, Math.min(10, v)))]);
+        if (d <= -5) { issue = "elimine"; jourFatal = k; break; }
+        if (v >= 10) { issue = "reussi"; break; }
+        if (v <= -10) { issue = "elimine"; break; }
+      }
+      const grp = el("g", { style: "--i:" + s });
+      grp.appendChild(el("path", { d: chemin(pts), class: issue || "" }));
+      const [fx, fy] = pts[pts.length - 1];
+      if (issue === "reussi") grp.appendChild(el("circle", { cx: fx, cy: fy, r: 3.6 }));
+      if (issue === "elimine") grp.appendChild(el("path", { class: "croix", d: `M${fx - 4} ${fy - 4} L${fx + 4} ${fy + 4} M${fx + 4} ${fy - 4} L${fx - 4} ${fy + 4}` }));
+      if (jourFatal > 0) { const [ax, ay] = pts[pts.length - 2]; grp.appendChild(el("path", { class: "croix", d: `M${ax} ${ay} L${fx} ${fy}`, style: "stroke-width:1.6;opacity:.9" })); }
+      g.appendChild(grp);
+    }
+  }
+
+  // ---- Carrousel ----
+  const piste = cl.querySelector(".cl-piste"), diapos = [...cl.querySelectorAll(".cl-diapo")];
+  const onglets = [...cl.querySelectorAll(".cl-temps button")], compte = cl.querySelector(".cl-compte b");
+  const suivant = cl.querySelector(".cl-suivant"), n = diapos.length;
+  const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (calme) cl.classList.add("statique");
+  let i = 0;
+  const relancer = (e, classe) => { e.classList.remove(classe); void e.getBoundingClientRect(); e.classList.add(classe); };
+  function aller(k) {
+    i = (k + n) % n;
+    piste.style.transform = `translateX(${-100 * i}%)`;
+    diapos.forEach((d, j) => { d.inert = j !== i; d.setAttribute("aria-hidden", String(j !== i)); if (j !== i) d.classList.remove("actif"); });
+    relancer(diapos[i], "actif");
+    onglets.forEach((o, j) => { o.classList.toggle("vu", j < i); o.setAttribute("aria-selected", String(j === i)); if (j !== i) o.classList.remove("actif"); });
+    relancer(onglets[i], "actif");
+    compte.textContent = String(i + 1);
+  }
+  // Défilement automatique : la fin du remplissage (10 s) de la barre active passe à la suivante.
+  // Survol, focus clavier ou section hors de l'écran : la barre se met en pause (CSS), donc le défilement aussi.
+  cl.querySelector(".cl-temps").addEventListener("animationend", (e) => { if (e.animationName === "cl-remplir") aller(i + 1); });
+  suivant.addEventListener("click", () => aller(i + 1));
+  onglets.forEach((o, j) => o.addEventListener("click", () => aller(j)));
+  cl.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { aller(i + 1); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { aller(i - 1); e.preventDefault(); }
+  });
+  // Glissé au doigt (ou à la souris) sur la diapositive
+  let x0 = null, y0 = null;
+  const fen = cl.querySelector(".cl-fenetre");
+  fen.addEventListener("pointerdown", (e) => { x0 = e.clientX; y0 = e.clientY; });
+  fen.addEventListener("pointerup", (e) => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) aller(i + (dx < 0 ? 1 : -1));
+  });
+  // Pause tant que la section n'est pas à l'écran : on ne rate pas le début en arrivant dessus.
+  if ("IntersectionObserver" in window) {
+    cl.classList.add("pause");
+    new IntersectionObserver((es) => es.forEach((e) => {
+      const visible = e.isIntersecting && e.intersectionRatio >= 0.35;
+      if (visible && cl.classList.contains("pause")) { cl.classList.remove("pause"); aller(i); } else if (!visible) cl.classList.add("pause");
+    }), { threshold: [0, 0.35, 0.6] }).observe(cl);
+  }
+  // Libellés pour lecteurs d'écran, dans la langue de la page
+  function libelles() {
+    const T = window.LaboTextes, L = T[document.documentElement.lang === "en" ? "en" : "fr"];
+    cl.querySelectorAll("[data-t-aria]").forEach((e) => e.setAttribute("aria-label", L[e.dataset.tAria]));
+    diapos.forEach((d, j) => d.setAttribute("aria-label", `${j + 1} / ${n}`));
+    onglets.forEach((o, j) => o.setAttribute("aria-label", `${j + 1} / ${n}`));
+  }
+  new MutationObserver(libelles).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+  libelles();
+  aller(0);
+})();
+</script>
+</body>
+</html>

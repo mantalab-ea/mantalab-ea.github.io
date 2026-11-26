@@ -10,7 +10,11 @@
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
 <link rel="apple-touch-icon" href="marque/apple-touch-icon.png">
+<script src="langue.js"></script>
 <link rel="canonical" href="https://mantalab-ea.github.io/methode.html">
+<link rel="alternate" hreflang="fr" href="https://mantalab-ea.github.io/methode.html">
+<link rel="alternate" hreflang="en" href="https://mantalab-ea.github.io/en/methode.html">
+<link rel="alternate" hreflang="x-default" href="https://mantalab-ea.github.io/en/methode.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MantaLab">
 <meta property="og:title" content="MantaLab — notre méthode et notre taux d'erreur">
@@ -87,6 +91,7 @@
 </style>
 <!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://mantalab-ea.github.io/#mantalab","name":"MantaLab","url":"https://mantalab-ea.github.io/","logo":"https://mantalab-ea.github.io/marque/mantalab-logo.png"},{"@type":"TechArticle","headline":"Comment MantaLab audite un robot MT5","url":"https://mantalab-ea.github.io/methode.html","inLanguage":"fr","author":{"@id":"https://mantalab-ea.github.io/#mantalab"},"publisher":{"@id":"https://mantalab-ea.github.io/#mantalab"},"dateModified":"2026-11-26"}]}</script>
 </head>
 <body>
 <header class="barre"><div class="contenu">
@@ -283,7 +288,7 @@
 (function () {
   "use strict";
   let langue = "fr";
-  try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
+  langue = window.LaboLangue ? window.LaboLangue.langue : langue;   // langue de l'adresse (langue.js)
   function appliquer() {
     document.documentElement.lang = langue;
     document.querySelectorAll("[data-langue]").forEach((b) => { b.hidden = b.dataset.langue !== langue; });
@@ -292,7 +297,9 @@
     document.title = langue === "fr" ? "MantaLab — méthode : comment nous auditons un robot MT5" : "MantaLab — method: how we audit an MT5 robot";
   }
   document.querySelectorAll("[data-lang]").forEach((x) => x.addEventListener("click", () => {
-    langue = x.dataset.lang; try { localStorage.setItem("labo-langue", langue); } catch (e) {} appliquer();
+    langue = x.dataset.lang;
+    if (window.LaboLangue && window.LaboLangue.choisir(langue)) return;   // autre adresse : /en/ ou racine
+    appliquer();
   }));
   appliquer();
 })();

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Sécurité (audit du 25/11/2026) : la page ne peut charger ou envoyer des données qu'à ces adresses-là. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab-commandes.mantalab.workers.dev https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<title>MantaLab — method: how we audit an MT5 robot</title>
+<meta name="description" content="How MantaLab checks a MetaTrader 5 robot: martingale, grid and stop-loss detection, robustness statistics, prop firm challenge simulation, and our measured error rate (98.8% correct on 209 tests).">
+<link rel="icon" href="/marque/mantalab-icone.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="48x48" href="/marque/mantalab-icone-48.png">
+<link rel="apple-touch-icon" href="/marque/apple-touch-icon.png">
+<script src="/langue.js"></script>
+<link rel="canonical" href="https://mantalab-ea.github.io/en/methode.html">
+<link rel="alternate" hreflang="fr" href="https://mantalab-ea.github.io/methode.html">
+<link rel="alternate" hreflang="en" href="https://mantalab-ea.github.io/en/methode.html">
+<link rel="alternate" hreflang="x-default" href="https://mantalab-ea.github.io/en/methode.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MantaLab">
+<meta property="og:title" content="MantaLab — our method and our error rate">
+<meta property="og:description" content="What the audit checks, how, and how reliable it is: 98.8% correct verdicts on 209 tests of robots with known behaviour.">
+<meta property="og:url" content="https://mantalab-ea.github.io/en/methode.html">
+<meta property="og:image" content="https://mantalab-ea.github.io/marque/mantalab-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  /* Mêmes repères que l'accueil : noir et blanc, Archivo (titres étroits), filets fins ; le rouge pour la marque et le danger. */
+  :root { --fond:#fff; --fond-2:#f7f7f8; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
+    --rouge:#d62917; --rouge-fonce:#b51f12; --ok:#137a3e; --attention:#a8620a; --alerte:#c4231a; --focus:#2b6cf6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; } }
+  :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; }
+  * { box-sizing:border-box; }
+  html { scroll-padding-top:4.5rem; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.6 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
+  .contenu { max-width:70rem; margin:0 auto; padding:0 1.5rem; }
+  header.barre { position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--fond) 82%, transparent); backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px); border-bottom:1px solid var(--filet); }
+  .barre .contenu { display:flex; align-items:center; gap:1.5rem; height:4rem; }
+  .logo { height:1.9rem; width:auto; display:block; } .logo-sombre { display:none; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display:none; } :root:not([data-theme="light"]) .logo-sombre { display:block; } }
+  :root[data-theme="dark"] .logo-clair { display:none; } :root[data-theme="dark"] .logo-sombre { display:block; }
+  .droite { margin-left:auto; display:flex; align-items:center; gap:1rem; }
+  .langue { display:flex; gap:.15rem; }
+  .langue button { font:500 .8rem/1 "Archivo",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
+  .langue button[aria-pressed="true"] { color:var(--encre); }
+  .bouton { display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; text-decoration:none; font:500 .85rem/1 "Archivo",sans-serif;
+    padding:.55rem .85rem; border-radius:8px; background:var(--rouge); color:#fff; transition:background-color .15s; }
+  .bouton:hover { background:var(--rouge-fonce); }
+
+  .page { display:grid; grid-template-columns:13rem minmax(0,1fr); gap:4rem; align-items:start; }
+  nav.sommaire { position:sticky; top:5.5rem; margin-top:5.2rem; font-size:.85rem; }
+  nav.sommaire p { margin:0 0 .6rem; color:var(--encre-3); }
+  nav.sommaire a { display:block; padding:.3rem 0; color:var(--encre-2); text-decoration:none; }
+  nav.sommaire a:hover { color:var(--encre); }
+  article { max-width:44rem; padding-bottom:2rem; }
+  h1 { font-weight:600; font-size:clamp(2.2rem,4.6vw,3.4rem); line-height:1.04; letter-spacing:-.045em; margin:4.5rem 0 1.1rem; text-wrap:balance; }
+  .intro { color:var(--encre-2); font-size:1.12rem; margin:0; }
+  h2 { font-weight:600; font-size:1.45rem; letter-spacing:-.03em; line-height:1.2; margin:4rem 0 1rem; padding-top:1.6rem; border-top:1px solid var(--encre); }
+  h3 { font-weight:600; font-size:1rem; margin:1.8rem 0 .4rem; }
+  article p, article li { color:var(--encre-2); }
+  article strong { color:var(--encre); font-weight:600; }
+  article ul { padding-left:1.1rem; } article li { margin-bottom:.45rem; }
+
+  .chiffres { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--filet); border-radius:14px; overflow:hidden; margin:1.6rem 0 0; }
+  .chiffres div { padding:1.1rem 1.2rem; } .chiffres div + div { border-left:1px solid var(--filet); }
+  .chiffres b { display:block; font-weight:600; font-size:2rem; letter-spacing:-.04em; line-height:1.1; color:var(--rouge); font-variant-numeric:tabular-nums; }
+  .chiffres span { display:block; margin-top:.35rem; font-size:.82rem; line-height:1.45; color:var(--encre-2); }
+
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin:1.2rem 0 0; }
+  th, td { text-align:left; padding:.65rem .5rem; border-bottom:1px solid var(--filet); vertical-align:top; }
+  thead th { font-size:.75rem; font-weight:500; color:var(--encre-3); border-bottom:1px solid var(--filet-fort); }
+  td.n, th.n { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  tbody th { font-weight:600; }
+  .encadre { background:var(--fond-2); border-radius:12px; padding:1.1rem 1.2rem; margin:1.4rem 0 0; }
+  .encadre p { margin:0; }
+  .encadre p + p { margin-top:.6rem; }
+  .retour { display:inline-block; margin-top:3rem; color:var(--encre-2); font-size:.9rem; }
+  footer { margin-top:5rem; border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
+  footer p { max-width:44rem; margin:0 0 .5rem; }
+  [hidden] { display:none !important; }
+  @media (max-width: 58rem) { .page { grid-template-columns:1fr; gap:0; } nav.sommaire { display:none; } }
+  @media (max-width: 40rem) { .chiffres { grid-template-columns:1fr; } .chiffres div + div { border-left:0; border-top:1px solid var(--filet); } h1 { margin-top:3rem; }
+    .table-defile { overflow-x:auto; } }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
+</style>
+<!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
+<script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://mantalab-ea.github.io/#mantalab","name":"MantaLab","url":"https://mantalab-ea.github.io/","logo":"https://mantalab-ea.github.io/marque/mantalab-logo.png"},{"@type":"TechArticle","headline":"How MantaLab audits an MT5 robot","url":"https://mantalab-ea.github.io/en/methode.html","inLanguage":"en","author":{"@id":"https://mantalab-ea.github.io/#mantalab"},"publisher":{"@id":"https://mantalab-ea.github.io/#mantalab"},"dateModified":"2026-11-26"}]}</script>
+</head>
+<body>
+<header class="barre"><div class="contenu">
+  <a href="./"><img class="logo logo-clair" src="/marque/mantalab-logo.svg" alt="MantaLab — accueil"><img class="logo logo-sombre" src="/marque/mantalab-logo-fond-sombre.svg" alt="MantaLab — accueil"></a>
+  <div class="droite">
+    <div class="langue" role="group" aria-label="Langue / Language">
+      <button type="button" data-lang="fr" aria-pressed="false">FR</button>
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    </div>
+    <a class="bouton" href="./#haut" data-fr="Vérifier un robot" data-en="Check a robot">Check a robot</a>
+  </div>
+</div></header>
+
+<!-- ======================================================================== FRANÇAIS -->
+<div class="contenu page" lang="fr" data-langue="fr" hidden>
+  <nav class="sommaire" aria-label="Sommaire">
+    <p>Sur cette page</p>
+    <a href="#fr-principe">Le principe</a>
+    <a href="#fr-comportements">Les comportements</a>
+    <a href="#fr-solidite">La solidité des gains</a>
+    <a href="#fr-challenges">Les challenges</a>
+    <a href="#fr-precision">Notre taux d'erreur</a>
+    <a href="#fr-limites">Les limites</a>
+  </nav>
+  <article>
+    <h1>Comment nous vérifions un robot</h1>
+    <p class="intro">MantaLab lit les trades d'un robot MetaTrader 5, un par un, et en déduit ce qu'il fait vraiment. Voici chaque vérification, comment elle est faite, et à quel point elle est fiable. Nous publions aussi nos erreurs.</p>
+
+    <h2 id="fr-principe">Le principe : juger les trades, pas les promesses</h2>
+    <p>La page de vente d'un robot montre une courbe et des chiffres choisis par le vendeur. Nous partons d'autre chose : <strong>la liste complète des positions</strong> (heure, taille, prix d'entrée et de sortie, stop-loss, résultat). C'est dans cette liste que se voient une martingale, une grille ou un stop qui n'existe pas.</p>
+    <p>Deux sources sont acceptées :</p>
+    <ul>
+      <li><strong>Un rapport du testeur de stratégie MetaTrader 5</strong> (fichier .html). L'outil gratuit l'analyse directement dans votre navigateur : le fichier n'est envoyé nulle part.</li>
+      <li><strong>L'historique d'un signal MQL5</strong> (fichier .csv), c'est-à-dire de l'argent réel. Mêmes vérifications.</li>
+    </ul>
+    <p>Pour l'audit payant, c'est le labo qui fait tourner le robot lui-même, sur sa version de démonstration officielle, dans 3 scénarios : 5 ans de marché en exécution idéale, 5 ans en ticks réels du courtier, et des retards d'exécution aléatoires. Les ticks réels viennent d'un courtier dont nous avons vérifié l'historique année par année : complet, sans trou. On ne dépend donc d'aucun rapport fourni par le vendeur.</p>
+
+    <h2 id="fr-comportements">Les comportements dangereux</h2>
+    <h3>Martingale</h3>
+    <p>Après chaque perte, nous regardons si la position suivante est plus grosse, marché par marché, en ignorant les dépôts et les arrondis de taille de lot. Nous comptons la part des pertes suivies d'une hausse, la plus longue série d'augmentations et le rapport entre la plus grosse et la plus petite mise. Nous repérons aussi la martingale « de grille », où chaque renfort d'une position perdante est plus gros que le précédent.</p>
+    <h3>Grille et moyenne à la baisse</h3>
+    <p>Nous reconstruisons, à chaque instant, les positions ouvertes dans le même sens. Une grille ajoute des positions pendant que le prix va contre elle, au lieu de couper la perte. Les ordres ouverts dans la même seconde (des « paniers ») comptent comme une seule décision, pour ne pas confondre un robot qui découpe ses ordres avec une grille.</p>
+    <h3>Stop-loss</h3>
+    <p>Quatre cas sont distingués : un vrai stop transmis au courtier, un stop posé après l'entrée, un stop « virtuel » géré par le robot (il disparaît si MetaTrader plante ou perd la connexion), et l'absence totale de stop. Pour reconnaître un stop virtuel, nous cherchons des pertes qui se ferment toujours à la même distance du prix d'entrée.</p>
+    <h3>Trades ultra-courts</h3>
+    <p>Une part importante de positions de moins de 60 secondes signale souvent un scalping sensible aux conditions du courtier, et beaucoup de prop firms l'interdisent.</p>
+
+    <h2 id="fr-solidite">La solidité des gains : avantage réel ou chance ?</h2>
+    <p>Un robot peut gagner par hasard, ou parce que ses réglages ont été collés au passé. Nous mesurons, sur les résultats jour par jour :</p>
+    <ul>
+      <li><strong>Le Sharpe probabiliste</strong> (Bailey et López de Prado, 2012) : la probabilité que l'avantage soit réel, compte tenu de la durée du test et des pertes extrêmes.</li>
+      <li><strong>Le Sharpe « dégonflé »</strong> (2014) : la même chose si le vendeur a essayé 100 réglages et gardé le meilleur, ce qui est courant.</li>
+      <li><strong>La durée minimale</strong> qu'il faudrait au test pour conclure avec 95 % de confiance.</li>
+      <li><strong>La stabilité</strong> : le robot gagne-t-il dans chaque période, ou quelques gros gains font-ils tout le résultat ?</li>
+      <li><strong>1 000 variantes de l'historique</strong>, rééchantillonné par blocs d'un mois, pour voir si le résultat tient quand l'ordre des mois change.</li>
+    </ul>
+    <p>Tous les calculs sont <strong>déterministes</strong> : le même fichier donne toujours exactement les mêmes chiffres.</p>
+
+    <h2 id="fr-challenges">Les challenges de prop firms</h2>
+    <p>Nous rejouons l'historique du robot contre les règles de 6 challenges : FTMO (1 et 2 étapes), FundedNext Stellar (1 étape, 2 étapes et Lite) et The5ers High Stakes. Les règles (objectif, perte journalière, perte maximale, jours minimum, règles particulières) ont été relevées sur les sites officiels le 22/11/2026.</p>
+    <p>La perte journalière est vérifiée sur <strong>l'équité minute par minute</strong>, pas seulement sur le solde à la clôture des trades : une position qui descend à −6 % avant de remonter fait échouer un challenge, même si elle se ferme en gain. Nous avons vérifié ce calcul contre MetaTrader lui-même : <strong>0,05 point d'écart moyen</strong> sur le drawdown.</p>
+
+    <h2 id="fr-precision">Notre taux d'erreur</h2>
+    <p>Un outil qui ne publie pas ses erreurs demande qu'on le croie sur parole. Nous avons donc écrit un robot de laboratoire dont nous connaissons exactement le comportement (martingale, grille, stop réel ou virtuel, scalping…), et l'avons fait tourner dans MetaTrader 5 sur 19 marchés : forex, or, argent et actions américaines.</p>
+    <p>Chaque robot de test donne jusqu'à trois verdicts (martingale, grille, stop-loss) : 589 verdicts en tout, dont 582 justes.</p>
+    <div class="chiffres">
+      <div><b>98,8 %</b><span>de verdicts justes : 582 sur 589, sur 209 tests de robots au comportement connu</span></div>
+      <div><b>29 / 29</b><span>verdicts conformes sur 10 vrais robots de référence</span></div>
+      <div><b>0,05 pt</b><span>d'écart moyen avec MetaTrader sur le drawdown minute par minute</span></div>
+    </div>
+    <div class="table-defile">
+    <table>
+      <thead><tr><th>Vérification</th><th class="n">Justes</th><th class="n">Précision</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Martingale</th><td class="n">208 / 209</td><td class="n">99,5 %</td></tr>
+        <tr><th scope="row">Grille</th><td class="n">208 / 209</td><td class="n">99,5 %</td></tr>
+        <tr><th scope="row">Trades ultra-courts</th><td class="n">19 / 19</td><td class="n">100 %</td></tr>
+        <tr><th scope="row">Stop-loss</th><td class="n">147 / 152</td><td class="n">96,7 %</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <h3>Les 7 erreurs, une par une</h3>
+    <div class="encadre">
+      <p><strong>5 erreurs viennent des stops « virtuels »</strong> (gérés par le robot, invisibles pour le courtier), surtout ceux dont la distance suit la volatilité du marché. Nous les classons « aucun stop » au lieu de « stop virtuel ». L'erreur va dans le sens prudent : nous signalons un risque plus grand que la réalité, jamais plus petit.</p>
+      <p>Jusqu'au 23/11/2026, il y en avait 19 : le moteur ne reconnaissait que les stops virtuels à distance fixe. Il compare maintenant chaque perte à celles qui l'entourent dans le temps, ce qui retrouve aussi les stops qui suivent la volatilité, sans fausse alerte sur les robots réellement sans stop. Ce réglage a été fait sur cette campagne : nous le vérifierons sur de nouveaux tests indépendants, et publierons le résultat.</p>
+      <p><strong>2 erreurs viennent d'un test trop court</strong> (19 positions) : l'outil répond « pas assez de données » au lieu de trancher. Là encore, il ne rassure pas à tort.</p>
+    </div>
+    <p>Chaque nouvelle version du moteur est vérifiée à nouveau contre ces 209 tests et contre les vrais robots déjà audités par le labo avant d'être publiée.</p>
+
+    <h2 id="fr-limites">Les limites</h2>
+    <ul>
+      <li>Un test décrit le passé, sur un marché et une période. Il ne garantit rien pour l'avenir.</li>
+      <li>Un robot peut changer de comportement avec d'autres réglages que ceux testés.</li>
+      <li>Un rapport du testeur peut avoir été retouché. Nous repérons certaines incohérences, mais seul un test refait par le labo (l'audit payant) ou un signal sur compte réel l'écarte vraiment.</li>
+      <li>MantaLab décrit un comportement ; ce n'est pas un conseil en investissement.</li>
+    </ul>
+    <a class="retour" href="./">← Retour à l'accueil</a>
+  </article>
+</div>
+
+<!-- ======================================================================== ENGLISH -->
+<div class="contenu page" lang="en" data-langue="en">
+  <nav class="sommaire" aria-label="Contents">
+    <p>On this page</p>
+    <a href="#en-principle">The principle</a>
+    <a href="#en-behaviours">Behaviours</a>
+    <a href="#en-robustness">Robustness of gains</a>
+    <a href="#en-challenges">Challenges</a>
+    <a href="#en-accuracy">Our error rate</a>
+    <a href="#en-limits">Limits</a>
+  </nav>
+  <article>
+    <h1>How we check a robot</h1>
+    <p class="intro">MantaLab reads a MetaTrader 5 robot's trades one by one and works out what it really does. Here is every check, how it is done, and how reliable it is. We publish our mistakes too.</p>
+
+    <h2 id="en-principle">The principle: judge the trades, not the promises</h2>
+    <p>A robot's sales page shows a curve and figures chosen by the seller. We start from something else: <strong>the full list of positions</strong> (time, size, entry and exit price, stop-loss, result). That list is where a martingale, a grid or a stop that doesn't exist becomes visible.</p>
+    <p>Two sources are accepted:</p>
+    <ul>
+      <li><strong>A MetaTrader 5 strategy tester report</strong> (.html file). The free tool analyses it right in your browser: the file is never sent anywhere.</li>
+      <li><strong>An MQL5 signal history</strong> (.csv file), meaning real money. Same checks.</li>
+    </ul>
+    <p>For the paid audit, the lab runs the robot itself, using its official demo version, in 3 scenarios: 5 years of market data with ideal execution, 5 years of the broker's real ticks, and random execution delays. The real ticks come from a broker whose history we checked year by year: complete, with no gaps. Nothing depends on a report supplied by the seller.</p>
+
+    <h2 id="en-behaviours">Dangerous behaviours</h2>
+    <h3>Martingale</h3>
+    <p>After each loss, we check whether the next position is larger, market by market, ignoring deposits and lot-step rounding. We count the share of losses followed by an increase, the longest run of increases, and the ratio between the largest and smallest stake. We also catch the "grid" martingale, where each top-up of a losing position is larger than the last.</p>
+    <h3>Grid and averaging down</h3>
+    <p>We rebuild, at every moment, the open positions in the same direction. A grid adds positions while price moves against it instead of cutting the loss. Orders opened within the same second ("baskets") count as one decision, so a robot that splits its orders isn't mistaken for a grid.</p>
+    <h3>Stop-loss</h3>
+    <p>We tell four cases apart: a real stop sent to the broker, a stop placed after entry, a "virtual" stop managed by the robot (it vanishes if MetaTrader crashes or loses its connection), and no stop at all. To recognise a virtual stop, we look for losses that always close at the same distance from the entry price.</p>
+    <h3>Ultra-short trades</h3>
+    <p>A large share of positions under 60 seconds often points to scalping that depends on broker conditions, and many prop firms forbid it.</p>
+
+    <h2 id="en-robustness">Robustness: real edge or luck?</h2>
+    <p>A robot can win by chance, or because its settings were fitted to the past. On day-by-day results we measure:</p>
+    <ul>
+      <li><strong>The probabilistic Sharpe ratio</strong> (Bailey and López de Prado, 2012): the probability that the edge is real, given the test length and extreme losses.</li>
+      <li><strong>The deflated Sharpe ratio</strong> (2014): the same, assuming the seller tried 100 settings and kept the best, which is common.</li>
+      <li><strong>The minimum track record length</strong> the test would need to conclude with 95% confidence.</li>
+      <li><strong>Stability</strong>: does the robot win in every period, or do a few big wins make the whole result?</li>
+      <li><strong>1,000 variants of the history</strong>, resampled in one-month blocks, to see whether the result holds when the order of months changes.</li>
+    </ul>
+    <p>Every calculation is <strong>deterministic</strong>: the same file always gives exactly the same figures.</p>
+
+    <h2 id="en-challenges">Prop firm challenges</h2>
+    <p>We replay the robot's history against the rules of 6 challenges: FTMO (1-step and 2-step), FundedNext Stellar (1-step, 2-step and Lite) and The5ers High Stakes. The rules (target, daily loss, maximum loss, minimum days, special rules) were taken from the official websites on 22/11/2026.</p>
+    <p>The daily loss is checked on <strong>minute-by-minute equity</strong>, not just on the balance when trades close: a position that drops to −6% before recovering fails a challenge, even if it closes in profit. We checked this calculation against MetaTrader itself: <strong>0.05 point average gap</strong> on drawdown.</p>
+
+    <h2 id="en-accuracy">Our error rate</h2>
+    <p>A tool that doesn't publish its mistakes asks to be taken on trust. So we wrote a lab robot whose behaviour we know exactly (martingale, grid, real or virtual stop, scalping…) and ran it in MetaTrader 5 on 19 markets: forex, gold, silver and US stocks.</p>
+    <p>Each test robot gives up to three verdicts (martingale, grid, stop-loss): 589 verdicts in all, 582 of them correct.</p>
+    <div class="chiffres">
+      <div><b>98.8%</b><span>correct verdicts: 582 out of 589, across 209 tests of robots with known behaviour</span></div>
+      <div><b>29 / 29</b><span>matching verdicts on 10 real reference robots</span></div>
+      <div><b>0.05 pt</b><span>average gap with MetaTrader on minute-by-minute drawdown</span></div>
+    </div>
+    <div class="table-defile">
+    <table>
+      <thead><tr><th>Check</th><th class="n">Correct</th><th class="n">Accuracy</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Martingale</th><td class="n">208 / 209</td><td class="n">99.5%</td></tr>
+        <tr><th scope="row">Grid</th><td class="n">208 / 209</td><td class="n">99.5%</td></tr>
+        <tr><th scope="row">Ultra-short trades</th><td class="n">19 / 19</td><td class="n">100%</td></tr>
+        <tr><th scope="row">Stop-loss</th><td class="n">147 / 152</td><td class="n">96.7%</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <h3>The 7 errors, one by one</h3>
+    <div class="encadre">
+      <p><strong>5 errors come from "virtual" stops</strong> (managed by the robot, invisible to the broker), mostly those whose distance follows market volatility. We classify them as "no stop" instead of "virtual stop". The error leans towards caution: we flag a bigger risk than reality, never a smaller one.</p>
+      <p>Until 23/11/2026 there were 19: the engine only recognised virtual stops at a fixed distance. It now compares each loss with the losses around it in time, which also finds stops that follow volatility, with no false alarm on robots that truly have no stop. This setting was tuned on this campaign: we will check it on new, independent tests and publish the result.</p>
+      <p><strong>2 errors come from a test that was too short</strong> (19 positions): the tool answers "not enough data" instead of deciding. Again, it never reassures by mistake.</p>
+    </div>
+    <p>Every new version of the engine is checked again against these 209 tests and the real robots already audited by the lab before it is published.</p>
+
+    <h2 id="en-limits">Limits</h2>
+    <ul>
+      <li>A test describes the past, on one market and one period. It guarantees nothing about the future.</li>
+      <li>A robot can behave differently with settings other than those tested.</li>
+      <li>A tester report can be edited. We catch some inconsistencies, but only a test re-run by the lab (the paid audit) or a live-account signal truly rules it out.</li>
+      <li>MantaLab describes behaviour; it is not investment advice.</li>
+    </ul>
+    <a class="retour" href="./">← Back to home</a>
+  </article>
+</div>
+
+<footer><div class="contenu">
+  <p data-fr="MantaLab est indépendant des vendeurs de robots, de MetaQuotes et des prop firms. Ce site décrit le comportement observé de robots dans des tests ; ce n'est pas un conseil en investissement. Les résultats passés ne préjugent pas des résultats futurs." data-en="MantaLab is independent of robot sellers, MetaQuotes and prop firms. This site describes robots' observed behaviour in tests; it is not investment advice. Past results do not predict future results.">MantaLab is independent of robot sellers, MetaQuotes and prop firms. This site describes robots' observed behaviour in tests; it is not investment advice. Past results do not predict future results.</p>
+  <p><a href="/legal.html" data-fr="Mentions légales et confidentialité" data-en="Legal notice and privacy (in French)">Legal notice and privacy (in French)</a></p>
+</div></footer>
+
+<script>
+(function () {
+  "use strict";
+  let langue = "fr";
+  langue = window.LaboLangue ? window.LaboLangue.langue : langue;   // langue de l'adresse (/langue.js)
+  function appliquer() {
+    document.documentElement.lang = langue;
+    document.querySelectorAll("[data-langue]").forEach((b) => { b.hidden = b.dataset.langue !== langue; });
+    document.querySelectorAll("[data-fr]").forEach((el) => { el.textContent = el.dataset[langue]; });
+    document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === langue)));
+    document.title = langue === "fr" ? "MantaLab — méthode : comment nous auditons un robot MT5" : "MantaLab — method: how we audit an MT5 robot";
+  }
+  document.querySelectorAll("[data-lang]").forEach((x) => x.addEventListener("click", () => {
+    langue = x.dataset.lang;
+    if (window.LaboLangue && window.LaboLangue.choisir(langue)) return;   // autre adresse : /en/ ou racine
+    appliquer();
+  }));
+  appliquer();
+})();
+</script>
+</body>
+</html>

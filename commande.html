@@ -10,7 +10,11 @@
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
 <link rel="apple-touch-icon" href="marque/apple-touch-icon.png">
+<script src="langue.js"></script>
 <link rel="canonical" href="https://mantalab-ea.github.io/commande.html">
+<link rel="alternate" hreflang="fr" href="https://mantalab-ea.github.io/commande.html">
+<link rel="alternate" hreflang="en" href="https://mantalab-ea.github.io/en/commande.html">
+<link rel="alternate" hreflang="x-default" href="https://mantalab-ea.github.io/en/commande.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MantaLab">
 <meta property="og:title" content="MantaLab — faire auditer un robot MT5">
@@ -165,6 +169,7 @@
 </style>
 <!-- Mesure d'audience : GoatCounter, sans cookie ni donnée personnelle -->
 <script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://mantalab-ea.github.io/#mantalab","name":"MantaLab","url":"https://mantalab-ea.github.io/","logo":"https://mantalab-ea.github.io/marque/mantalab-logo.png"},{"@type":"Service","name":"Audit indépendant d'un robot MT5","url":"https://mantalab-ea.github.io/commande.html","inLanguage":"fr","serviceType":"Audit de robot de trading (Expert Advisor)","description":"Le labo fait tourner le robot lui-même dans MetaTrader 5 sur 5 ans d'historique, en exécution idéale, sur les vrais ticks du courtier et avec des retards d'exécution aléatoires, puis remet une fiche d'audit PDF : martingale, grille, stops, pire scénario, règles de prop firm.","areaServed":"Worldwide","provider":{"@id":"https://mantalab-ea.github.io/#mantalab"}}]}</script>
 </head>
 <body>
   <header class="barre"><div class="contenu">
@@ -434,7 +439,7 @@
   };
 
   let langue = "fr";
-  try { const l = localStorage.getItem("labo-langue"); if (l === "en" || l === "fr") langue = l; else if ((navigator.language || "").slice(0, 2) !== "fr") langue = "en"; } catch (e) {}
+  langue = window.LaboLangue ? window.LaboLangue.langue : langue;   // langue de l'adresse (langue.js)
 
   function appliquer() {
     const L = T[langue];
@@ -559,7 +564,9 @@
   }
 
   document.querySelectorAll("[data-lang]").forEach((x) => x.addEventListener("click", () => {
-    langue = x.dataset.lang; try { localStorage.setItem("labo-langue", langue); } catch (e) {} appliquer();
+    langue = x.dataset.lang;
+    if (window.LaboLangue && window.LaboLangue.choisir(langue)) return;   // autre adresse : /en/ ou racine
+    appliquer();
   }));
   appliquer();
 

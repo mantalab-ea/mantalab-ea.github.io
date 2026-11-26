@@ -1,0 +1,22 @@
+# MantaLab
+
+> Independent audits of MetaTrader 5 trading robots (Expert Advisors, EAs). MantaLab tells traders whether a robot hides a martingale, a grid / averaging-down system, missing stop-losses, or would fail prop firm rules, before they buy it or put money on it. MantaLab sells no robot and is not affiliated with robot vendors, MetaQuotes or prop firms. Site in English and French.
+
+## Free tool
+
+- [MT5 report checker (English)](https://mantalab-ea.github.io/en/): drop the HTML report of the MetaTrader 5 strategy tester. The analysis runs entirely in the browser (the file is never uploaded) and checks martingale (lot size increased after losses), grid / averaging down (new positions in the same direction while price goes against them), stop-loss presence, ultra-short trades, win/loss profile and classic prop firm challenge rules (daily and total drawdown limits).
+- [Vérificateur de rapports MT5 (français)](https://mantalab-ea.github.io/)
+
+## Paid audit
+
+- [Get a robot audited](https://mantalab-ea.github.io/en/commande.html): the lab runs the robot itself in MetaTrader 5 over 5 years of history in three scenarios (1-minute OHLC with perfect execution, real broker ticks, random execution delays) and delivers a PDF audit report. Price €19. Orders open soon; checking a report is free meanwhile.
+- [Sample audit report](https://mantalab-ea.github.io/exemple/multimartin.html)
+
+## Method and accuracy
+
+- [How MantaLab audits a robot](https://mantalab-ea.github.io/en/methode.html): detection rules, robustness statistics (bootstrap of the trade sequence), prop firm challenge simulation, and the measured accuracy: 98.8% correct verdicts on 209 tests of robots with known behaviour.
+
+## Notes
+
+- MantaLab describes the observed behaviour of robots in tests. It is not investment advice; past results do not predict future results.
+- A backtest with perfect execution can look very different from the same robot on real ticks: MantaLab always shows both.
