@@ -358,17 +358,20 @@
   // ---------------------------------------------------------------- détecteurs
 
   const REGLAGES = {
-    ratioMartingale: 1.5, ratioGrilleMartingale: 1.25, minEvenementsMartingale: 3, partMartingaleAlerte: 0.3, chaineMartingaleAlerte: 3,
-    maxPositionsGrilleAlerte: 3, minEntreesGrille: 3,
+    // moteur v2 (26/11/2026) : décisions, causalité perte → hausse, renforts sans stop (voir construireDecisions)
+    fenetreDecisionSecondes: 60,
+    ratioMartingale: 1.45, ratioGrilleMartingale: 1.25, minEvenementsMartingale: 3,
+    minPertesMartingale: 10, partMartingaleAlerte: 0.4, ecartMartingaleAlerte: 0.3, partMartingaleAttention: 0.2, ecartMartingaleAttention: 0.15,
+    minEntreesGrille: 5, minRenfortsGrilleAlerte: 10, pileGrilleAlerte: 5, partRenfortsNonProteges: 0.5, partGrilleMartingale: 0.3,
     partSansStopAlerte: 0.5, partSansStopAttention: 0.1,
     minPertesStopVirtuel: 10, toleranceStopVirtuel: 0.15, partStopVirtuel: 0.7,
-    partPlafondStop: 0.3, partAuDelaPlafond: 0.05, partRenfortsAttention: 0.02,
+    partPlafondStop: 0.3, partAuDelaPlafond: 0.05, partRenfortsAttention: 0.05,
     fenetrePanierSecondes: 2,
     partRenfortsAlerte: 0.15, partStopPoseApres: 0.25, partPileStop: 0.1, densitePileStop: 2, partAuDelaGaps: 0.2,
     fenetreStopVariable: 4, minPertesStopVariable: 30,
     dureeCourteSecondes: 60, partCourteAlerte: 0.3, partCourteAttention: 0.05,
     tauxReussiteSuspect: 0.85, ratioPerteGainSuspect: 3.0,
-    perteJourMax: 0.05, perteTotaleMax: 0.10, minPositions: 20,
+    perteJourMax: 0.05, perteTotaleMax: 0.10, minPositions: 20, creuxRisqueEleve: 0.4, creuxRisqueMoyen: 0.2,
   };
 
   const fermee = (p) => p.fermeture !== null;
@@ -407,109 +410,163 @@
   }
 
   /**
-   * Après une perte FERMÉE, la position suivante du MÊME symbole est-elle plus grosse ? Même symbole : sur un signal
-   * multi-marchés, 1 lot d'indice après 0,01 lot d'or n'est pas une martingale (signal 2376856 : « ×10 000 »).
-   * Un DÉPÔT entre la perte et la position suivante : pas de comparaison (le robot grossit avec le compte).
+   * DÉCISIONS (moteur v2, 26/11/2026). Les robots du Market ouvrent souvent PLUSIEURS positions pour une seule décision
+   * (jambes à quelques secondes d'écart, 1 à 6 selon le signal) et font tourner plusieurs stratégies à la fois. Comparer
+   * des positions ou des paniers de 2 s prenait ces différences pour des martingales et des grilles (13 robots du Market
+   * vérifiés trade par trade le 26/11/2026). Une décision = entrées du même symbole et du même sens à moins de
+   * r.fenetreDecisionSecondes (60 s) de la première. On garde : volume total, prix moyen, solde au moment d'ouvrir (le lot
+   * qui suit le solde n'est pas une martingale), fermeture (la dernière jambe), résultat, et « protégée » = chaque jambe a
+   * un stop-loss chez le courtier (dans l'ordre d'entrée, ou visible par une clôture « sl »).
    */
-  function detecterMartingale(positions, r, unitaires, depots) {
-    const fermees = positions.filter(fermee);
-    if (fermees.length < r.minPositions) return pasAssez("martingale", fermees.length);
-    const parOuverture = positions.slice().sort((a, b) => a.ouverture - b.ouverture);
-    const fermeesParSymbole = new Map();
-    for (const p of fermees.slice().sort((a, b) => a.fermeture - b.fermeture)) {
-      if (!fermeesParSymbole.has(p.symbole)) fermeesParSymbole.set(p.symbole, []);
-      fermeesParSymbole.get(p.symbole).push(p);
+  function construireDecisions(positions, depot, mouvements, r) {
+    const fenetre = r.fenetreDecisionSecondes * 1000;
+    const tri = positions.slice().sort((a, b) => a.ouverture - b.ouverture);
+    const fermees = positions.filter(fermee).sort((a, b) => a.fermeture - b.fermeture);
+    const mvts = (mouvements || []).slice().sort((a, b) => a.temps - b.temps);
+    let solde = depot, iF = 0, iM = 0;
+    const derniere = new Map(), res = [];
+    let stopConnu = false;
+    for (const p of tri) {
+      while (iF < fermees.length && fermees[iF].fermeture <= p.ouverture) solde += fermees[iF++].profit;
+      while (iM < mvts.length && mvts[iM].temps <= p.ouverture) solde += mvts[iM++].montant;
+      if (p.stopLoss !== null && p.stopLoss !== undefined) stopConnu = true;
+      const cle = p.symbole + "|" + p.sens, d = derniere.get(cle);
+      const protegee = p.stopLoss > 0 || p.fermeParSL;
+      if (d && p.ouverture - d.ouverture <= fenetre) {
+        d.prixEntree = (d.prixEntree * d.volume + p.prixEntree * p.volume) / (d.volume + p.volume);
+        d.volume = +(d.volume + p.volume).toFixed(8);
+        d.jambes.push(p);
+        d.protegee = d.protegee && protegee;
+        continue;
+      }
+      const nd = { symbole: p.symbole, sens: p.sens, ouverture: p.ouverture, volume: p.volume, prixEntree: p.prixEntree,
+        solde: Math.max(solde, 1e-9), jambes: [p], protegee };
+      derniere.set(cle, nd);
+      res.push(nd);
     }
-    const curseur = new Map(), derniereParSymbole = new Map();
+    for (const d of res) {
+      const ouvertes = d.jambes.some((p) => !fermee(p));
+      d.fermeture = ouvertes ? null : maxDe(d.jambes.map((p) => p.fermeture));
+      d.profit = d.jambes.reduce((s, p) => s + p.profit, 0);
+      d.n = d.jambes.length;
+    }
+    res.stopConnu = stopConnu;
+    return res;
+  }
+
+  /**
+   * MARTINGALE : la mise grossit-elle À CAUSE des pertes ? On compare chaque décision à la précédente décision FERMÉE du
+   * même symbole, en taille rapportée au solde (un lot qui suit le compte n'est pas une martingale), et on regarde la part
+   * de hausses ×1,45 et plus APRÈS UNE PERTE et APRÈS UN GAIN. Une martingale grossit après les pertes et presque jamais
+   * après les gains ; un robot à plusieurs stratégies ou à plusieurs jambes varie autant dans les deux cas.
+   * Étalonnage du 26/11/2026 : martingales connues (MultiMartin, VR Overturn, LaboSynth ×2 et ×1,6 sur 19 marchés) =
+   * 47 à 100 % de hausses après une perte, 0 % après un gain ; 13 robots du Market = écart de 9 points au plus.
+   * Un DÉPÔT entre les deux décisions : pas de comparaison.
+   */
+  function detecterMartingale(decisions, r, unitaires, depots) {
+    const fermeesD = decisions.filter((d) => d.fermeture !== null).sort((a, b) => a.fermeture - b.fermeture);
+    if (fermeesD.length < r.minPositions) return pasAssez("martingale", fermeesD.length);
     const dep = (depots || []).slice().sort((a, b) => a - b);
     const depotEntre = (t0, t1) => dep.some((t) => t > t0 && t <= t1);
-    let apresPerte = 0, hausses = 0, chaine = 0, chaineMax = 0;
-    const exemples = [];
-    const u = unitaires || positions; // plus grosse / plus petite POSITION (pas panier) pour le texte
+    const u = unitaires || [];
     const vMin = minDe(u.map((p) => p.volume));
-    // Hausse d'UN seul cran de 0,01 lot (0,01 → 0,02) chez un robot qui trade au lot minimum : arrondi d'un lot qui
-    // suit le solde, pas une martingale (signaux réels du 22/11/2026). Au-dessus de 0,01 lot, ce cran n'existe pas.
-    const cran = vMin <= 0.01 + EPS ? 0.01 : 0;
     const mult = vMin ? maxDe(u.map((p) => p.volume)) / vMin : 1;
-    for (const p of parOuverture) {
-      const liste = fermeesParSymbole.get(p.symbole) || [];
-      let i = curseur.get(p.symbole) || 0, derniere = derniereParSymbole.get(p.symbole) || null;
-      while (i < liste.length && liste[i].fermeture <= p.ouverture) derniere = liste[i++];
-      curseur.set(p.symbole, i);
-      derniereParSymbole.set(p.symbole, derniere);
-      if (!derniere || depotEntre(derniere.fermeture, p.ouverture)) continue;
-      if (derniere.profit < 0) {
-        apresPerte++;
-        if (p.volume >= derniere.volume * r.ratioMartingale - EPS) {
-          // la CHAÎNE compte toute hausse (0,01 → 0,02 → 0,04… est une martingale) ; le décompte isolé ignore un seul cran
-          chaine++; chaineMax = Math.max(chaineMax, chaine);
-          if (p.volume - derniere.volume > cran + EPS) {
-            hausses++;
-            if (exemples.length < 3) exemples.push({ t: p.ouverture, perte: derniere.profit, v0: derniere.volume, v1: p.volume });
-          }
+    const parSymbole = new Map();
+    for (const d of fermeesD) { if (!parSymbole.has(d.symbole)) parSymbole.set(d.symbole, []); parSymbole.get(d.symbole).push(d); }
+    let apresPerte = 0, hausses = 0, apresGain = 0, haussesGain = 0, chaine = 0, chaineMax = 0, logPerte = 0, logGain = 0;
+    const exemples = [];
+    const tri = decisions.slice().sort((a, b) => a.ouverture - b.ouverture);
+    for (const d of tri) {
+      const liste = parSymbole.get(d.symbole) || [];
+      let lo = 0, hi = liste.length;               // dernière décision fermée avant l'ouverture de d
+      while (lo < hi) { const m = (lo + hi) >> 1; if (liste[m].fermeture <= d.ouverture) lo = m + 1; else hi = m; }
+      const prev = lo > 0 ? liste[lo - 1] : null;
+      if (!prev || prev === d || depotEntre(prev.fermeture, d.ouverture)) continue;
+      const rel = (d.volume / d.solde) / (prev.volume / prev.solde);
+      const hausse = rel >= r.ratioMartingale - EPS && d.volume > prev.volume + EPS;
+      if (prev.profit < 0) {
+        apresPerte++; logPerte += Math.log(Math.max(rel, 1e-6));
+        if (hausse) {
+          hausses++; chaine++; chaineMax = Math.max(chaineMax, chaine);
+          if (exemples.length < 3) exemples.push({ t: d.ouverture, perte: prev.profit, v0: prev.volume, v1: d.volume });
         } else chaine = 0;
-      } else chaine = 0;
+      } else {
+        apresGain++; logGain += Math.log(Math.max(rel, 1e-6)); chaine = 0;
+        if (hausse) haussesGain++;
+      }
     }
     const part = apresPerte ? hausses / apresPerte : 0;
-    const mesures = { apresPerte, hausses, part: +part.toFixed(3), chaineMax, mult: +mult.toFixed(2) };
-    const alerte = (hausses >= r.minEvenementsMartingale && part >= r.partMartingaleAlerte) || chaineMax >= r.chaineMartingaleAlerte;
-    // « à surveiller » dès 3 hausses (comme la grille) : 1 ou 2 = anecdotique (EMA Cross : 2 sur 47, ordres en attente
-    // déclenchés ensemble par un gap ; étalonnage du 22/11/2026).
-    const niveau = alerte ? "alerte" : hausses >= r.minEvenementsMartingale ? "attention" : "ok";
+    const partGain = apresGain ? haussesGain / apresGain : 0;
+    const mesures = { apresPerte, hausses, part: +part.toFixed(3), apresGain, haussesGain, partGain: +partGain.toFixed(3),
+      ecart: +(part - partGain).toFixed(3), taillePerte: +Math.exp(apresPerte ? logPerte / apresPerte : 0).toFixed(2),
+      tailleGain: +Math.exp(apresGain ? logGain / apresGain : 0).toFixed(2), chaineMax, mult: +mult.toFixed(2) };
+    let niveau = "ok";
+    if (apresPerte >= r.minPertesMartingale && part >= r.partMartingaleAlerte && part - partGain >= r.ecartMartingaleAlerte) niveau = "alerte";
+    else if (hausses >= r.minEvenementsMartingale && part >= r.partMartingaleAttention && part - partGain >= r.ecartMartingaleAttention) niveau = "attention";
     return { code: "martingale", niveau, cle: "martingale_" + niveau, donnees: mesures, mesures, exemples };
   }
 
-  function detecterGrille(positions, r) {
-    if (positions.length < r.minPositions) return pasAssez("grille", positions.length);
+  /**
+   * GRILLE (moyenne à la baisse) : une nouvelle DÉCISION ouverte plus tard (> 60 s), à un prix MOINS BON que la pire
+   * décision du même sens encore ouverte = un renfort. Une vraie grille renforce SANS stop sur chaque jambe (elle attend que
+   * le prix revienne) ; un robot à plusieurs stratégies ouvre aussi des positions du même sens à moins bon prix, mais
+   * chacune avec son propre stop-loss : ce n'est pas une grille (Gold Beaver, Allylla, Janus Zone, The Invincible…).
+   * Étalonnage du 26/11/2026 : grilles connues (GridPro, GridEA, Zone Recovery, LaboSynth grilles sur 19 marchés) =
+   * 20 à 69 % de décisions en renfort, 0 % de renforts protégés ; 13 robots du Market : renforts protégés à 100 %
+   * sauf Scalping Robot Pro (46 %). Sans information de stop (historique de signal), on regarde si les renforts se
+   * ferment avec la position qu'ils renforcent (panier).
+   */
+  function detecterGrille(decisions, r) {
+    if (decisions.length < r.minPositions) return pasAssez("grille", decisions.length);
+    const stopConnu = !!decisions.stopConnu;
     const ev = [];
-    // À temps égal : fermetures, puis positions ouvertes ET fermées dans la même seconde (ouverture
-    // avant fermeture), puis ouvertures. Campagne 2026-11-21 : sans ça, une position de durée 0 n'était
-    // jamais retirée et un scalpeur passait pour une grille (NZDUSD : 5 positions « simultanées »).
-    positions.forEach((p) => {
-      const nulle = fermee(p) && p.fermeture === p.ouverture;
-      ev.push({ t: p.ouverture, o: nulle ? 0.5 : 1, ouvre: true, p });
-      if (fermee(p)) ev.push({ t: p.fermeture, o: nulle ? 0.75 : 0, ouvre: false, p });
+    decisions.forEach((d) => {
+      ev.push({ t: d.ouverture, o: 1, d });
+      if (d.fermeture !== null) ev.push({ t: d.fermeture, o: 0, d });
     });
     ev.sort((a, b) => a.t - b.t || a.o - b.o);
     const ouvertes = new Map();
-    let simMax = 0, defav = 0, hausses = 0;
+    let simMax = 0, renforts = 0, nonProteges = 0, ensemble = 0, hausses = 0;
     const exemples = [], exemplesHausse = [];
+    const fenetre = r.fenetreDecisionSecondes * 1000;
     for (const e of ev) {
-      const cle = e.p.symbole + "|" + e.p.sens;
+      const cle = e.d.symbole + "|" + e.d.sens;
       if (!ouvertes.has(cle)) ouvertes.set(cle, []);
       const deja = ouvertes.get(cle);
-      if (!e.ouvre) {
-        const k = deja.indexOf(e.p);
-        if (k >= 0) deja.splice(k, 1);
-        continue;
-      }
-      if (deja.length) {
-        const d = deja[deja.length - 1];
-        const pire = e.p.sens === "buy" ? e.p.prixEntree < d.prixEntree : e.p.prixEntree > d.prixEntree;
-        if (pire) {
-          defav++;
-          // ×1,25 et non ×1,5 : l'arrondi des lots transforme une grille ×1,5 en 0,15 → 0,22 (×1,47) ; une grille plate = ×1,00
-          if (e.p.volume >= d.volume * r.ratioGrilleMartingale - EPS) {
+      if (!e.o) { const k = deja.indexOf(e.d); if (k >= 0) deja.splice(k, 1); continue; }
+      const avant = deja.filter((x) => e.d.ouverture - x.ouverture > fenetre);
+      if (avant.length) {
+        const pire = avant.reduce((a, x) => (e.d.sens === "buy" ? (x.prixEntree < a.prixEntree ? x : a) : (x.prixEntree > a.prixEntree ? x : a)));
+        const moinsBon = e.d.sens === "buy" ? e.d.prixEntree < pire.prixEntree - EPS : e.d.prixEntree > pire.prixEntree + EPS;
+        if (moinsBon) {
+          renforts++;
+          if (!e.d.protegee) nonProteges++;
+          if (e.d.fermeture !== null && pire.fermeture !== null && Math.abs(e.d.fermeture - pire.fermeture) <= r.fenetrePanierSecondes * 1000) ensemble++;
+          if (e.d.volume >= pire.volume * r.ratioGrilleMartingale - EPS && e.d.volume > pire.volume + EPS) {
             hausses++;
-            if (exemplesHausse.length < 3) exemplesHausse.push({ t: e.p.ouverture, rang: deja.length + 1, v0: d.volume, v1: e.p.volume, symbole: e.p.symbole });
+            if (exemplesHausse.length < 3) exemplesHausse.push({ t: e.d.ouverture, rang: deja.length + 1, v0: pire.volume, v1: e.d.volume, symbole: e.d.symbole });
           }
-          if (exemples.length < 3) exemples.push({ t: e.p.ouverture, rang: deja.length + 1, sens: e.p.sens, symbole: e.p.symbole, prix: e.p.prixEntree, avant: d.prixEntree });
+          if (exemples.length < 3) exemples.push({ t: e.d.ouverture, rang: deja.length + 1, sens: e.d.sens, symbole: e.d.symbole, prix: e.d.prixEntree, avant: pire.prixEntree });
         }
       }
-      deja.push(e.p);
+      deja.push(e.d);
       simMax = Math.max(simMax, deja.length);
     }
-    const mesures = { simMax, defav, hausses };
-    let niveau = "ok";
-    if (simMax >= r.maxPositionsGrilleAlerte && defav >= r.minEntreesGrille) niveau = "alerte";
-    // Moyenne à la baisse SYSTÉMATIQUE même sans 3 positions empilées : le panier se ferme dès le 2e
-    // niveau (campagne 2026-11-21 : grilles LaboSynth sur actions, 35-45 % des positions sont des renforts).
-    else if (simMax >= 2 && defav >= r.minEntreesGrille && defav / positions.length >= r.partRenfortsAlerte) niveau = "alerte";
-    // « à surveiller » : au moins minEntreesGrille renforts. Étalonnage 2026-11-21 : Crossing MA (robot propre,
-    // lot fixe, SL) fait 2 renforts en 87 positions par simple répétition de signal → ne doit pas être signalé.
-    // + proportion : un scalpeur qui chevauche 374 positions sur 55 123 (0,7 %) n'est pas une grille.
-    else if (simMax >= 2 && defav >= r.minEntreesGrille && defav / positions.length >= r.partRenfortsAttention) niveau = "attention";
-    return { code: "grille", niveau, cle: "grille_" + niveau, donnees: mesures, mesures, exemples, exemplesHausse };
+    const part = renforts / decisions.length;
+    const partNonProteges = renforts ? nonProteges / renforts : 0;
+    const partEnsemble = renforts ? ensemble / renforts : 0;
+    // sans stop connu (signal) : un renfort qui se ferme avec la position renforcée compte comme non protégé
+    const grilleReelle = stopConnu ? partNonProteges >= r.partRenfortsNonProteges : partEnsemble >= r.partRenfortsNonProteges;
+    const mesures = { simMax, defav: renforts, decisions: decisions.length, part: +part.toFixed(3), hausses,
+      nonProteges, partNonProteges: +partNonProteges.toFixed(3), partEnsemble: +partEnsemble.toFixed(3), stopConnu };
+    let niveau = "ok", cle = "grille_ok";
+    // alerte : beaucoup de renforts, OU une pile d'au moins 5 positions du même sens (GridEA : 12 % de renforts mais
+    // jusqu'à 111 positions ouvertes en même temps, aucune avec un stop)
+    if (renforts >= r.minRenfortsGrilleAlerte && grilleReelle && (part >= r.partRenfortsAlerte || simMax >= r.pileGrilleAlerte)) niveau = "alerte";
+    else if (renforts >= r.minEntreesGrille && part >= r.partRenfortsAttention && grilleReelle) niveau = "attention";
+    if (niveau !== "ok") cle = "grille_" + niveau;
+    else if (renforts >= r.minEntreesGrille && part >= r.partRenfortsAttention) cle = "grille_ok_proteges";   // empilement, chaque position avec son stop
+    return { code: "grille", niveau, cle, donnees: mesures, mesures, exemples, exemplesHausse };
   }
 
   function detecterStopLoss(positions, r, clotureInconnue, grille) {
@@ -691,16 +748,22 @@
 
   // ---------------------------------------------------------------- scénarios extrêmes observés
 
-  /** Pire série de pertes consécutives et exposition maximale (lots ouverts en même temps). */
-  function extremes(positions, depot) {
+  /**
+   * Pire série de pertes consécutives (en % du SOLDE au début de la série : avec un lot qui suit le solde, le % du dépôt
+   * de départ n'a plus de sens — « −1 093 % du dépôt » sur Gold Beaver), exposition maximale (lots ouverts en même temps),
+   * et taille qui suit le solde (intérêts composés : explique des résultats astronomiques en exécution parfaite).
+   */
+  function extremes(positions, depot, decisions) {
     const fermees = positions.filter(fermee).sort((a, b) => a.fermeture - b.fermeture);
-    let n = 0, cumul = 0, pire = { n: 0, perte: 0, debut: null, fin: null }, debutSerie = null;
+    let n = 0, cumul = 0, solde = depot, soldeDebut = depot, pire = { n: 0, perte: 0, debut: null, fin: null, solde: depot }, debutSerie = null;
     for (const p of fermees) {
       if (p.profit < 0) {
-        if (n === 0) debutSerie = p.ouverture;
+        if (n === 0) { debutSerie = p.ouverture; soldeDebut = solde; }
         n++; cumul += p.profit;
-        if (cumul < pire.perte || (cumul === pire.perte && n > pire.n)) pire = { n, perte: cumul, debut: debutSerie, fin: p.fermeture };
+        if (cumul / Math.max(soldeDebut, 1e-9) < pire.perte / Math.max(pire.solde, 1e-9) || (cumul === pire.perte && n > pire.n))
+          pire = { n, perte: cumul, debut: debutSerie, fin: p.fermeture, solde: soldeDebut };
       } else { n = 0; cumul = 0; }
+      solde += p.profit;
     }
     const ev = [];
     positions.forEach((p) => { ev.push([p.ouverture, 1, p.volume]); if (fermee(p)) ev.push([p.fermeture, 0, -p.volume]); });
@@ -712,9 +775,25 @@
       simMax = Math.max(simMax, simult);
     }
     const vMin = positions.length ? minDe(positions.map((p) => p.volume)) : 0;
+    // taille qui suit le solde : corrélation (décisions) entre volume et solde au moment d'ouvrir
+    let taille = null;
+    const D = decisions || [];
+    if (D.length >= 20) {
+      const xs = D.map((d) => d.solde), ys = D.map((d) => d.volume);
+      const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      let sxy = 0, sxx = 0, syy = 0;
+      for (let i = 0; i < xs.length; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; syy += (ys[i] - my) ** 2; }
+      const corr = sxx > 0 && syy > 0 ? sxy / Math.sqrt(sxx * syy) : 0;
+      const vmin = minDe(ys), vmax = maxDe(ys);
+      const soldeMax = maxDe(xs);
+      taille = { correlation: +corr.toFixed(3), mult: vmin > 0 ? +(vmax / vmin).toFixed(1) : null, soldeMax: +soldeMax.toFixed(2),
+        suitSolde: corr >= 0.5 && vmin > 0 && vmax / vmin >= 10 };
+    }
     return {
-      pireSerie: { pertes: pire.n, montant: +pire.perte.toFixed(2), pctDepot: depot ? +(-pire.perte / depot).toFixed(4) : null, debut: pire.debut, fin: pire.fin },
+      pireSerie: { pertes: pire.n, montant: +pire.perte.toFixed(2), pctDepot: depot ? +(-pire.perte / depot).toFixed(4) : null,
+        pctSolde: pire.solde > 0 ? +(-pire.perte / pire.solde).toFixed(4) : null, soldeDebut: +pire.solde.toFixed(2), debut: pire.debut, fin: pire.fin },
       expositionMax: { lots: +expo.toFixed(2), foisMiseMin: vMin ? +(expo / vMin).toFixed(1) : null, quand, positionsSimultanees: simMax },
+      taille,
     };
   }
 
@@ -723,11 +802,11 @@
   function auditer(backtest, reglages) {
     const r = Object.assign({}, REGLAGES, reglages || {});
     const positions = reconstruirePositions(backtest.transactions);
-    const paniers = regrouperPaniers(positions, r);
+    const decisions = construireDecisions(positions, backtest.depot, backtest.mouvements, r);
     const dd = backtest.stats ? backtest.stats.drawdownEquiteMaxPct : undefined;
-    const grille = detecterGrille(paniers, r);
+    const grille = detecterGrille(decisions, r);
     const liste = [
-      detecterMartingale(paniers, r, positions, (backtest.mouvements || []).filter((m) => m.montant > 0).map((m) => m.temps)),
+      detecterMartingale(decisions, r, positions, (backtest.mouvements || []).filter((m) => m.montant > 0).map((m) => m.temps)),
       grille,
       detecterStopLoss(positions, r, !!backtest.clotureInconnue, grille.niveau === "alerte"),
       detecterTradesCourts(positions, r),
@@ -740,7 +819,7 @@
     // (le détecteur classique ne regarde que la position qui suit une perte FERMÉE). Proportion exigée :
     // étalonnage 2026-11-21, BGC Grid (lot qui suit l'équité) = 27 renforts plus gros sur 3 301 (0,8 %).
     const gm = c.grille.mesures || {};
-    if (c.martingale.niveau !== "alerte" && c.martingale.niveau !== "inconnu" && gm.hausses >= r.minEvenementsMartingale && gm.hausses / gm.defav >= r.partMartingaleAlerte) {
+    if (c.martingale.niveau !== "alerte" && c.martingale.niveau !== "inconnu" && c.grille.niveau !== "ok" && gm.hausses >= r.minEntreesGrille && gm.hausses / gm.defav >= r.partGrilleMartingale) {
       const m = Object.assign({}, c.martingale.mesures, { haussesGrille: gm.hausses, defav: gm.defav });
       c.martingale = { code: "martingale", niveau: "alerte", cle: "martingale_grille", donnees: m, mesures: m, exemples: c.grille.exemplesHausse };
       liste[liste.findIndex((x) => x.code === "martingale")] = c.martingale;
@@ -750,21 +829,24 @@
     if (comportement.every((x) => x.niveau === "inconnu")) risque = "inconnu";
     else if (c.martingale.niveau === "alerte" || c.grille.niveau === "alerte") risque = "eleve";
     else if (c.stop_loss.niveau === "alerte" && c.profil.niveau === "alerte") risque = "eleve";
-    else if (comportement.some((x) => x.niveau === "alerte" || x.niveau === "attention")) risque = "moyen";
+    // Le pire creux du capital compte aussi (26/11/2026) : un robot sans martingale ni grille qui perd 40 % ou plus de son
+    // capital au pire moment n'est pas « faible » (Scalping Robot Pro : −36,7 % en exécution parfaite, −98,7 % sur vrais ticks).
+    else if (dd !== undefined && dd !== null && dd >= r.creuxRisqueEleve) risque = "eleve";
+    else if (comportement.some((x) => x.niveau === "alerte" || x.niveau === "attention") || (dd !== undefined && dd !== null && dd >= r.creuxRisqueMoyen)) risque = "moyen";
     else risque = "faible";
     let compatibleProp = null;
     const raisonsProp = ["prop", "trades_courts", "martingale", "grille"].filter((k) => c[k].niveau === "alerte");
     if (c.prop.niveau !== "inconnu") compatibleProp = raisonsProp.length === 0;
     const fermees = positions.filter(fermee);
     return {
-      backtest, positions, paniers: paniers.length, constats: c, risque, compatibleProp, raisonsProp,
+      backtest, positions, paniers: decisions.length, decisions: decisions.length, constats: c, risque, compatibleProp, raisonsProp,
       detectes: liste.filter((x) => x.niveau === "alerte").map((x) => x.code).sort(),
       resume: { positions: positions.length, fermees: fermees.length, net: fermees.reduce((s, p) => s + p.profit, 0) },
-      extremes: extremes(positions, backtest.depot),
+      extremes: extremes(positions, backtest.depot, decisions),
     };
   }
 
-  const api = { parseMt5Report, parseSignalCsv, decode, reconstruirePositions, regrouperPaniers, auditer, REGLAGES, fmtT, parseNum, parseTime, _rows: rows };
+  const api = { parseMt5Report, parseSignalCsv, decode, reconstruirePositions, regrouperPaniers, construireDecisions, auditer, REGLAGES, fmtT, parseNum, parseTime, _rows: rows };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LaboEngine = api;
 })(typeof window !== "undefined" ? window : globalThis);

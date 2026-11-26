@@ -131,9 +131,9 @@
 
     <h2 id="fr-comportements">Les comportements dangereux</h2>
     <h3>Martingale</h3>
-    <p>Après chaque perte, nous regardons si la position suivante est plus grosse, marché par marché, en ignorant les dépôts et les arrondis de taille de lot. Nous comptons la part des pertes suivies d'une hausse, la plus longue série d'augmentations et le rapport entre la plus grosse et la plus petite mise. Nous repérons aussi la martingale « de grille », où chaque renfort d'une position perdante est plus gros que le précédent.</p>
+    <p>Une martingale grossit sa mise <strong>à cause</strong> de ses pertes. Nous regroupons d'abord les ordres d'une même décision (ouverts à moins d'une minute d'écart, dans le même sens), puis nous comparons chaque décision à la précédente, en taille rapportée au solde du compte : un robot dont le lot suit simplement le solde n'est pas une martingale. Nous comptons la part de hausses après une perte et après un gain. Une martingale grossit après la plupart de ses pertes et presque jamais après ses gains ; un robot à plusieurs stratégies varie autant dans les deux cas. Nous repérons aussi la martingale « de grille », où chaque renfort d'une position perdante est plus gros que le précédent.</p>
     <h3>Grille et moyenne à la baisse</h3>
-    <p>Nous reconstruisons, à chaque instant, les positions ouvertes dans le même sens. Une grille ajoute des positions pendant que le prix va contre elle, au lieu de couper la perte. Les ordres ouverts dans la même seconde (des « paniers ») comptent comme une seule décision, pour ne pas confondre un robot qui découpe ses ordres avec une grille.</p>
+    <p>Nous reconstruisons, à chaque instant, les décisions ouvertes dans le même sens. Une grille ajoute des positions pendant que le prix va contre elle, <strong>sans stop-loss</strong>, en attendant qu'il revienne. Beaucoup de robots font tourner plusieurs stratégies à la fois et ouvrent aussi des positions du même sens à un moins bon prix, mais chacune avec son propre stop : ce n'est pas une grille, et nous le disons.</p>
     <h3>Stop-loss</h3>
     <p>Quatre cas sont distingués : un vrai stop transmis au courtier, un stop posé après l'entrée, un stop « virtuel » géré par le robot (il disparaît si MetaTrader plante ou perd la connexion), et l'absence totale de stop. Pour reconnaître un stop virtuel, nous cherchons des pertes qui se ferment toujours à la même distance du prix d'entrée.</p>
     <h3>Trades ultra-courts</h3>
@@ -218,9 +218,9 @@
 
     <h2 id="en-behaviours">Dangerous behaviours</h2>
     <h3>Martingale</h3>
-    <p>After each loss, we check whether the next position is larger, market by market, ignoring deposits and lot-step rounding. We count the share of losses followed by an increase, the longest run of increases, and the ratio between the largest and smallest stake. We also catch the "grid" martingale, where each top-up of a losing position is larger than the last.</p>
+    <p>A martingale increases its size <strong>because</strong> of its losses. We first group the orders of one decision (opened less than a minute apart, in the same direction), then compare each decision with the previous one, in size relative to the account balance: a robot whose lot simply follows the balance is not a martingale. We count the share of increases after a loss and after a win. A martingale increases after most of its losses and almost never after its wins; a multi-strategy robot varies just as much in both cases. We also catch the "grid" martingale, where each top-up of a losing position is larger than the last.</p>
     <h3>Grid and averaging down</h3>
-    <p>We rebuild, at every moment, the open positions in the same direction. A grid adds positions while price moves against it instead of cutting the loss. Orders opened within the same second ("baskets") count as one decision, so a robot that splits its orders isn't mistaken for a grid.</p>
+    <p>We rebuild, at every moment, the open decisions in the same direction. A grid adds positions while price moves against it, <strong>without a stop-loss</strong>, waiting for price to come back. Many robots run several strategies at once and also open same-direction positions at a worse price, but each with its own stop: that is not a grid, and we say so.</p>
     <h3>Stop-loss</h3>
     <p>We tell four cases apart: a real stop sent to the broker, a stop placed after entry, a "virtual" stop managed by the robot (it vanishes if MetaTrader crashes or loses its connection), and no stop at all. To recognise a virtual stop, we look for losses that always close at the same distance from the entry price.</p>
     <h3>Ultra-short trades</h3>

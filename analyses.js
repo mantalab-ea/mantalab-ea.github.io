@@ -488,7 +488,8 @@
     const dd = ddEq !== null && ddEq !== undefined ? ddEq : integ.ddSolde;
     retirer("drawdown_30", 15, dd >= 0.3);
     retirer("drawdown_20", 8, dd >= 0.2 && dd < 0.3);
-    const serie = audit.extremes && audit.extremes.pireSerie ? audit.extremes.pireSerie.pctDepot : null;
+    // en % du solde au début de la série (le % du dépôt de départ n'a pas de sens quand le lot suit le solde)
+    const ps = audit.extremes && audit.extremes.pireSerie, serie = ps ? (ps.pctSolde !== undefined && ps.pctSolde !== null ? ps.pctSolde : ps.pctDepot) : null;
     retirer("serie_20", 10, serie !== null && serie >= 0.2);
     retirer("compte_ruine", 30, integ.ddSolde >= 1);
     const comportementConnu = ["martingale", "grille", "stop_loss", "profil"].filter((k) => c[k].niveau !== "inconnu").length;
