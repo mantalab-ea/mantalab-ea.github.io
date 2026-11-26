@@ -1,6 +1,6 @@
 /*
  * Labo — moteur d'audit (version navigateur).
- * Port fidèle de labo/moteur (Python). Tout s'exécute localement : aucun envoi réseau.
+ * LE moteur de MantaLab (site, labo, fiches, base) : il n'y en a pas d'autre. Tout s'exécute localement : aucun envoi réseau.
  * Utilisable dans le navigateur (window.LaboEngine) et dans Node (require).
  */
 (function (root) {
@@ -196,6 +196,13 @@
     if (ddRel) { const m = /^\s*([\d.,\s]+)%/.exec(ddRel); if (m) pcts.push(parseNum(m[1]) / 100); }
     if (ddMax) { const m = /\(([\d.,\s]+)%\)/.exec(ddMax); if (m) pcts.push(parseNum(m[1]) / 100); }
     if (pcts.length) stats.drawdownEquiteMaxPct = Math.max(...pcts);
+    // Totaux calculés par MetaTrader lui-même : servent à vérifier NOTRE lecture du rapport (contrôle de cohérence)
+    const netMT5 = parseNum(findStat(allRows, [/^total net profit/, /^bénéfice net total/, /^profit net total/]));
+    const tradesMT5 = parseNum(findStat(allRows, [/^total trades/, /^total des trades/, /^nombre total de trades/]));
+    const dealsMT5 = parseNum(findStat(allRows, [/^total deals/, /^total des transactions/]));
+    if (!isNaN(netMT5)) stats.netMT5 = netMT5;
+    if (!isNaN(tradesMT5)) stats.tradesMT5 = tradesMT5;
+    if (!isNaN(dealsMT5)) stats.dealsMT5 = dealsMT5;
 
     // Réglages EXACTS du robot pendant le test (section « Inputs » de l'en-tête) + courtier, build, qualité de l'historique :
     // la preuve de ce qui a été testé (26/11/2026). Lignes « ==== TITRE ==== » = groupes, sans valeur.
@@ -974,7 +981,21 @@
     const raisonsProp = ["prop", "trades_courts", "martingale", "grille"].filter((k) => c[k].niveau === "alerte");
     if (c.prop.niveau !== "inconnu") compatibleProp = raisonsProp.length === 0;
     const fermees = positions.filter(fermee);
+    // Contrôle de cohérence (26/11/2026) : notre résultat net et notre nombre de sorties doivent être ceux que MetaTrader
+    // affiche dans son propre rapport. Un écart = rapport mal lu → l'audit ne doit pas partir tel quel.
+    const st = backtest.stats || {};
+    let coherence = null;
+    if (st.netMT5 !== undefined) {
+      const net = fermees.reduce((x, p) => x + p.profit, 0);
+      const sorties = backtest.transactions.filter((t) => t.entree === "out").length;
+      const ecartNet = Math.abs(net - st.netMT5);
+      const toleranceNet = Math.max(1, Math.abs(st.netMT5) * 1e-4);
+      coherence = { netMT5: st.netMT5, netCalcule: +net.toFixed(2), ecartNet: +ecartNet.toFixed(2),
+        tradesMT5: st.tradesMT5 ?? null, sortiesLues: sorties,
+        ok: ecartNet <= toleranceNet && (st.tradesMT5 === undefined || st.tradesMT5 === sorties) };
+    }
     return {
+      coherence,
       backtest, positions, paniers: decisions.length, decisions: decisions.length, constats: c, risque, compatibleProp, raisonsProp,
       detectes: liste.filter((x) => x.niveau === "alerte").map((x) => x.code).sort(),
       resume: { positions: positions.length, fermees: fermees.length, net: fermees.reduce((s, p) => s + p.profit, 0) },
