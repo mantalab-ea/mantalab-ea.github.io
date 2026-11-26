@@ -18,7 +18,7 @@
 
 ## Method and accuracy
 
-- [How MantaLab audits a robot](https://mantalab-ea.github.io/en/methode.html): detection rules, robustness statistics (bootstrap of the trade sequence), prop firm challenge simulation, and the measured accuracy: 98.8% correct verdicts on 209 tests of robots with known behaviour.
+- [How MantaLab audits a robot](https://mantalab-ea.github.io/en/methode.html): detection rules, robustness statistics (bootstrap of the trade sequence), prop firm challenge simulation, and the measured accuracy: 98.7% correct verdicts on 258 tests (699 of 708) of robots with known behaviour.
 
 ## Notes
 

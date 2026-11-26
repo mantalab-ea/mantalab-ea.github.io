@@ -6,7 +6,7 @@
 <!-- Sécurité (audit du 25/11/2026) : la page ne peut charger ou envoyer des données qu'à ces adresses-là. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab-commandes.mantalab.workers.dev https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
 <title>MantaLab — method: how we audit an MT5 robot</title>
-<meta name="description" content="How MantaLab checks a MetaTrader 5 robot: martingale, grid and stop-loss detection, robustness statistics, prop firm challenge simulation, and our measured error rate (98.8% correct on 209 tests).">
+<meta name="description" content="How MantaLab checks a MetaTrader 5 robot: martingale, grid and stop-loss detection, robustness statistics, prop firm challenge simulation, and our measured error rate (98.7% correct on 258 tests).">
 <link rel="icon" href="/marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="/marque/mantalab-icone-48.png">
 <link rel="apple-touch-icon" href="/marque/apple-touch-icon.png">
@@ -18,7 +18,7 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MantaLab">
 <meta property="og:title" content="MantaLab — our method and our error rate">
-<meta property="og:description" content="What the audit checks, how, and how reliable it is: 98.8% correct verdicts on 209 tests of robots with known behaviour.">
+<meta property="og:description" content="What the audit checks, how, and how reliable it is: 98.7% correct verdicts on 258 tests of robots with known behaviour.">
 <meta property="og:url" content="https://mantalab-ea.github.io/en/methode.html">
 <meta property="og:image" content="https://mantalab-ea.github.io/marque/mantalab-logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -155,10 +155,10 @@
     <p>La perte journalière est vérifiée sur <strong>l'équité minute par minute</strong>, pas seulement sur le solde à la clôture des trades : une position qui descend à −6 % avant de remonter fait échouer un challenge, même si elle se ferme en gain. Nous avons vérifié ce calcul contre MetaTrader lui-même : <strong>0,05 point d'écart moyen</strong> sur le drawdown.</p>
 
     <h2 id="fr-precision">Notre taux d'erreur</h2>
-    <p>Un outil qui ne publie pas ses erreurs demande qu'on le croie sur parole. Nous avons donc écrit un robot de laboratoire dont nous connaissons exactement le comportement (martingale, grille, stop réel ou virtuel, scalping…), et l'avons fait tourner dans MetaTrader 5 sur 19 marchés : forex, or, argent et actions américaines.</p>
-    <p>Chaque robot de test donne jusqu'à trois verdicts (martingale, grille, stop-loss) : 589 verdicts en tout, dont 582 justes.</p>
+    <p>Un outil qui ne publie pas ses erreurs demande qu'on le croie sur parole. Nous avons donc écrit un robot de laboratoire dont nous connaissons exactement le comportement (martingale, grille, stop réel ou virtuel, scalping…), et l'avons fait tourner dans MetaTrader 5 sur 19 marchés : forex, or, argent et actions américaines. Depuis le 26/11/2026, un deuxième robot de laboratoire, construit comme ceux du Market (plusieurs stratégies, plusieurs positions par décision, lot qui suit le solde), y ajoute des pièges dont nous connaissons la vérité : martingale cachée, grille déguisée avec des stops lointains, grille martingale.</p>
+    <p>Chaque test donne jusqu'à quatre verdicts (martingale, grille, stop-loss, trades ultra-courts) : 708 verdicts en tout, dont 699 justes.</p>
     <div class="chiffres">
-      <div><b>98,8 %</b><span>de verdicts justes : 582 sur 589, sur 209 tests de robots au comportement connu</span></div>
+      <div><b>98,7 %</b><span>de verdicts justes : 699 sur 708, sur 258 tests de robots au comportement connu</span></div>
       <div><b>29 / 29</b><span>verdicts conformes sur 10 vrais robots de référence</span></div>
       <div><b>0,05 pt</b><span>d'écart moyen avec MetaTrader sur le drawdown minute par minute</span></div>
     </div>
@@ -166,20 +166,22 @@
     <table>
       <thead><tr><th>Vérification</th><th class="n">Justes</th><th class="n">Précision</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Martingale</th><td class="n">208 / 209</td><td class="n">99,5 %</td></tr>
-        <tr><th scope="row">Grille</th><td class="n">208 / 209</td><td class="n">99,5 %</td></tr>
+        <tr><th scope="row">Martingale</th><td class="n">255 / 258</td><td class="n">98,8 %</td></tr>
+        <tr><th scope="row">Grille</th><td class="n">256 / 257</td><td class="n">99,6 %</td></tr>
         <tr><th scope="row">Trades ultra-courts</th><td class="n">19 / 19</td><td class="n">100 %</td></tr>
-        <tr><th scope="row">Stop-loss</th><td class="n">147 / 152</td><td class="n">96,7 %</td></tr>
+        <tr><th scope="row">Stop-loss</th><td class="n">169 / 174</td><td class="n">97,1 %</td></tr>
       </tbody>
     </table>
     </div>
-    <h3>Les 7 erreurs, une par une</h3>
+    <h3>Les 9 erreurs, une par une</h3>
     <div class="encadre">
       <p><strong>5 erreurs viennent des stops « virtuels »</strong> (gérés par le robot, invisibles pour le courtier), surtout ceux dont la distance suit la volatilité du marché. Nous les classons « aucun stop » au lieu de « stop virtuel ». L'erreur va dans le sens prudent : nous signalons un risque plus grand que la réalité, jamais plus petit.</p>
       <p>Jusqu'au 23/11/2026, il y en avait 19 : le moteur ne reconnaissait que les stops virtuels à distance fixe. Il compare maintenant chaque perte à celles qui l'entourent dans le temps, ce qui retrouve aussi les stops qui suivent la volatilité, sans fausse alerte sur les robots réellement sans stop. Ce réglage a été fait sur cette campagne : nous le vérifierons sur de nouveaux tests indépendants, et publierons le résultat.</p>
       <p><strong>2 erreurs viennent d'un test trop court</strong> (19 positions) : l'outil répond « pas assez de données » au lieu de trancher. Là encore, il ne rassure pas à tort.</p>
+      <p><strong>2 erreurs viennent de martingales réparties sur plusieurs stratégies.</strong> L'une est signalée « à surveiller » au lieu d'« alerte ». L'autre n'est pas vue : une martingale qui ne double qu'après deux pertes, sur un test de 154 positions seulement.</p>
     </div>
-    <p>Chaque nouvelle version du moteur est vérifiée à nouveau contre ces 209 tests et contre les vrais robots déjà audités par le labo avant d'être publiée.</p>
+    <p><strong>Ce que nous ne voyons pas.</strong> Quand un robot fait tourner plusieurs stratégies et que chacune double sa mise après ses pertes, nous le détectons si le robot nomme ses stratégies dans ses ordres (beaucoup le font). S'il ne les nomme pas, la mise d'une stratégie se mélange à celles des autres et la martingale reste presque invisible : 2 cas sur 12 signalés dans nos tests. Ces 12 tests sont exclus du chiffre ci-dessus ; ce robot se trahit en général par son creux de capital et son risque par trade, que la fiche montre toujours.</p>
+    <p>Chaque nouvelle version du moteur est vérifiée à nouveau contre ces 258 tests et contre les vrais robots déjà audités par le labo avant d'être publiée.</p>
 
     <h2 id="fr-limites">Les limites</h2>
     <ul>
@@ -242,10 +244,10 @@
     <p>The daily loss is checked on <strong>minute-by-minute equity</strong>, not just on the balance when trades close: a position that drops to −6% before recovering fails a challenge, even if it closes in profit. We checked this calculation against MetaTrader itself: <strong>0.05 point average gap</strong> on drawdown.</p>
 
     <h2 id="en-accuracy">Our error rate</h2>
-    <p>A tool that doesn't publish its mistakes asks to be taken on trust. So we wrote a lab robot whose behaviour we know exactly (martingale, grid, real or virtual stop, scalping…) and ran it in MetaTrader 5 on 19 markets: forex, gold, silver and US stocks.</p>
-    <p>Each test robot gives up to three verdicts (martingale, grid, stop-loss): 589 verdicts in all, 582 of them correct.</p>
+    <p>A tool that doesn't publish its mistakes asks to be taken on trust. So we wrote a lab robot whose behaviour we know exactly (martingale, grid, real or virtual stop, scalping…) and ran it in MetaTrader 5 on 19 markets: forex, gold, silver and US stocks. Since 26/11/2026, a second lab robot built like Market robots (several strategies, several positions per decision, lot that follows the balance) adds traps whose truth we know: hidden martingale, disguised grid with distant stops, martingale grid.</p>
+    <p>Each test gives up to four verdicts (martingale, grid, stop-loss, ultra-short trades): 708 verdicts in all, 699 of them correct.</p>
     <div class="chiffres">
-      <div><b>98.8%</b><span>correct verdicts: 582 out of 589, across 209 tests of robots with known behaviour</span></div>
+      <div><b>98.7%</b><span>correct verdicts: 699 out of 708, across 258 tests of robots with known behaviour</span></div>
       <div><b>29 / 29</b><span>matching verdicts on 10 real reference robots</span></div>
       <div><b>0.05 pt</b><span>average gap with MetaTrader on minute-by-minute drawdown</span></div>
     </div>
@@ -253,20 +255,22 @@
     <table>
       <thead><tr><th>Check</th><th class="n">Correct</th><th class="n">Accuracy</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Martingale</th><td class="n">208 / 209</td><td class="n">99.5%</td></tr>
-        <tr><th scope="row">Grid</th><td class="n">208 / 209</td><td class="n">99.5%</td></tr>
+        <tr><th scope="row">Martingale</th><td class="n">255 / 258</td><td class="n">98.8%</td></tr>
+        <tr><th scope="row">Grid</th><td class="n">256 / 257</td><td class="n">99.6%</td></tr>
         <tr><th scope="row">Ultra-short trades</th><td class="n">19 / 19</td><td class="n">100%</td></tr>
-        <tr><th scope="row">Stop-loss</th><td class="n">147 / 152</td><td class="n">96.7%</td></tr>
+        <tr><th scope="row">Stop-loss</th><td class="n">169 / 174</td><td class="n">97.1%</td></tr>
       </tbody>
     </table>
     </div>
-    <h3>The 7 errors, one by one</h3>
+    <h3>The 9 errors, one by one</h3>
     <div class="encadre">
       <p><strong>5 errors come from "virtual" stops</strong> (managed by the robot, invisible to the broker), mostly those whose distance follows market volatility. We classify them as "no stop" instead of "virtual stop". The error leans towards caution: we flag a bigger risk than reality, never a smaller one.</p>
       <p>Until 23/11/2026 there were 19: the engine only recognised virtual stops at a fixed distance. It now compares each loss with the losses around it in time, which also finds stops that follow volatility, with no false alarm on robots that truly have no stop. This setting was tuned on this campaign: we will check it on new, independent tests and publish the result.</p>
       <p><strong>2 errors come from a test that was too short</strong> (19 positions): the tool answers "not enough data" instead of deciding. Again, it never reassures by mistake.</p>
+      <p><strong>2 errors come from martingales spread over several strategies.</strong> One is flagged "worth watching" instead of "alert". The other is missed: a martingale that only doubles after two losses, on a test of just 154 positions.</p>
     </div>
-    <p>Every new version of the engine is checked again against these 209 tests and the real robots already audited by the lab before it is published.</p>
+    <p><strong>What we don't see.</strong> When a robot runs several strategies and each one doubles its stake after its losses, we detect it if the robot names its strategies in its orders (many do). If it doesn't, one strategy's stake mixes with the others' and the martingale stays almost invisible: 2 out of 12 cases flagged in our tests. These 12 tests are excluded from the figure above; such a robot usually gives itself away through its equity drawdown and risk per trade, which the report always shows.</p>
+    <p>Every new version of the engine is checked again against these 258 tests and the real robots already audited by the lab before it is published.</p>
 
     <h2 id="en-limits">Limits</h2>
     <ul>
