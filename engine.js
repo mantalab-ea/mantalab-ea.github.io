@@ -522,7 +522,9 @@
     const ev = [];
     decisions.forEach((d) => {
       ev.push({ t: d.ouverture, o: 1, d });
-      if (d.fermeture !== null) ev.push({ t: d.fermeture, o: 0, d });
+      // À temps égal : fermetures d'abord, puis ouvertures ; une décision ouverte ET fermée dans la même seconde se ferme
+      // APRÈS s'être ouverte (sinon elle restait « ouverte » pour toujours : pile de 1 995 chez un scalpeur, 26/11/2026)
+      if (d.fermeture !== null) ev.push({ t: d.fermeture, o: d.fermeture === d.ouverture ? 2 : 0, d });
     });
     ev.sort((a, b) => a.t - b.t || a.o - b.o);
     const ouvertes = new Map();
@@ -533,7 +535,7 @@
       const cle = e.d.symbole + "|" + e.d.sens;
       if (!ouvertes.has(cle)) ouvertes.set(cle, []);
       const deja = ouvertes.get(cle);
-      if (!e.o) { const k = deja.indexOf(e.d); if (k >= 0) deja.splice(k, 1); continue; }
+      if (e.o !== 1) { const k = deja.indexOf(e.d); if (k >= 0) deja.splice(k, 1); continue; }
       const avant = deja.filter((x) => e.d.ouverture - x.ouverture > fenetre);
       if (avant.length) {
         const pire = avant.reduce((a, x) => (e.d.sens === "buy" ? (x.prixEntree < a.prixEntree ? x : a) : (x.prixEntree > a.prixEntree ? x : a)));
