@@ -96,6 +96,25 @@
   .liste th:first-child, .liste td:first-child { padding-left:0; }
   .liste th:last-child, .liste td:last-child { padding-right:0; }
   .liste .court, .liste thead th { white-space:nowrap; }
+  .carres-bloc { margin:3rem 0 0; }
+  .carres-titre { margin:0 0 1rem; color:var(--encre-2); font-size:.95rem; }
+  .carres { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .carre { position:relative; display:block; width:2.6rem; height:2.6rem; border-radius:4px; border:1.5px solid var(--encre-3); background:transparent; }
+  .carre.plein { background:var(--rouge); border-color:var(--rouge); }
+  .carre.autre { border-color:var(--attention); }
+  .carre.tick::after { content:""; position:absolute; right:.35rem; bottom:.35rem; width:.45rem; height:.45rem; border-radius:50%; background:var(--fond); }
+  .carre.autre.tick::after, .carre.propre.tick::after { background:var(--attention); }
+  a.carre { transition:transform .12s; }
+  a.carre:hover, a.carre:focus-visible { transform:translateY(-2px); }
+  a.carre::before { content:attr(data-nom); position:absolute; left:50%; bottom:calc(100% + .45rem); transform:translateX(-50%); white-space:nowrap;
+    background:var(--encre); color:var(--fond); font-size:.78rem; font-weight:500; padding:.3rem .55rem; border-radius:6px; opacity:0; pointer-events:none; transition:opacity .12s; z-index:2; }
+  a.carre:hover::before, a.carre:focus-visible::before { opacity:1; }
+  .legende { display:flex; flex-wrap:wrap; gap:.6rem 1.6rem; margin:1.1rem 0 0; font-size:.85rem; color:var(--encre-2); }
+  .legende span { display:inline-flex; align-items:center; gap:.5rem; }
+  .legende .carre { width:.95rem; height:.95rem; border-radius:2px; }
+  .legende .carre.point { border:0; }
+  .legende .carre.point::after { right:.22rem; bottom:.22rem; width:.5rem; height:.5rem; background:var(--encre-2); }
+  @media (prefers-reduced-motion: reduce) { a.carre { transition:none; } a.carre:hover { transform:none; } }
   .page.simple { display:block; }
   .meta { color:var(--encre-3); font-size:.9rem; margin:.2rem 0 0; }
   .risque { display:inline-block; font-weight:600; font-size:.85rem; padding:.25rem .6rem; border-radius:999px; border:1px solid currentColor; white-space:nowrap; }
@@ -130,7 +149,11 @@
   <article class="large">
     <h1>Robots audités par le labo</h1>
     <p class="intro">Chaque robot de cette liste a tourné dans notre labo, dans MetaTrader 5, sur 5 ans de marché : une fois avec une exécution parfaite, une fois sur les vrais ticks d&#x27;un courtier. Réglages par défaut, dépôt de 10 000 $. Voici ce qu&#x27;on a trouvé.</p>
-    <div class="chiffres"><div><b>13</b><span>robots du Market audités en protocole 5 ans</span></div><div><b>10 sur 13</b><span>font de la martingale ou de la grille</span></div><div><b>6 sur 13</b><span>font bien pire sur les vrais ticks qu&#x27;en exécution parfaite</span></div></div>
+    <div class="carres-bloc">
+      <p class="carres-titre">Un carré par robot audité. 13 pour l&#x27;instant, l&#x27;usine en ajoute chaque nuit.</p>
+      <div class="carres"><a class="carre plein tick" href="/robots/big-gold-crown.html" data-nom="Big Gold Crown" aria-label="Big Gold Crown"></a><a class="carre plein tick" href="/robots/gold-beaver.html" data-nom="Gold Beaver" aria-label="Gold Beaver"></a><a class="carre plein tick" href="/robots/hedgehog-mt5.html" data-nom="Hedgehog MT5" aria-label="Hedgehog MT5"></a><a class="carre plein tick" href="/robots/scalping-robot-pro-mt5.html" data-nom="Scalping Robot Pro MT5" aria-label="Scalping Robot Pro MT5"></a><a class="carre plein tick" href="/robots/the-gold-reaper-mt5.html" data-nom="The Gold Reaper MT5" aria-label="The Gold Reaper MT5"></a><a class="carre plein" href="/robots/aix-gold-mt5.html" data-nom="AiX Gold MT5" aria-label="AiX Gold MT5"></a><a class="carre plein" href="/robots/allylla-pullback-bot.html" data-nom="Allylla Pullback Bot" aria-label="Allylla Pullback Bot"></a><a class="carre plein" href="/robots/janus-zone.html" data-nom="Janus Zone" aria-label="Janus Zone"></a><a class="carre plein" href="/robots/quantum-titan-mt5.html" data-nom="Quantum Titan MT5" aria-label="Quantum Titan MT5"></a><a class="carre plein" href="/robots/the-invincible.html" data-nom="The Invincible" aria-label="The Invincible"></a><a class="carre autre tick" href="/robots/moondog-ea.html" data-nom="MoonDog EA" aria-label="MoonDog EA"></a><a class="carre autre" href="/robots/my-ai-gold.html" data-nom="My AI Gold" aria-label="My AI Gold"></a><a class="carre autre" href="/robots/titanforge-ea-mt5.html" data-nom="TitanForge EA MT5" aria-label="TitanForge EA MT5"></a></div>
+      <p class="legende"><span><i class="carre plein"></i>10 martingale ou grille</span><span><i class="carre autre"></i>3 autres pièges</span><span><i class="carre point tick"></i>6 bien pires sur les vrais ticks</span></p>
+    </div>
     <div class="table-defile liste"><table>
       <thead><tr><th>Robot</th><th>Marché</th><th>Niveau de risque</th><th>Pièges trouvés</th><th class="n">Pire creux, vrais ticks</th></tr></thead>
       <tbody>
