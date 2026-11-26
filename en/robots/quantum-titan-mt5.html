@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<title>Quantum Titan MT5 review: independent MT5 robot audit</title>
+<meta name="description" content="Quantum Titan MT5 tested by MantaLab over 5 years (XAUUSD H1, default settings): grid and fails prop firm rules. Perfect execution vs real ticks, measured facts.">
+<link rel="icon" href="/marque/mantalab-icone.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="48x48" href="/marque/mantalab-icone-48.png">
+<link rel="apple-touch-icon" href="/marque/apple-touch-icon.png">
+<link rel="canonical" href="https://mantalab-ea.github.io/en/robots/quantum-titan-mt5.html">
+<link rel="alternate" hreflang="fr" href="https://mantalab-ea.github.io/robots/quantum-titan-mt5.html">
+<link rel="alternate" hreflang="en" href="https://mantalab-ea.github.io/en/robots/quantum-titan-mt5.html">
+<link rel="alternate" hreflang="x-default" href="https://mantalab-ea.github.io/en/robots/quantum-titan-mt5.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MantaLab">
+<meta property="og:title" content="Quantum Titan MT5 review: independent MT5 robot audit">
+<meta property="og:description" content="Quantum Titan MT5 tested by MantaLab over 5 years (XAUUSD H1, default settings): grid and fails prop firm rules. Perfect execution vs real ticks, measured facts.">
+<meta property="og:url" content="https://mantalab-ea.github.io/en/robots/quantum-titan-mt5.html">
+<meta property="og:image" content="https://mantalab-ea.github.io/exemple/apercu-fiche.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  /* Mêmes repères que l'accueil : noir et blanc, Archivo (titres étroits), filets fins ; le rouge pour la marque et le danger. */
+  :root { --fond:#fff; --fond-2:#f7f7f8; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
+    --rouge:#d62917; --rouge-fonce:#b51f12; --ok:#137a3e; --attention:#a8620a; --alerte:#c4231a; --focus:#2b6cf6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; } }
+  :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; }
+  * { box-sizing:border-box; }
+  html { scroll-padding-top:4.5rem; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.6 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
+  .contenu { max-width:70rem; margin:0 auto; padding:0 1.5rem; }
+  header.barre { position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--fond) 82%, transparent); backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px); border-bottom:1px solid var(--filet); }
+  .barre .contenu { display:flex; align-items:center; gap:1.5rem; height:4rem; }
+  .logo { height:1.9rem; width:auto; display:block; } .logo-sombre { display:none; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display:none; } :root:not([data-theme="light"]) .logo-sombre { display:block; } }
+  :root[data-theme="dark"] .logo-clair { display:none; } :root[data-theme="dark"] .logo-sombre { display:block; }
+  .droite { margin-left:auto; display:flex; align-items:center; gap:1rem; }
+  .langue { display:flex; gap:.15rem; }
+  .langue button { font:500 .8rem/1 "Archivo",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
+  .langue button[aria-pressed="true"] { color:var(--encre); }
+  .bouton { display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; text-decoration:none; font:500 .85rem/1 "Archivo",sans-serif;
+    padding:.55rem .85rem; border-radius:8px; background:var(--rouge); color:#fff; transition:background-color .15s; }
+  .bouton:hover { background:var(--rouge-fonce); }
+
+  .page { display:grid; grid-template-columns:13rem minmax(0,1fr); gap:4rem; align-items:start; }
+  nav.sommaire { position:sticky; top:5.5rem; margin-top:5.2rem; font-size:.85rem; }
+  nav.sommaire p { margin:0 0 .6rem; color:var(--encre-3); }
+  nav.sommaire a { display:block; padding:.3rem 0; color:var(--encre-2); text-decoration:none; }
+  nav.sommaire a:hover { color:var(--encre); }
+  article { max-width:44rem; padding-bottom:2rem; }
+  h1 { font-weight:600; font-size:clamp(2.2rem,4.6vw,3.4rem); line-height:1.04; letter-spacing:-.045em; margin:4.5rem 0 1.1rem; text-wrap:balance; }
+  .intro { color:var(--encre-2); font-size:1.12rem; margin:0; }
+  h2 { font-weight:600; font-size:1.45rem; letter-spacing:-.03em; line-height:1.2; margin:4rem 0 1rem; padding-top:1.6rem; border-top:1px solid var(--encre); }
+  h3 { font-weight:600; font-size:1rem; margin:1.8rem 0 .4rem; }
+  article p, article li { color:var(--encre-2); }
+  article strong { color:var(--encre); font-weight:600; }
+  article ul { padding-left:1.1rem; } article li { margin-bottom:.45rem; }
+
+  .chiffres { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--filet); border-radius:14px; overflow:hidden; margin:1.6rem 0 0; }
+  .chiffres div { padding:1.1rem 1.2rem; } .chiffres div + div { border-left:1px solid var(--filet); }
+  .chiffres b { display:block; font-weight:600; font-size:2rem; letter-spacing:-.04em; line-height:1.1; color:var(--rouge); font-variant-numeric:tabular-nums; }
+  .chiffres span { display:block; margin-top:.35rem; font-size:.82rem; line-height:1.45; color:var(--encre-2); }
+
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin:1.2rem 0 0; }
+  th, td { text-align:left; padding:.65rem .5rem; border-bottom:1px solid var(--filet); vertical-align:top; }
+  thead th { font-size:.75rem; font-weight:500; color:var(--encre-3); border-bottom:1px solid var(--filet-fort); }
+  td.n, th.n { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  tbody th { font-weight:600; }
+  .encadre { background:var(--fond-2); border-radius:12px; padding:1.1rem 1.2rem; margin:1.4rem 0 0; }
+  .encadre p { margin:0; }
+  .encadre p + p { margin-top:.6rem; }
+  .retour { display:inline-block; margin-top:3rem; color:var(--encre-2); font-size:.9rem; }
+  footer { margin-top:5rem; border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
+  footer p { max-width:44rem; margin:0 0 .5rem; }
+  [hidden] { display:none !important; }
+  @media (max-width: 58rem) { .page { grid-template-columns:1fr; gap:0; } nav.sommaire { display:none; } }
+  @media (max-width: 40rem) { .chiffres { grid-template-columns:1fr; } .chiffres div + div { border-left:0; border-top:1px solid var(--filet); } h1 { margin-top:3rem; }
+    .table-defile { overflow-x:auto; } }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
+
+  .catalogue article { max-width:52rem; }
+  .page.simple { display:block; }
+  .meta { color:var(--encre-3); font-size:.9rem; margin:.2rem 0 0; }
+  .risque { display:inline-block; font-weight:600; font-size:.85rem; padding:.25rem .6rem; border-radius:999px; border:1px solid currentColor; white-space:nowrap; }
+  .risque.eleve { color:var(--alerte); } .risque.moyen { color:var(--attention); } .risque.faible { color:var(--ok); } .risque.inconnu { color:var(--encre-3); }
+  .verdict { font-size:1.15rem; color:var(--encre); margin:1rem 0 0; }
+  .niv { font-size:.78rem; font-weight:500; } .niv.alerte { color:var(--alerte); } .niv.attention { color:var(--attention); } .niv.ok { color:var(--ok); } .niv.inconnu { color:var(--encre-3); }
+  .actions { display:flex; flex-wrap:wrap; gap:.8rem 1.2rem; align-items:center; margin-top:1.2rem; }
+  .actions a.lien { color:var(--encre-2); font-size:.9rem; }
+  nav.haut-liens a { color:var(--encre-2); text-decoration:none; font-size:.88rem; }
+  nav.haut-liens a:hover { color:var(--encre); }
+  .langue a { font:500 .8rem/1 "Archivo",sans-serif; color:var(--encre-3); padding:.35rem .3rem; text-decoration:none; }
+  .langue a[aria-current="true"] { color:var(--encre); }
+  td a { font-weight:600; }
+  @media (max-width: 40rem) { nav.haut-liens, .barre .bouton { display:none; } }
+</style>
+<script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Quantum Titan MT5 review: independent MT5 robot audit", "inLanguage": "en", "url": "https://mantalab-ea.github.io/en/robots/quantum-titan-mt5.html", "dateModified": "2026-11-25", "publisher": {"@type": "Organization", "name": "MantaLab", "url": "https://mantalab-ea.github.io/"}, "about": {"@type": "SoftwareApplication", "name": "Quantum Titan MT5", "operatingSystem": "MetaTrader 5", "applicationCategory": "FinanceApplication", "url": "https://www.mql5.com/en/market/product/113770"}}</script>
+</head>
+<body class="catalogue">
+<header class="barre"><div class="contenu">
+  <a href="/en/"><img class="logo logo-clair" src="/marque/mantalab-logo.svg" alt="MantaLab, home"><img class="logo logo-sombre" src="/marque/mantalab-logo-fond-sombre.svg" alt="MantaLab, home"></a>
+  <div class="droite">
+    <nav class="haut-liens"><a href="/en/robots/">Audited robots</a></nav>
+    <div class="langue" role="group" aria-label="Langue / Language">
+      <a href="/robots/quantum-titan-mt5.html" hreflang="fr" lang="fr">FR</a>
+      <a href="/en/robots/quantum-titan-mt5.html" hreflang="en" lang="en" aria-current="true">EN</a>
+    </div>
+    <a class="bouton" href="/en/#haut">Check a robot</a>
+  </div>
+</div></header>
+<div class="contenu page simple">
+  <article>
+    <h1>Quantum Titan MT5</h1>
+    <p class="meta">Tested by the lab on November 25, 2026, on XAUUSD H1, default settings, $10,000 deposit.</p>
+    <p style="margin-top:1.4rem"><span class="risque eleve">High risk</span></p>
+    <p class="verdict">Traps found: grid, fails prop firm rules. Real ticks change the result little.</p>
+
+    <h2>Perfect execution vs real ticks</h2>
+    <p>Same robot, same settings, same period. Only the execution changes: ideal on one side, the broker&#x27;s real ticks on the other (real spreads, slippage).</p>
+    <div class="table-defile"><table>
+      <thead><tr><th></th><th class="n">Perfect execution</th><th class="n">Real ticks</th></tr></thead>
+      <tbody>
+        <tr><th>Net result</th><td class="n">−$6,249</td><td class="n">+$17,942</td></tr>
+        <tr><th>Worst equity drawdown</th><td class="n">66.0%</td><td class="n">27.4%</td></tr>
+        <tr><th>Positions</th><td class="n">1,590</td><td class="n">1,519</td></tr>
+        <tr><th>Period</th><td class="n">2021-11-25 → 2026-11-24</td><td class="n">2021-11-25 → 2026-11-24</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>How it trades</h2>
+    <ul>
+      <li><strong>Martingale</strong> <span class="niv attention">(worth watching)</span>. It sometimes increases its size after a loss (137 times out of 648), with no systematic pattern.</li>
+      <li><strong>Grid</strong> <span class="niv alerte">(alert)</span>. It opens new positions in the same direction while price moves against it (111 times), with up to 4 positions open at once.</li>
+      <li><strong>Stop-loss</strong> <span class="niv ok">(nothing to report)</span>. Positions are opened with a stop-loss.</li>
+      <li><strong>Wins and losses</strong> <span class="niv ok">(nothing to report)</span>. 61% winning trades; average loss = 1.72× the average win.</li>
+      <li><strong>Prop firm rules</strong> <span class="niv alerte">(alert)</span>. Would fail a standard challenge: worst day −14.4%, worst equity drawdown 66.0%.</li>
+    </ul>
+
+    <h2>In the full report</h2>
+    <p>Minute-by-minute equity curves, the execution-delay scenario, a simulation of 6 prop firm challenges, the worst days and robustness statistics on the profit. PDF report, €19.</p>
+    <div class="actions">
+      <a class="bouton" href="/en/commande.html">Order the report</a>
+      <a class="lien" href="/en/#haut">Check my own report for free</a>
+    </div>
+
+    <div class="encadre" style="margin-top:3rem">
+      <p><strong>Are you the developer?</strong> Send your recommended settings to <a href="mailto:mantalab.audit@gmail.com">mantalab.audit@gmail.com</a>: we will rerun the test with them and update this page. If you think a number is wrong, tell us, we will check and correct it.</p>
+    </div>
+    <p style="font-size:.85rem;margin-top:1.4rem">Behaviour observed in our tests, with default settings, at a single broker (Admirals). A test describes the past and guarantees nothing about the future. This is not investment advice. MantaLab sells no robot and is not affiliated with any vendor.</p>
+    <p style="font-size:.85rem"><a href="https://www.mql5.com/en/market/product/113770" rel="nofollow noopener">Robot page on MQL5</a></p>
+    <a class="retour" href="/en/robots/">← All audited robots</a>
+  </article>
+</div>
+<footer><div class="contenu">
+  <p>MantaLab is independent of robot sellers, MetaQuotes and prop firms. This site describes robots&#x27; observed behaviour in tests; it is not investment advice.</p>
+  <p><a href="/legal.html">Legal notice and privacy (in French)</a></p>
+</div></footer>
+<script>
+// Le lien FR/EN retient le choix (même clé que les autres pages)
+document.querySelectorAll(".langue a").forEach((a) => a.addEventListener("click", () => { try { localStorage.setItem("labo-langue", a.lang); } catch (x) {} }));
+</script>
+</body>
+</html>

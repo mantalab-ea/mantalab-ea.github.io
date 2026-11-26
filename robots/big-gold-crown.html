@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
+<title>Big Gold Crown : audit indépendant du robot MT5</title>
+<meta name="description" content="Big Gold Crown testé par MantaLab sur 5 ans (XAUUSD H1, réglages par défaut) : martingale, grille, échoue aux règles de prop firm et bien pire sur les vrais ticks. Exécution parfaite contre vrais ticks, faits mesurés.">
+<link rel="icon" href="/marque/mantalab-icone.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="48x48" href="/marque/mantalab-icone-48.png">
+<link rel="apple-touch-icon" href="/marque/apple-touch-icon.png">
+<link rel="canonical" href="https://mantalab-ea.github.io/robots/big-gold-crown.html">
+<link rel="alternate" hreflang="fr" href="https://mantalab-ea.github.io/robots/big-gold-crown.html">
+<link rel="alternate" hreflang="en" href="https://mantalab-ea.github.io/en/robots/big-gold-crown.html">
+<link rel="alternate" hreflang="x-default" href="https://mantalab-ea.github.io/en/robots/big-gold-crown.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MantaLab">
+<meta property="og:title" content="Big Gold Crown : audit indépendant du robot MT5">
+<meta property="og:description" content="Big Gold Crown testé par MantaLab sur 5 ans (XAUUSD H1, réglages par défaut) : martingale, grille, échoue aux règles de prop firm et bien pire sur les vrais ticks. Exécution parfaite contre vrais ticks, faits mesurés.">
+<meta property="og:url" content="https://mantalab-ea.github.io/robots/big-gold-crown.html">
+<meta property="og:image" content="https://mantalab-ea.github.io/exemple/apercu-fiche.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  /* Mêmes repères que l'accueil : noir et blanc, Archivo (titres étroits), filets fins ; le rouge pour la marque et le danger. */
+  :root { --fond:#fff; --fond-2:#f7f7f8; --encre:#0c0d10; --encre-2:#5d6068; --encre-3:#8a8d95; --filet:rgba(12,13,16,.09); --filet-fort:rgba(12,13,16,.16);
+    --rouge:#d62917; --rouge-fonce:#b51f12; --ok:#137a3e; --attention:#a8620a; --alerte:#c4231a; --focus:#2b6cf6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; } }
+  :root[data-theme="dark"] { --fond:#0b0c0e; --fond-2:#121317; --encre:#f2f3f5; --encre-2:#9a9ca3; --encre-3:#6c6f77; --filet:rgba(255,255,255,.08); --filet-fort:rgba(255,255,255,.15); --ok:#3ccb7f; --attention:#f0b03f; --alerte:#ff6b5c; }
+  * { box-sizing:border-box; }
+  html { scroll-padding-top:4.5rem; }
+  body { margin:0; background:var(--fond); color:var(--encre); font:400 1rem/1.6 "Archivo",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
+  .contenu { max-width:70rem; margin:0 auto; padding:0 1.5rem; }
+  header.barre { position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--fond) 82%, transparent); backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px); border-bottom:1px solid var(--filet); }
+  .barre .contenu { display:flex; align-items:center; gap:1.5rem; height:4rem; }
+  .logo { height:1.9rem; width:auto; display:block; } .logo-sombre { display:none; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .logo-clair { display:none; } :root:not([data-theme="light"]) .logo-sombre { display:block; } }
+  :root[data-theme="dark"] .logo-clair { display:none; } :root[data-theme="dark"] .logo-sombre { display:block; }
+  .droite { margin-left:auto; display:flex; align-items:center; gap:1rem; }
+  .langue { display:flex; gap:.15rem; }
+  .langue button { font:500 .8rem/1 "Archivo",sans-serif; background:none; border:0; color:var(--encre-3); padding:.35rem .3rem; cursor:pointer; }
+  .langue button[aria-pressed="true"] { color:var(--encre); }
+  .bouton { display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; text-decoration:none; font:500 .85rem/1 "Archivo",sans-serif;
+    padding:.55rem .85rem; border-radius:8px; background:var(--rouge); color:#fff; transition:background-color .15s; }
+  .bouton:hover { background:var(--rouge-fonce); }
+
+  .page { display:grid; grid-template-columns:13rem minmax(0,1fr); gap:4rem; align-items:start; }
+  nav.sommaire { position:sticky; top:5.5rem; margin-top:5.2rem; font-size:.85rem; }
+  nav.sommaire p { margin:0 0 .6rem; color:var(--encre-3); }
+  nav.sommaire a { display:block; padding:.3rem 0; color:var(--encre-2); text-decoration:none; }
+  nav.sommaire a:hover { color:var(--encre); }
+  article { max-width:44rem; padding-bottom:2rem; }
+  h1 { font-weight:600; font-size:clamp(2.2rem,4.6vw,3.4rem); line-height:1.04; letter-spacing:-.045em; margin:4.5rem 0 1.1rem; text-wrap:balance; }
+  .intro { color:var(--encre-2); font-size:1.12rem; margin:0; }
+  h2 { font-weight:600; font-size:1.45rem; letter-spacing:-.03em; line-height:1.2; margin:4rem 0 1rem; padding-top:1.6rem; border-top:1px solid var(--encre); }
+  h3 { font-weight:600; font-size:1rem; margin:1.8rem 0 .4rem; }
+  article p, article li { color:var(--encre-2); }
+  article strong { color:var(--encre); font-weight:600; }
+  article ul { padding-left:1.1rem; } article li { margin-bottom:.45rem; }
+
+  .chiffres { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--filet); border-radius:14px; overflow:hidden; margin:1.6rem 0 0; }
+  .chiffres div { padding:1.1rem 1.2rem; } .chiffres div + div { border-left:1px solid var(--filet); }
+  .chiffres b { display:block; font-weight:600; font-size:2rem; letter-spacing:-.04em; line-height:1.1; color:var(--rouge); font-variant-numeric:tabular-nums; }
+  .chiffres span { display:block; margin-top:.35rem; font-size:.82rem; line-height:1.45; color:var(--encre-2); }
+
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin:1.2rem 0 0; }
+  th, td { text-align:left; padding:.65rem .5rem; border-bottom:1px solid var(--filet); vertical-align:top; }
+  thead th { font-size:.75rem; font-weight:500; color:var(--encre-3); border-bottom:1px solid var(--filet-fort); }
+  td.n, th.n { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  tbody th { font-weight:600; }
+  .encadre { background:var(--fond-2); border-radius:12px; padding:1.1rem 1.2rem; margin:1.4rem 0 0; }
+  .encadre p { margin:0; }
+  .encadre p + p { margin-top:.6rem; }
+  .retour { display:inline-block; margin-top:3rem; color:var(--encre-2); font-size:.9rem; }
+  footer { margin-top:5rem; border-top:1px solid var(--filet); padding:2rem 0 3rem; font-size:.8rem; color:var(--encre-3); }
+  footer p { max-width:44rem; margin:0 0 .5rem; }
+  [hidden] { display:none !important; }
+  @media (max-width: 58rem) { .page { grid-template-columns:1fr; gap:0; } nav.sommaire { display:none; } }
+  @media (max-width: 40rem) { .chiffres { grid-template-columns:1fr; } .chiffres div + div { border-left:0; border-top:1px solid var(--filet); } h1 { margin-top:3rem; }
+    .table-defile { overflow-x:auto; } }
+
+  /* Archivo : texte en largeur normale ; titres et grands chiffres en version étroite (choisie le 25/11/2026) */
+  :root :is(h1, h2, .titre-bloc, .precision .grand, .prix b, .mc-n, .note-chiffre, .verdict-notes b, .chiffres b, .code, .etapes div::before) {
+    font-stretch: 72%; font-weight: 750; letter-spacing: -.005em; }
+  :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
+
+  .catalogue article { max-width:52rem; }
+  .page.simple { display:block; }
+  .meta { color:var(--encre-3); font-size:.9rem; margin:.2rem 0 0; }
+  .risque { display:inline-block; font-weight:600; font-size:.85rem; padding:.25rem .6rem; border-radius:999px; border:1px solid currentColor; white-space:nowrap; }
+  .risque.eleve { color:var(--alerte); } .risque.moyen { color:var(--attention); } .risque.faible { color:var(--ok); } .risque.inconnu { color:var(--encre-3); }
+  .verdict { font-size:1.15rem; color:var(--encre); margin:1rem 0 0; }
+  .niv { font-size:.78rem; font-weight:500; } .niv.alerte { color:var(--alerte); } .niv.attention { color:var(--attention); } .niv.ok { color:var(--ok); } .niv.inconnu { color:var(--encre-3); }
+  .actions { display:flex; flex-wrap:wrap; gap:.8rem 1.2rem; align-items:center; margin-top:1.2rem; }
+  .actions a.lien { color:var(--encre-2); font-size:.9rem; }
+  nav.haut-liens a { color:var(--encre-2); text-decoration:none; font-size:.88rem; }
+  nav.haut-liens a:hover { color:var(--encre); }
+  .langue a { font:500 .8rem/1 "Archivo",sans-serif; color:var(--encre-3); padding:.35rem .3rem; text-decoration:none; }
+  .langue a[aria-current="true"] { color:var(--encre); }
+  td a { font-weight:600; }
+  @media (max-width: 40rem) { nav.haut-liens, .barre .bouton { display:none; } }
+</style>
+<script data-goatcounter="https://mantalab.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Big Gold Crown : audit indépendant du robot MT5", "inLanguage": "fr", "url": "https://mantalab-ea.github.io/robots/big-gold-crown.html", "dateModified": "2026-11-26", "publisher": {"@type": "Organization", "name": "MantaLab", "url": "https://mantalab-ea.github.io/"}, "about": {"@type": "SoftwareApplication", "name": "Big Gold Crown", "operatingSystem": "MetaTrader 5", "applicationCategory": "FinanceApplication", "url": "https://www.mql5.com/en/market/product/208829"}}</script>
+</head>
+<body class="catalogue">
+<header class="barre"><div class="contenu">
+  <a href="/"><img class="logo logo-clair" src="/marque/mantalab-logo.svg" alt="MantaLab, accueil"><img class="logo logo-sombre" src="/marque/mantalab-logo-fond-sombre.svg" alt="MantaLab, accueil"></a>
+  <div class="droite">
+    <nav class="haut-liens"><a href="/robots/">Robots audités</a></nav>
+    <div class="langue" role="group" aria-label="Langue / Language">
+      <a href="/robots/big-gold-crown.html" hreflang="fr" lang="fr" aria-current="true">FR</a>
+      <a href="/en/robots/big-gold-crown.html" hreflang="en" lang="en">EN</a>
+    </div>
+    <a class="bouton" href="/#haut">Vérifier un robot</a>
+  </div>
+</div></header>
+<div class="contenu page simple">
+  <article>
+    <h1>Big Gold Crown</h1>
+    <p class="meta">Testé par le labo le 26 novembre 2026, sur XAUUSD en H1, réglages par défaut, dépôt de 10 000 $.</p>
+    <p style="margin-top:1.4rem"><span class="risque eleve">Risque élevé</span></p>
+    <p class="verdict">Pièges trouvés : martingale, grille, échoue aux règles de prop firm. Sur les vrais ticks, le pire creux du capital passe de 24,2 % à 90,9 % et le résultat net de +1 978 853 $ à +10 623 $.</p>
+
+    <h2>Exécution parfaite contre vrais ticks</h2>
+    <p>Le même robot, les mêmes réglages, la même période. Seule l&#x27;exécution change : idéale d&#x27;un côté, les vrais ticks du courtier de l&#x27;autre (écarts de prix réels, glissements).</p>
+    <div class="table-defile"><table>
+      <thead><tr><th></th><th class="n">Exécution parfaite</th><th class="n">Vrais ticks</th></tr></thead>
+      <tbody>
+        <tr><th>Résultat net</th><td class="n">+1 978 853 $</td><td class="n">+10 623 $</td></tr>
+        <tr><th>Pire creux du capital</th><td class="n">24,2 %</td><td class="n">90,9 %</td></tr>
+        <tr><th>Positions</th><td class="n">5 575</td><td class="n">5 667</td></tr>
+        <tr><th>Période</th><td class="n">2021-11-26 → 2026-11-25</td><td class="n">2021-11-26 → 2026-11-25</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2>Comment il trade</h2>
+    <ul>
+      <li><strong>Martingale</strong> <span class="niv alerte">(alerte)</span>. Après une perte, il augmente la taille de la position suivante dans 28 % des cas, jusqu&#x27;à 3 fois d&#x27;affilée. Sa plus grosse position fait 23.81× la plus petite.</li>
+      <li><strong>Grille</strong> <span class="niv alerte">(alerte)</span>. Il ouvre de nouvelles positions dans le même sens pendant que le prix va contre lui (59 fois), jusqu&#x27;à 6 positions ouvertes en même temps.</li>
+      <li><strong>Stop-loss</strong> <span class="niv ok">(rien à signaler)</span>. Les positions sont ouvertes avec un stop-loss.</li>
+      <li><strong>Gains et pertes</strong> <span class="niv ok">(rien à signaler)</span>. 63 % de trades gagnants ; perte moyenne = 0.49× le gain moyen.</li>
+      <li><strong>Règles de prop firm</strong> <span class="niv alerte">(alerte)</span>. Ne passerait pas un challenge classique : pire journée −7,3 %, pire creux du capital 24,2 %.</li>
+    </ul>
+
+    <h2>Dans la fiche complète</h2>
+    <p>Les courbes du capital minute par minute, le scénario des retards d&#x27;exécution, la simulation de 6 challenges de prop firms, les pires journées et les statistiques de solidité du gain. Fiche PDF à 19 €.</p>
+    <div class="actions">
+      <a class="bouton" href="/commande.html">Commander la fiche</a>
+      <a class="lien" href="/#haut">Vérifier mon propre rapport gratuitement</a>
+    </div>
+
+    <div class="encadre" style="margin-top:3rem">
+      <p><strong>Vous êtes le développeur ?</strong> Envoyez-nous vos réglages recommandés à <a href="mailto:mantalab.audit@gmail.com">mantalab.audit@gmail.com</a> : on refait le test avec, et on met cette page à jour. Si vous pensez qu&#x27;un chiffre est faux, dites-le-nous, on vérifie et on corrige.</p>
+    </div>
+    <p style="font-size:.85rem;margin-top:1.4rem">Comportement observé dans nos tests, avec les réglages par défaut, chez un seul courtier (Admirals). Un test décrit le passé et ne garantit rien pour la suite. Ce n&#x27;est pas un conseil en investissement. MantaLab ne vend aucun robot et n&#x27;est lié à aucun vendeur.</p>
+    <p style="font-size:.85rem"><a href="https://www.mql5.com/en/market/product/208829" rel="nofollow noopener">Page du robot sur MQL5</a></p>
+    <a class="retour" href="/robots/">← Tous les robots audités</a>
+  </article>
+</div>
+<footer><div class="contenu">
+  <p>MantaLab est indépendant des vendeurs de robots, de MetaQuotes et des prop firms. Ce site décrit le comportement observé de robots dans des tests ; ce n&#x27;est pas un conseil en investissement.</p>
+  <p><a href="/legal.html">Mentions légales et confidentialité</a></p>
+</div></footer>
+<script>
+// Le lien FR/EN retient le choix (même clé que les autres pages)
+document.querySelectorAll(".langue a").forEach((a) => a.addEventListener("click", () => { try { localStorage.setItem("labo-langue", a.lang); } catch (x) {} }));
+</script>
+</body>
+</html>
