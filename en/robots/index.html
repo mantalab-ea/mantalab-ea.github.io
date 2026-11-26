@@ -89,6 +89,13 @@
   :root :is(.precision .grand, .code) { letter-spacing: -.015em; }
 
   .catalogue article { max-width:52rem; }
+  .catalogue article.large { max-width:68rem; }
+  .liste table { margin-top:2.4rem; font-size:.95rem; }
+  .liste th, .liste td { padding:1.1rem 1rem; }
+  .liste thead th { padding-top:.6rem; padding-bottom:.6rem; }
+  .liste th:first-child, .liste td:first-child { padding-left:0; }
+  .liste th:last-child, .liste td:last-child { padding-right:0; }
+  .liste .court, .liste thead th { white-space:nowrap; }
   .page.simple { display:block; }
   .meta { color:var(--encre-3); font-size:.9rem; margin:.2rem 0 0; }
   .risque { display:inline-block; font-weight:600; font-size:.85rem; padding:.25rem .6rem; border-radius:999px; border:1px solid currentColor; white-space:nowrap; }
@@ -120,26 +127,26 @@
   </div>
 </div></header>
 <div class="contenu page simple">
-  <article>
+  <article class="large">
     <h1>Robots audited by the lab</h1>
     <p class="intro">Every robot on this list ran in our lab, in MetaTrader 5, over 5 years of market data: once with perfect execution, once on a broker&#x27;s real ticks. Default settings, $10,000 deposit. Here is what we found.</p>
     <div class="chiffres"><div><b>13</b><span>Market robots audited on the 5-year protocol</span></div><div><b>10 of 13</b><span>use a martingale or a grid</span></div><div><b>6 of 13</b><span>do much worse on real ticks than with perfect execution</span></div></div>
-    <div class="table-defile"><table>
+    <div class="table-defile liste"><table>
       <thead><tr><th>Robot</th><th>Market</th><th>Risk level</th><th>Traps found</th><th class="n">Worst drawdown, real ticks</th></tr></thead>
       <tbody>
-        <tr><th><a href="/en/robots/aix-gold-mt5.html">AiX Gold MT5</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>martingale, grid, fails prop firm rules</td><td class="n">14.0%</td></tr>
-        <tr><th><a href="/en/robots/allylla-pullback-bot.html">Allylla Pullback Bot</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>grid</td><td class="n">0.9%</td></tr>
-        <tr><th><a href="/en/robots/big-gold-crown.html">Big Gold Crown</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>martingale, grid, fails prop firm rules, much worse on real ticks</td><td class="n">90.9%</td></tr>
-        <tr><th><a href="/en/robots/gold-beaver.html">Gold Beaver</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>martingale, grid, fails prop firm rules, much worse on real ticks</td><td class="n">73.7%</td></tr>
-        <tr><th><a href="/en/robots/hedgehog-mt5.html">Hedgehog MT5</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>martingale, grid, much worse on real ticks</td><td class="n">9.8%</td></tr>
-        <tr><th><a href="/en/robots/janus-zone.html">Janus Zone</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>grid</td><td class="n">2.5%</td></tr>
-        <tr><th><a href="/en/robots/quantum-titan-mt5.html">Quantum Titan MT5</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>grid, fails prop firm rules</td><td class="n">27.4%</td></tr>
-        <tr><th><a href="/en/robots/scalping-robot-pro-mt5.html">Scalping Robot Pro MT5</a></th><td>XAUUSD M1</td><td><span class="niv alerte">High risk</span></td><td>grid, fails prop firm rules, much worse on real ticks</td><td class="n">98.7%</td></tr>
-        <tr><th><a href="/en/robots/the-gold-reaper-mt5.html">The Gold Reaper MT5</a></th><td>XAUUSD H1</td><td><span class="niv alerte">High risk</span></td><td>martingale, grid, fails prop firm rules, much worse on real ticks</td><td class="n">17.8%</td></tr>
-        <tr><th><a href="/en/robots/the-invincible.html">The Invincible</a></th><td>XAUUSD M30</td><td><span class="niv alerte">High risk</span></td><td>grid, fails prop firm rules</td><td class="n">41.4%</td></tr>
-        <tr><th><a href="/en/robots/moondog-ea.html">MoonDog EA</a></th><td>XAUUSD H1</td><td><span class="niv attention">Medium risk</span></td><td>fails prop firm rules, much worse on real ticks</td><td class="n">87.9%</td></tr>
-        <tr><th><a href="/en/robots/my-ai-gold.html">My AI Gold</a></th><td>XAUUSD H1</td><td><span class="niv attention">Medium risk</span></td><td>fails prop firm rules</td><td class="n">42.0%</td></tr>
-        <tr><th><a href="/en/robots/titanforge-ea-mt5.html">TitanForge EA MT5</a></th><td>XAUUSD H1</td><td><span class="niv attention">Medium risk</span></td><td>fails prop firm rules</td><td class="n">11.5%</td></tr>
+        <tr><th><a href="/en/robots/aix-gold-mt5.html">AiX Gold MT5</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>martingale, grid, fails prop firm rules</td><td class="n">14.0%</td></tr>
+        <tr><th><a href="/en/robots/allylla-pullback-bot.html">Allylla Pullback Bot</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>grid</td><td class="n">0.9%</td></tr>
+        <tr><th><a href="/en/robots/big-gold-crown.html">Big Gold Crown</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>martingale, grid, fails prop firm rules, much worse on real ticks</td><td class="n">90.9%</td></tr>
+        <tr><th><a href="/en/robots/gold-beaver.html">Gold Beaver</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>martingale, grid, fails prop firm rules, much worse on real ticks</td><td class="n">73.7%</td></tr>
+        <tr><th><a href="/en/robots/hedgehog-mt5.html">Hedgehog MT5</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>martingale, grid, much worse on real ticks</td><td class="n">9.8%</td></tr>
+        <tr><th><a href="/en/robots/janus-zone.html">Janus Zone</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>grid</td><td class="n">2.5%</td></tr>
+        <tr><th><a href="/en/robots/quantum-titan-mt5.html">Quantum Titan MT5</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>grid, fails prop firm rules</td><td class="n">27.4%</td></tr>
+        <tr><th><a href="/en/robots/scalping-robot-pro-mt5.html">Scalping Robot Pro MT5</a></th><td class="court">XAUUSD M1</td><td class="court"><span class="niv alerte">High</span></td><td>grid, fails prop firm rules, much worse on real ticks</td><td class="n">98.7%</td></tr>
+        <tr><th><a href="/en/robots/the-gold-reaper-mt5.html">The Gold Reaper MT5</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv alerte">High</span></td><td>martingale, grid, fails prop firm rules, much worse on real ticks</td><td class="n">17.8%</td></tr>
+        <tr><th><a href="/en/robots/the-invincible.html">The Invincible</a></th><td class="court">XAUUSD M30</td><td class="court"><span class="niv alerte">High</span></td><td>grid, fails prop firm rules</td><td class="n">41.4%</td></tr>
+        <tr><th><a href="/en/robots/moondog-ea.html">MoonDog EA</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv attention">Medium</span></td><td>fails prop firm rules, much worse on real ticks</td><td class="n">87.9%</td></tr>
+        <tr><th><a href="/en/robots/my-ai-gold.html">My AI Gold</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv attention">Medium</span></td><td>fails prop firm rules</td><td class="n">42.0%</td></tr>
+        <tr><th><a href="/en/robots/titanforge-ea-mt5.html">TitanForge EA MT5</a></th><td class="court">XAUUSD H1</td><td class="court"><span class="niv attention">Medium</span></td><td>fails prop firm rules</td><td class="n">11.5%</td></tr>
       </tbody>
     </table></div>
     <p style="font-size:.85rem;margin-top:1.4rem">Behaviour observed in our tests, with default settings, at a single broker (Admirals). A test describes the past and guarantees nothing about the future. This is not investment advice. MantaLab sells no robot and is not affiliated with any vendor.</p>
