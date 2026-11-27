@@ -6,7 +6,7 @@
 <!-- Sécurité (audit du 25/11/2026) : la page ne peut charger ou envoyer des données qu'à ces adresses-là. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://mantalab.goatcounter.com; connect-src 'self' https://mantalab-commandes.mantalab.workers.dev https://mantalab.goatcounter.com; object-src 'none'; base-uri 'none'; form-action 'self'">
 <title>MantaLab — méthode : comment nous auditons un robot MT5</title>
-<meta name="description" content="Comment MantaLab vérifie un robot MetaTrader 5 : détection de martingale, de grille et de stop-loss, statistiques de solidité, simulation de challenges de prop firms, et notre taux d'erreur mesuré (98,7 % sur 258 tests).">
+<meta name="description" content="Comment MantaLab vérifie un robot MetaTrader 5 : détection de martingale, de grille et de stop-loss, statistiques de solidité, simulation de challenges de prop firms, et notre taux d'erreur mesuré (98,9 % sur 258 tests).">
 <link rel="icon" href="marque/mantalab-icone.svg" type="image/svg+xml">
 <link rel="icon" type="image/png" sizes="48x48" href="marque/mantalab-icone-48.png">
 <link rel="apple-touch-icon" href="marque/apple-touch-icon.png">
@@ -18,7 +18,7 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="MantaLab">
 <meta property="og:title" content="MantaLab — notre méthode et notre taux d'erreur">
-<meta property="og:description" content="Ce que l'audit vérifie, comment, et à quel point c'est fiable : 98,7 % de verdicts justes sur 366 tests de robots au comportement connu, 90,9 % à l'examen à l'aveugle.">
+<meta property="og:description" content="Ce que l'audit vérifie, comment, et à quel point c'est fiable : 98,9 % de verdicts justes sur 420 tests de robots au comportement connu, 100 % au dernier examen à l'aveugle (132 sur 132).">
 <meta property="og:url" content="https://mantalab-ea.github.io/methode.html">
 <meta property="og:image" content="https://mantalab-ea.github.io/marque/mantalab-logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -156,9 +156,9 @@
 
     <h2 id="fr-precision">Notre taux d'erreur</h2>
     <p>Un outil qui ne publie pas ses erreurs demande qu'on le croie sur parole. Nous avons donc écrit un robot de laboratoire dont nous connaissons exactement le comportement (martingale, grille, stop réel ou virtuel, scalping…), et l'avons fait tourner dans MetaTrader 5 sur 19 marchés : forex, or, argent et actions américaines. Depuis le 26/11/2026, un deuxième robot de laboratoire, construit comme ceux du Market (plusieurs stratégies, plusieurs positions par décision, lot qui suit le solde), y ajoute des pièges dont nous connaissons la vérité : martingale cachée, grille déguisée avec des stops lointains, grille martingale.</p>
-    <p>Chaque test donne jusqu'à quatre verdicts (martingale, grille, stop-loss, trades ultra-courts). Sur 366 tests de robots au comportement connu, sur 24 marchés (forex, or, argent, actions et indices) : 959 verdicts tranchés, dont 947 justes. Dans 13 autres cas, le test est trop court et l'outil répond « pas assez de données » au lieu de trancher.</p>
+    <p>Chaque test donne jusqu'à quatre verdicts (martingale, grille, stop-loss, trades ultra-courts). Sur 420 tests de robots au comportement connu, sur 30 marchés (forex, or, argent, actions et indices) : 1 091 verdicts tranchés, dont 1 079 justes. Dans 13 autres cas, le test est trop court et l'outil répond « pas assez de données » au lieu de trancher.</p>
     <div class="chiffres">
-      <div><b>98,7 %</b><span>de verdicts justes : 947 sur 959, sur 366 tests de robots au comportement connu, plus 13 « pas assez de données »</span></div>
+      <div><b>98,9 %</b><span>de verdicts justes : 1 079 sur 1 091, sur 420 tests de robots au comportement connu, plus 13 « pas assez de données »</span></div>
       <div><b>29 / 29</b><span>verdicts conformes sur 10 vrais robots de référence</span></div>
       <div><b>0,05 pt</b><span>d'écart moyen avec MetaTrader sur le drawdown minute par minute</span></div>
     </div>
@@ -166,25 +166,25 @@
     <table>
       <thead><tr><th>Vérification</th><th class="n">Justes</th><th class="n">Précision</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Martingale</th><td class="n">348 / 354</td><td class="n">98,3 %</td></tr>
-        <tr><th scope="row">Grille</th><td class="n">363 / 364</td><td class="n">99,7 %</td></tr>
+        <tr><th scope="row">Martingale</th><td class="n">402 / 408</td><td class="n">98,5 %</td></tr>
+        <tr><th scope="row">Grille</th><td class="n">417 / 418</td><td class="n">99,8 %</td></tr>
         <tr><th scope="row">Trades ultra-courts</th><td class="n">19 / 19</td><td class="n">100 %</td></tr>
-        <tr><th scope="row">Stop-loss</th><td class="n">217 / 222</td><td class="n">97,7 %</td></tr>
+        <tr><th scope="row">Stop-loss</th><td class="n">241 / 246</td><td class="n">98,0 %</td></tr>
       </tbody>
     </table>
     </div>
     <h3>L'examen à l'aveugle</h3>
-    <p>Le chiffre ci-dessus contient des tests qui ont servi à régler le moteur. Pour mesurer sans s'arranger, nous faisons passer des examens : des robots de laboratoire jamais vus (autres réglages, autres marchés), avec un moteur figé au départ et aucune retouche pendant l'examen. Examen n° 2, le 27/11/2026 : 54 tests sur 6 marchés nouveaux, passé par la version du moteur d'avant la correction des grilles protégées.</p>
+    <p>Le chiffre ci-dessus contient des tests qui ont servi à régler le moteur. Pour mesurer sans s'arranger, nous faisons passer des examens : des robots de laboratoire jamais vus (autres réglages, autres marchés), avec un moteur figé au départ et aucune retouche pendant l'examen. Examen n° 3, le 27/11/2026 : 54 tests sur 6 marchés nouveaux, dont 24 grilles (avec ou sans stops) et 12 martingales.</p>
     <div class="chiffres">
-      <div><b>90,9 %</b><span>de verdicts justes : 120 sur 132, aucun « pas assez de données »</span></div>
+      <div><b>100 %</b><span>de verdicts justes : 132 sur 132, aucun « pas assez de données »</span></div>
       <div><b>0</b><span>fausse accusation</span></div>
-      <div><b>12</b><span>verdicts trop rassurants, détaillés ci-dessous</span></div>
+      <div><b>0</b><span>verdict trop rassurant</span></div>
     </div>
-    <p>L'examen n° 1, passé par la version précédente du moteur, donnait 121 sur 132 (91,7 %) ; ses erreurs ont servi à corriger le moteur, ce qui l'a fait entrer dans les tests de réglage. Limite : ces examens utilisent encore notre robot de laboratoire. Ils mesurent la résistance à de nouveaux réglages et à de nouveaux marchés, pas encore à des robots écrits par d'autres.</p>
+    <p>Les examens précédents, passés par des versions antérieures du moteur, donnaient 121 sur 132 (n° 1, 91,7 %) puis 120 sur 132 (n° 2, 90,9 %). Leurs erreurs ont servi à corriger le moteur, ce qui les a fait entrer dans les tests de réglage ci-dessus. Un examen réussi ne garantit pas le suivant : chaque correction sera suivie d'un nouvel examen, quel qu'en soit le résultat. Limite : ces examens utilisent encore notre robot de laboratoire. Ils mesurent la résistance à de nouveaux réglages et à de nouveaux marchés, pas encore à des robots écrits par d'autres.</p>
     <h3>Les erreurs, une par une</h3>
     <div class="encadre">
-      <p><strong>Corrigé le 27/11/2026 : 6 grilles dont chaque position a son propre stop chez le courtier</strong> (examen n° 2) étaient classées « positions empilées, chacune protégée » avec un risque faible. Une grille reste une grille même avec des stops : les pertes sont limitées une à une, mais elles s'additionnent. Le moteur la signale maintenant dès que le robot renforce systématiquement (au moins 40 % de ses décisions) et empile au moins 5 positions, sans nouvelle alerte sur les robots du Market. Cette correction sera vérifiée par un nouvel examen, avec des robots jamais vus.</p>
-      <p><strong>6 erreurs viennent d'une grille qui augmente sa mise de 20 % à chaque niveau</strong> (examen n° 2, toujours d'actualité). La grille est bien signalée et le risque est classé élevé, mais la martingale n'est pas vue : nous ne comptons une hausse de mise qu'à partir de 25 %, pour ne pas accuser les robots dont le lot suit simplement le solde.</p>
+      <p><strong>Corrigé le 27/11/2026 : 6 grilles dont chaque position a son propre stop chez le courtier</strong> (examen n° 2) étaient classées « positions empilées, chacune protégée » avec un risque faible. Une grille reste une grille même avec des stops : les pertes sont limitées une à une, mais elles s'additionnent. Le moteur la signale maintenant dès que le robot renforce systématiquement (au moins 40 % de ses décisions) et empile au moins 5 positions, sans nouvelle alerte sur les robots du Market. Vérifié par l'examen n° 3 : les 18 grilles protégées jamais vues ont toutes été reconnues, sans fausse alerte sur les 30 robots propres ou à martingale.</p>
+      <p><strong>6 erreurs viennent d'une grille qui augmente sa mise de 20 % à chaque niveau</strong> (examen n° 2 ; aucune grille de ce type dans l'examen n° 3, la limite demeure). La grille est bien signalée et le risque est classé élevé, mais la martingale n'est pas vue : nous ne comptons une hausse de mise qu'à partir de 25 %, pour ne pas accuser les robots dont le lot suit simplement le solde.</p>
       <p><strong>5 erreurs viennent des stops « virtuels »</strong> (gérés par le robot, invisibles pour le courtier), surtout ceux dont la distance suit la volatilité du marché. Nous les classons « aucun stop » au lieu de « stop virtuel ». L'erreur va dans le sens prudent : nous signalons un risque plus grand que la réalité, jamais plus petit.</p>
       <p><strong>1 erreur va dans l'autre sens</strong> : une martingale sur l'argent, sur 23 décisions seulement, où la grille est classée « à surveiller » alors qu'il n'y en a pas.</p>
     </div>
@@ -253,9 +253,9 @@
 
     <h2 id="en-accuracy">Our error rate</h2>
     <p>A tool that doesn't publish its mistakes asks to be taken on trust. So we wrote a lab robot whose behaviour we know exactly (martingale, grid, real or virtual stop, scalping…) and ran it in MetaTrader 5 on 19 markets: forex, gold, silver and US stocks. Since 26/11/2026, a second lab robot built like Market robots (several strategies, several positions per decision, lot that follows the balance) adds traps whose truth we know: hidden martingale, disguised grid with distant stops, martingale grid.</p>
-    <p>Each test gives up to four verdicts (martingale, grid, stop-loss, ultra-short trades). Across 366 tests of robots with known behaviour, on 24 markets (forex, gold, silver, stocks and indices): 959 decided verdicts, 947 of them correct. In 13 other cases the test is too short and the tool answers "not enough data" instead of deciding.</p>
+    <p>Each test gives up to four verdicts (martingale, grid, stop-loss, ultra-short trades). Across 420 tests of robots with known behaviour, on 30 markets (forex, gold, silver, stocks and indices): 1,091 decided verdicts, 1,079 of them correct. In 13 other cases the test is too short and the tool answers "not enough data" instead of deciding.</p>
     <div class="chiffres">
-      <div><b>98.7%</b><span>correct verdicts: 947 out of 959, across 366 tests of robots with known behaviour, plus 13 "not enough data"</span></div>
+      <div><b>98.9%</b><span>correct verdicts: 1,079 out of 1,091, across 420 tests of robots with known behaviour, plus 13 "not enough data"</span></div>
       <div><b>29 / 29</b><span>matching verdicts on 10 real reference robots</span></div>
       <div><b>0.05 pt</b><span>average gap with MetaTrader on minute-by-minute drawdown</span></div>
     </div>
@@ -263,25 +263,25 @@
     <table>
       <thead><tr><th>Check</th><th class="n">Correct</th><th class="n">Accuracy</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Martingale</th><td class="n">348 / 354</td><td class="n">98.3%</td></tr>
-        <tr><th scope="row">Grid</th><td class="n">363 / 364</td><td class="n">99.7%</td></tr>
+        <tr><th scope="row">Martingale</th><td class="n">402 / 408</td><td class="n">98.5%</td></tr>
+        <tr><th scope="row">Grid</th><td class="n">417 / 418</td><td class="n">99.8%</td></tr>
         <tr><th scope="row">Ultra-short trades</th><td class="n">19 / 19</td><td class="n">100%</td></tr>
-        <tr><th scope="row">Stop-loss</th><td class="n">217 / 222</td><td class="n">97.7%</td></tr>
+        <tr><th scope="row">Stop-loss</th><td class="n">241 / 246</td><td class="n">98.0%</td></tr>
       </tbody>
     </table>
     </div>
     <h3>The blind exam</h3>
-    <p>The figure above includes tests that were used to tune the engine. To measure without bending anything, we run exams: lab robots never seen before (other settings, other markets), with the engine frozen at the start and no change during the exam. Exam no. 2, on 27/11/2026: 54 tests on 6 new markets, taken by the engine version before the protected-grid fix.</p>
+    <p>The figure above includes tests that were used to tune the engine. To measure without bending anything, we run exams: lab robots never seen before (other settings, other markets), with the engine frozen at the start and no change during the exam. Exam no. 3, on 27/11/2026: 54 tests on 6 new markets, including 24 grids (with or without stops) and 12 martingales.</p>
     <div class="chiffres">
-      <div><b>90.9%</b><span>correct verdicts: 120 out of 132, no "not enough data"</span></div>
+      <div><b>100%</b><span>correct verdicts: 132 out of 132, no "not enough data"</span></div>
       <div><b>0</b><span>false accusations</span></div>
-      <div><b>12</b><span>verdicts that reassure too much, detailed below</span></div>
+      <div><b>0</b><span>verdicts that reassure too much</span></div>
     </div>
-    <p>Exam no. 1, taken by the previous engine version, gave 121 out of 132 (91.7%); its errors were used to correct the engine, which moved it into the tuning tests. Limit: these exams still use our lab robot. They measure resistance to new settings and new markets, not yet to robots written by others.</p>
+    <p>The previous exams, taken by earlier engine versions, gave 121 out of 132 (no. 1, 91.7%) then 120 out of 132 (no. 2, 90.9%). Their errors were used to correct the engine, which moved them into the tuning tests above. Passing one exam does not guarantee the next: every fix will be followed by a new exam, whatever the result. Limit: these exams still use our lab robot. They measure resistance to new settings and new markets, not yet to robots written by others.</p>
     <h3>The errors, one by one</h3>
     <div class="encadre">
-      <p><strong>Fixed on 27/11/2026: 6 grids where every position has its own stop at the broker</strong> (exam no. 2) were classified as "stacked positions, each protected" with a low risk. A grid is still a grid with stops: losses are limited one by one, but they add up. The engine now flags it as soon as the robot adds systematically (at least 40% of its decisions) and stacks at least 5 positions, with no new alert on Market robots. This fix will be checked by a new exam, with never-seen robots.</p>
-      <p><strong>6 errors come from a grid that raises its stake by 20% at each level</strong> (exam no. 2, still open). The grid is flagged and the risk is rated high, but the martingale is missed: we only count a stake increase from 25% upwards, so as not to accuse robots whose lot simply follows the balance.</p>
+      <p><strong>Fixed on 27/11/2026: 6 grids where every position has its own stop at the broker</strong> (exam no. 2) were classified as "stacked positions, each protected" with a low risk. A grid is still a grid with stops: losses are limited one by one, but they add up. The engine now flags it as soon as the robot adds systematically (at least 40% of its decisions) and stacks at least 5 positions, with no new alert on Market robots. Checked by exam no. 3: all 18 never-seen protected grids were recognised, with no false alarm on the 30 clean or martingale robots.</p>
+      <p><strong>6 errors come from a grid that raises its stake by 20% at each level</strong> (exam no. 2; no grid of this kind in exam no. 3, the limit remains). The grid is flagged and the risk is rated high, but the martingale is missed: we only count a stake increase from 25% upwards, so as not to accuse robots whose lot simply follows the balance.</p>
       <p><strong>5 errors come from "virtual" stops</strong> (managed by the robot, invisible to the broker), mostly those whose distance follows market volatility. We classify them as "no stop" instead of "virtual stop". The error leans towards caution: we flag a bigger risk than reality, never a smaller one.</p>
       <p><strong>1 error goes the other way</strong>: a martingale on silver, over only 23 decisions, where the grid is rated "worth watching" although there is none.</p>
     </div>
