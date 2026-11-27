@@ -386,7 +386,7 @@
     ratioMartingale: 1.25, ratioGrilleMartingale: 1.25, minEvenementsMartingale: 3,
     minPertesMartingale: 20, minPertesMartingaleAlerte: 30, minPertesMartingaleAttention: 20, minSerieMartingale: 10,
     partMartingaleAlerte: 0.3, ecartMartingaleAlerte: 0.25, partMartingaleAttention: 0.2, ecartMartingaleAttention: 0.15,
-    minEntreesGrille: 5, minRenfortsGrilleAlerte: 10, pileGrilleAlerte: 5, stopLointainFois: 5, risqueStopMax: 0.25, partRenfortsPanier: 0.8, partStopsTouchesMin: 0.05, partRenfortsNonProteges: 0.5, partGrilleMartingale: 0.3,
+    minEntreesGrille: 5, minRenfortsGrilleAlerte: 10, pileGrilleAlerte: 5, stopLointainFois: 5, risqueStopMax: 0.25, partRenfortsPanier: 0.8, partStopsTouchesMin: 0.05, partRenfortsNonProteges: 0.5, partRenfortsGrilleProtegee: 0.4, partGrilleMartingale: 0.3,
     partSansStopAlerte: 0.5, partSansStopAttention: 0.1,
     minPertesStopVirtuel: 10, toleranceStopVirtuel: 0.15, partStopVirtuel: 0.7,
     partPlafondStop: 0.3, partAuDelaPlafond: 0.05, partRenfortsAttention: 0.05,
@@ -721,7 +721,13 @@
     // jusqu'à 111 positions ouvertes en même temps, aucune avec un stop)
     if (renforts >= r.minRenfortsGrilleAlerte && grilleReelle && (part >= r.partRenfortsAlerte || simMax >= r.pileGrilleAlerte)) niveau = "alerte";
     else if (renforts >= r.minEntreesGrille && part >= r.partRenfortsAttention && grilleReelle) niveau = "attention";
-    if (niveau !== "ok") cle = "grille_" + niveau;
+    // Grille PROTÉGÉE (examen 2 du 27/11/2026) : chaque position a un vrai stop, mais le robot renforce SYSTÉMATIQUEMENT
+    // (≥ 40 % de ses décisions) et empile (≥ 5 ensemble). Les pertes sont bornées une à une mais s'additionnent.
+    // Marge : robots du Market ≤ 31 % de renforts, robots de labo sans grille ≤ 30 %, grilles protégées 48 à 55 %.
+    let protegee = false;
+    if (niveau === "ok" && renforts >= r.minRenfortsGrilleAlerte && part >= r.partRenfortsGrilleProtegee && simMax >= r.pileGrilleAlerte) { niveau = "alerte"; protegee = true; }
+    if (protegee) cle = "grille_alerte_proteges";
+    else if (niveau !== "ok") cle = "grille_" + niveau;
     else if (renforts >= r.minEntreesGrille && part >= r.partRenfortsAttention) cle = "grille_ok_proteges";   // empilement, chaque position avec son stop
     return { code: "grille", niveau, cle, donnees: mesures, mesures, exemples, exemplesHausse };
   }
