@@ -764,15 +764,15 @@
     <div class="contenu precision">
       <div>
         <h2 class="titre-bloc" id="precision-titre" data-t="precision_titre">We publish our error rate</h2>
-        <div class="grand" data-compte data-t="c1_v">98.7%</div>
-        <p data-t="c1_l">correct verdicts: 699 out of 708, on 258 tests of robots whose behaviour we know exactly, across 19 markets, including robots built like Market ones. The 9 errors are published, one by one.</p>
+        <div class="grand" data-compte data-t="c1_v">98.1%</div>
+        <p data-t="c1_l">correct verdicts: 941 out of 959, on 366 tests of robots whose behaviour we know exactly, across 24 markets, including robots built like Market ones. The 18 errors are published, one by one.</p>
         <p><a href="methode.html" data-t="precision_lien">Our method and our 9 errors, one by one</a></p>
       </div>
       <div class="faits">
         <div class="fait"><b data-compte data-t="c2_v">29 / 29</b><span data-t="c2_l">verdicts confirmed on 10 real reference robots</span></div>
         <div class="fait"><b data-compte data-t="c3_v">0.05 pt</b><span data-t="c3_l">average gap with MetaTrader on drawdown, recomputed minute by minute</span></div>
         <div class="fait"><b data-compte data-t="c4_v">6</b><span data-t="c4_l">prop-firm challenges simulated with their official rules</span></div>
-        <div class="fait"><b data-compte data-t="c5_v">708</b><span data-t="c5_l">verdicts checked one by one: 699 correct, the 9 errors published</span></div>
+        <div class="fait"><b data-compte data-t="c5_v">90.9%</b><span data-t="c5_l">on the blind exam with never-seen robots: 120 correct verdicts out of 132, no false accusation, the 12 errors published</span></div>
       </div>
     </div>
   </section>
@@ -822,7 +822,7 @@
     <div><img class="logo logo-clair" src="/marque/mantalab-logo.svg" alt="MantaLab"><img class="logo logo-sombre" src="/marque/mantalab-logo-fond-sombre.svg" alt="MantaLab"></div>
     <div>
       <p data-t="pied1">This report describes the robot's observed behaviour in the test provided. It is not investment advice. Past results do not guarantee future results.</p>
-      <p data-t="pied2">Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 258 tests of robots with known behaviour across 19 markets (98.7% correct verdicts: 699 out of 708). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.</p>
+      <p data-t="pied2">Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 366 tests of robots with known behaviour across 24 markets (98.1% correct verdicts: 941 out of 959; 90.9% on the blind exam). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.</p>
       <p><a href="/legal.html" data-t="pied_legal">Legal notice and privacy (in French)</a></p>
     </div>
   </div>
@@ -861,15 +861,15 @@
       g_tete: "<b>Robot de laboratoire à martingale</b>, GBPUSD", g_periode: "nov. 2025 – nov. 2026",
       g_l1: "Résultat sur un an", g_v1: "+69,7 %", g_l2: "Pire recul du solde", g_v2: "−10,9 %", g_l3: "Pire recul de l'équité", g_v3: "−20,0 %",
       g_depot: "dépôt", g_solde: "Solde : ce que montre le vendeur", g_equite: "Équité : l'argent réellement exposé", g_repere: "pertes encore ouvertes",
-      g_tampon: "Risque élevé", g_alt: "Courbe d'un robot à martingale : le solde monte régulièrement, l'équité plonge à −20 % pendant que des pertes restent ouvertes.",
+      g_tampon: "Risque élevé", g_alt: "Courbe d'un robot à martingale : le solde monte régulièrement, l'équité plonge à −20 % pendant que des pertes restent ouvertes.",
       g_legende: "Test du labo MantaLab, équité recalculée minute par minute. Un rapport de vendeur montre le solde ; l'audit mesure aussi ce qui reste ouvert.",
       essai_titre: "Vérifiez un robot en quelques secondes", essai_sous: "Martingale, grille, stop-loss, notes sur 100 et six challenges de prop firms. Gratuit, sans inscription.",
       depot_bouton: "Choisir un fichier",
       v1_ex: "VR Overturn : sa mise grimpe jusqu'à 43,8 fois celle de départ, après 41 pertes sur 41.",
       v2_ex: "GridPro Panel : jusqu'à 7 positions ouvertes contre le marché, chaque renfort plus gros.",
-      v3_ex: "MultiMartin : aucun stop chez le courtier. 97 % des pertes sont coupées par le robot lui-même.",
-      v4_ex: "Moving Average : 94 % de chances d'un vrai avantage… 17 % une fois la sur-optimisation comptée.",
-      v5_ex: "GridPro Panel : 31 % perdus en une seule journée. FTMO en tolère 5 %.",
+      v3_ex: "MultiMartin : aucun stop chez le courtier. 97 % des pertes sont coupées par le robot lui-même.",
+      v4_ex: "Moving Average : 94 % de chances d'un vrai avantage… 17 % une fois la sur-optimisation comptée.",
+      v5_ex: "GridPro Panel : 31 % perdus en une seule journée. FTMO en tolère 5 %.",
       v6_ex: "Un signal sur l'or : 212 entrées sur 575 passées en paniers de 2 à 7 ordres.",
       plus_titre: "Ce que nous faisons, et que les autres ne font pas", plus_sous: "Un outil d'analyse ne lit que le rapport du vendeur. Le labo MantaLab teste le robot lui-même.",
       cmp_col_v: "Le rapport du vendeur", cmp_col_o: "Un outil qui lit le rapport", cmp_col_m: "Le labo MantaLab",
@@ -878,12 +878,12 @@
       cmp_c3: "Conditions réelles : retards, ticks du courtier, autre année", cmp_c3_v: "Une période choisie", cmp_c3_o: "Impossible sans relancer le test", cmp_c3_m: "4 scénarios à chaque audit",
       cmp_c4: "Pertes cachées, minute par minute", cmp_c4_v: "Courbe de solde seulement", cmp_c4_o: "Impossible : le rapport ne contient pas les cours", cmp_c4_m: "Mesurées, 0,05 point d'écart avec MetaTrader",
       cmp_c5: "Robots faits avec ChatGPT ou Claude", cmp_c5_v: "Pas de vendeur", cmp_c5_o: "Seulement si vous faites le test vous-même", cmp_c5_m: "Envoyez le fichier, le labo s'occupe du reste",
-      sch_legende: "Schéma simplifié, d'après l'exemple cité.", sch_1: "gain", sch_2: "perte", sch_3: "Taille de chaque position", sch_4: "Après chaque perte, la mise double", sch_5: "Prix", sch_6: "7 positions achetées pendant la baisse,", sch_7: "toutes encore ouvertes", sch_8: "97 % des pertes coupées ici →", sch_9: "petite perte", sch_10: "grosse perte", sch_11: "Nombre de pertes, par distance au prix d'entrée", sch_12: "Aucun stop chez le courtier : c'est le robot qui coupe", sch_13: "Chances d'un vrai avantage", sch_14: "Une fois la sur-optimisation comptée", sch_15: "−31 % en un jour", sch_16: "limite FTMO : −5 % par jour", sch_17: "Résultat de chaque journée", sch_18: "Chaque ordre du compte, dans le temps", sch_19: "En rouge : 2 à 7 ordres passés ensemble", sch_20: "comptés comme une seule décision", sch_21: "temps →",
-      precision_titre: "Nous publions notre taux d'erreur", precision_lien: "Notre méthode et nos 9 erreurs, une par une",
-      c5_v: "708", c5_l: "verdicts vérifiés un par un : 699 justes, les 9 erreurs publiées",
+      sch_legende: "Schéma simplifié, d'après l'exemple cité.", sch_1: "gain", sch_2: "perte", sch_3: "Taille de chaque position", sch_4: "Après chaque perte, la mise double", sch_5: "Prix", sch_6: "7 positions achetées pendant la baisse,", sch_7: "toutes encore ouvertes", sch_8: "97 % des pertes coupées ici →", sch_9: "petite perte", sch_10: "grosse perte", sch_11: "Nombre de pertes, par distance au prix d'entrée", sch_12: "Aucun stop chez le courtier : c'est le robot qui coupe", sch_13: "Chances d'un vrai avantage", sch_14: "Une fois la sur-optimisation comptée", sch_15: "−31 % en un jour", sch_16: "limite FTMO : −5 % par jour", sch_17: "Résultat de chaque journée", sch_18: "Chaque ordre du compte, dans le temps", sch_19: "En rouge : 2 à 7 ordres passés ensemble", sch_20: "comptés comme une seule décision", sch_21: "temps →",
+      precision_titre: "Nous publions notre taux d'erreur", precision_lien: "Notre méthode et nos 18 erreurs, une par une",
+      c5_v: "90,9 %", c5_l: "à l'examen à l'aveugle sur des robots jamais vus : 120 verdicts justes sur 132, aucune fausse accusation, les 12 erreurs publiées",
       nav_verifs_ancien: "", nav_comment: "Comment ça marche", nav_cta: "Faire auditer un robot", nav_cta_court: "Audit à 19 €",
       pastille: "Audit indépendant de robots MetaTrader 5",
-      c1_v: "98,7 %", c1_l: "de verdicts justes : 699 sur 708, sur 258 tests de robots dont nous connaissons exactement le comportement, sur 19 marchés, dont des robots construits comme ceux du Market. Les 9 erreurs sont publiées, une par une.",
+      c1_v: "98,1 %", c1_l: "de verdicts justes : 941 sur 959, sur 366 tests de robots dont nous connaissons exactement le comportement, sur 24 marchés, dont des robots construits comme ceux du Market. Les 18 erreurs sont publiées, une par une.",
       c2_v: "29 / 29", c2_l: "verdicts conformes sur 10 vrais robots de référence",
       c3_v: "0,05 pt", c3_l: "d'écart moyen avec MetaTrader sur le drawdown, recalculé minute par minute",
       c4_v: "6", c4_l: "challenges de prop firms simulés avec leurs règles officielles",
@@ -925,7 +925,7 @@
       f6_alt: "Des essais de challenge : certains atteignent l'objectif, d'autres touchent la perte maximale ou perdent trop en une journée.",
       f6_objectif: "objectif +10\u00a0%", f6_depart: "départ", f6_limite: "perte max −10\u00a0%",
       f6_legende: "Point noir : réussi. Croix rouge : éliminé (perte du jour ou perte totale).",
-      v1_n: "43,8×", v2_n: "7", v3_n: "97 %", v4_n: "94 → 17 %", v5_n: "−31 %", v6_n: "212", v1_t: "Martingale", v1_p: "Le robot augmente-t-il sa mise pour se refaire après une perte ?",
+      v1_n: "43,8×", v2_n: "7", v3_n: "97 %", v4_n: "94 → 17 %", v5_n: "−31 %", v6_n: "212", v1_t: "Martingale", v1_p: "Le robot augmente-t-il sa mise pour se refaire après une perte ?",
       v2_t: "Grille", v2_p: "Empile-t-il des positions quand le prix va contre lui ?",
       v3_t: "Stop-loss", v3_p: "Vrai stop chez le courtier, stop « virtuel »… ou rien du tout ?",
       v4_t: "Solidité des gains", v4_p: "Avantage réel, ou simple chance ?",
@@ -941,7 +941,7 @@
       etape4: "Déposez ce fichier .html ci-dessus.",
       pied_legal: "Mentions légales et confidentialité",
       pied1: "Ce rapport décrit le comportement observé du robot dans le test fourni. Ce n'est pas un conseil en investissement. Les résultats passés ne préjugent pas des résultats futurs.",
-      pied2: "Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 258 tests de robots au comportement connu sur 19 marchés (98,7 % de verdicts justes : 699 sur 708). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
+      pied2: "Détection étalonnée par le labo MantaLab sur 10 robots réels (29 verdicts sur 29) et 366 tests de robots au comportement connu sur 24 marchés (98,1 % de verdicts justes : 941 sur 959 ; 90,9 % à l'examen à l'aveugle). Statistiques : Bailey et López de Prado. Une remarque, une erreur ? Elles nous aident à fiabiliser l'outil.",
       offre_titre: "Vous hésitez avant d'acheter un robot ?",
       offre_texte: "Le rapport du vendeur montre ce qu'il veut bien montrer. Le labo MantaLab fait tourner le robot lui-même et vous remet une fiche indépendante :",
       offre_1: "martingale, grille, stops virtuels : ce que le robot fait vraiment, pas ce que dit sa notice ;",
@@ -961,7 +961,7 @@
       recalculer: "Recalculer",
       risque: { eleve: "Risque élevé", moyen: "Risque moyen", faible: "Risque faible", inconnu: "Indéterminé" },
       tampon_sous: "comportement observé",
-      prop_oui: "Compatible avec les règles de type FTMO 2-Step (5 % de perte par jour, 10 % au total) :",
+      prop_oui: "Compatible avec les règles de type FTMO 2-Step (5 % de perte par jour, 10 % au total) :",
       oui: "oui", non: "non", indetermine: "indéterminé",
       raisons: { prop: "limites de perte dépassées", trades_courts: "trades ultra-courts (risque HFT)", martingale: "martingale (interdite ou mal vue chez beaucoup de prop firms)", grille: "grille (interdite ou mal vue chez beaucoup de prop firms)" },
       erreur_aucune: "aucune transaction trouvée. Vérifiez que c'est bien le rapport .html du testeur de stratégie MetaTrader 5.",
@@ -981,7 +981,7 @@
         grille_alerte: "Grille", grille_attention: "Renforts de positions perdantes",
         stop_manquant_alerte: "Pas de stop-loss", stop_manquant_attention: "Positions parfois sans stop-loss", stop_virtuel: "Stop « virtuel » seulement",
         profil_alerte: "Petits gains, grosses pertes", latentes_alerte: "Pertes latentes cachées", latentes_attention: "Pertes latentes importantes",
-        drawdown_30: "Drawdown d'équité d'au moins 30 %", drawdown_20: "Drawdown d'équité d'au moins 20 %", serie_20: "Série de pertes d'au moins 20 % du dépôt", compte_ruine: "Compte ruiné pendant le test",
+        drawdown_30: "Drawdown d'équité d'au moins 30 %", drawdown_20: "Drawdown d'équité d'au moins 20 %", serie_20: "Série de pertes d'au moins 20 % du dépôt", compte_ruine: "Compte ruiné pendant le test",
         psr: "Avantage probablement réel", dsr: "… même en cas de sur-optimisation", historique: "Test assez long pour conclure", stabilite: "Gagnant dans chaque période",
         dependance: "Ne dépend pas de quelques gros gains", bootstrap: "Résiste aux variantes de l'historique", plafond_risque_cache: "Plafond : risque caché dans des pertes rares",
         plafond_risque_eleve: "Plafond : risque élevé", plafond_risque_moyen: "Plafond : risque moyen",
@@ -994,10 +994,10 @@
       sol: {
         psr: (s) => `Probabilité que l'avantage soit réel : ${pc(s.psr)}. Ce calcul (Bailey et López de Prado) tient compte de la durée du test et des pertes extrêmes. Sharpe annuel : ${num(s.sharpeAnnuel, 2)}.`,
         dsr: (s) => `Si le vendeur a essayé ${s.essaisSupposes} réglages et gardé le meilleur : ${pc(s.dsr)}. Un résultat élevé ici protège contre la sur-optimisation.`,
-        historique: (s) => s.minJours === null ? "Le robot ne gagne pas en moyenne : aucune durée de test ne pourrait prouver un avantage." : s.historiqueSuffisant ? `Assez long : ${s.jours} jours, il en fallait ${s.minJours} pour conclure à 95 %.` : `Trop court : ${s.jours} jours, il en faudrait ${s.minJours > 2520 ? "plus de 10 ans de cotation" : num(s.minJours)} pour conclure à 95 %.`,
+        historique: (s) => s.minJours === null ? "Le robot ne gagne pas en moyenne : aucune durée de test ne pourrait prouver un avantage." : s.historiqueSuffisant ? `Assez long : ${s.jours} jours, il en fallait ${s.minJours} pour conclure à 95 %.` : `Trop court : ${s.jours} jours, il en faudrait ${s.minJours > 2520 ? "plus de 10 ans de cotation" : num(s.minJours)} pour conclure à 95 %.`,
         stabilite: (s) => `Gagnant dans ${s.tranchesPositives} période(s) sur ${s.tranches.length} de même durée : ${s.tranches.map((t) => fmtSigne(t.net)).join(", ")}.`,
-        dependance: (s) => `Résultat total ${fmtSigne(s.net)}. Sans ses 5 meilleurs trades : ${fmtSigne(s.sansTop5)}. Sans ses ${s.top5pctN} meilleurs (5 %) : ${fmtSigne(s.sansTop5pct)}.`,
-        bootstrap: (s) => `Sur ${s.bootstrap.tirages} variantes de l'historique (mois tirés au hasard) : ${pc(s.bootstrap.pPerte)} finissent en perte. Drawdown médian ${pc(s.bootstrap.ddMedian)}, ${pc(s.bootstrap.ddP95)} dans les 5 % pires cas.`,
+        dependance: (s) => `Résultat total ${fmtSigne(s.net)}. Sans ses 5 meilleurs trades : ${fmtSigne(s.sansTop5)}. Sans ses ${s.top5pctN} meilleurs (5 %) : ${fmtSigne(s.sansTop5pct)}.`,
+        bootstrap: (s) => `Sur ${s.bootstrap.tirages} variantes de l'historique (mois tirés au hasard) : ${pc(s.bootstrap.pPerte)} finissent en perte. Drawdown médian ${pc(s.bootstrap.ddMedian)}, ${pc(s.bootstrap.ddP95)} dans les 5 % pires cas.`,
       },
       integ_titre: "Intégrité du test",
       integ_titres: { latentes: "Pertes latentes", trous: "Trous d'activité", lisse: "Courbe trop régulière" },
@@ -1019,8 +1019,8 @@
         base: "Calcul sur les positions fermées, jour par jour : une perte latente d'une position encore ouverte n'est pas vue.",
         optimiste: "Ce robot garde des pertes latentes importantes : en vrai challenge, il ferait moins bien que cette simulation.",
         eleve: "Robot à risque élevé : réussir un challenge ne veut pas dire garder le compte financé. Martingales et grilles finissent souvent par une grosse perte, et beaucoup de prop firms les interdisent. Aucune taille n'est conseillée.",
-        quick_strike: (c) => `FundedNext limite les positions de moins de 30 secondes à 30 % : ce robot en a ${pc(c.partMoins30s)}.`,
-        selonCompte: "The5ers : limites de 3 à 5 % par jour et 8 à 10 % au total selon le compte ; simulé avec 5 % et 10 %. Leur perte journalière se calcule sur le solde du début de journée, pas sur le capital initial.",
+        quick_strike: (c) => `FundedNext limite les positions de moins de 30 secondes à 30 % : ce robot en a ${pc(c.partMoins30s)}.`,
+        selonCompte: "The5ers : limites de 3 à 5 % par jour et 8 à 10 % au total selon le compte ; simulé avec 5 % et 10 %. Leur perte journalière se calcule sur le solde du début de journée, pas sur le capital initial.",
         taille: "Taille = taille des positions par rapport au test (×0,5 = deux fois plus petites).",
       },
       txt: {
@@ -1049,7 +1049,7 @@
         profil_alerte: (d) => `${pc(d.taux)} de trades gagnants, mais une perte moyenne ${d.ratio}× plus grosse que le gain moyen : beaucoup de petits gains, de rares grosses pertes.`,
         profil_ok: (d) => `${pc(d.taux)} de trades gagnants ; perte moyenne = ${d.ratio}× le gain moyen.`,
         prop_alerte: (d) => "Ne passerait pas des règles de type FTMO 2-Step : " + d.problemes.map((p) => p.type === "jour" ? `perte de ${pc(p.pct, 1)} sur une journée (${p.jour}), limite ${pc(p.limite)}` : p.type === "total" ? `perte totale de ${pc(p.pct, 1)} du dépôt, limite ${pc(p.limite)}` : `drawdown d'équité de ${pc(p.pct, 1)} selon le rapport`).join(" ; ") + ".",
-        prop_ok: (d) => "Reste dans les limites des règles de type FTMO 2-Step (5 % par jour, 10 % au total)" + (d.avecEquite ? "." : " (calcul sur le solde : les pertes latentes ne sont pas prises en compte)."),
+        prop_ok: (d) => "Reste dans les limites des règles de type FTMO 2-Step (5 % par jour, 10 % au total)" + (d.avecEquite ? "." : " (calcul sur le solde : les pertes latentes ne sont pas prises en compte)."),
       },
       ex: {
         martingale: (e) => e.perte === undefined ? `${E.fmtT(e.t)} : ${e.rang}e position ouverte sur ${e.symbole} avec ${e.v1} lot, la précédente en avait ${e.v0} (×${(e.v1 / e.v0).toFixed(1)})` : `${E.fmtT(e.t)} : après une perte de ${fmtArgent(e.perte)} sur ${e.v0} lot, nouvelle position de ${e.v1} lot (×${(e.v1 / e.v0).toFixed(1)})`,
@@ -1099,10 +1099,10 @@
       cmp_c5: "Robots built with ChatGPT or Claude", cmp_c5_v: "No seller", cmp_c5_o: "Only if you run the test yourself", cmp_c5_m: "Send the file, the lab does the rest",
       sch_legende: "Simplified diagram, based on the example above.", sch_1: "win", sch_2: "loss", sch_3: "Size of each position", sch_4: "After each loss, the size doubles", sch_5: "Price", sch_6: "7 positions bought on the way down,", sch_7: "all still open", sch_8: "97% of losses cut here →", sch_9: "small loss", sch_10: "large loss", sch_11: "Number of losses, by distance from entry price", sch_12: "No stop at the broker: the robot cuts them itself", sch_13: "Chance of a real edge", sch_14: "Once over-optimisation is counted", sch_15: "−31% in one day", sch_16: "FTMO limit: −5% per day", sch_17: "Result of each day", sch_18: "Every order on the account, over time", sch_19: "In red: 2 to 7 orders placed together", sch_20: "counted as a single decision", sch_21: "time →",
       precision_titre: "We publish our error rate", precision_lien: "Our method and our 9 errors, one by one",
-      c5_v: "708", c5_l: "verdicts checked one by one: 699 correct, the 9 errors published",
+      c5_v: "90.9%", c5_l: "on the blind exam with never-seen robots: 120 correct verdicts out of 132, no false accusation, the 12 errors published",
       nav_verifs_ancien: "", nav_comment: "How it works", nav_cta: "Get a robot audited", nav_cta_court: "€19 audit",
       pastille: "Independent audit of MetaTrader 5 robots",
-      c1_v: "98.7%", c1_l: "correct verdicts: 699 out of 708, on 258 tests of robots whose behaviour we know exactly, across 19 markets, including robots built like Market ones. The 9 errors are published, one by one.",
+      c1_v: "98.1%", c1_l: "correct verdicts: 941 out of 959, on 366 tests of robots whose behaviour we know exactly, across 24 markets, including robots built like Market ones. The 18 errors are published, one by one.",
       c2_v: "29 / 29", c2_l: "verdicts confirmed on 10 real reference robots",
       c3_v: "0.05 pt", c3_l: "average gap with MetaTrader on drawdown, recomputed minute by minute",
       c4_v: "6", c4_l: "prop-firm challenges simulated with their official rules",
@@ -1160,7 +1160,7 @@
       etape4: "Drop that .html file above.",
       pied_legal: "Legal notice and privacy (in French)",
       pied1: "This report describes the robot's observed behaviour in the test provided. It is not investment advice. Past results do not guarantee future results.",
-      pied2: "Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 258 tests of robots with known behaviour across 19 markets (98.7% correct verdicts: 699 out of 708). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.",
+      pied2: "Detection calibrated by the MantaLab lab on 10 real robots (29 of 29 verdicts) and 366 tests of robots with known behaviour across 24 markets (98.1% correct verdicts: 941 out of 959; 90.9% on the blind exam). Statistics: Bailey and López de Prado. A remark, a mistake? They help make the tool more reliable.",
       offre_titre: "Thinking about buying a robot?",
       offre_texte: "The seller's report shows what the seller wants you to see. The MantaLab lab runs the robot itself and gives you an independent report:",
       offre_1: "martingale, grid, virtual stops: what the robot really does, not what its manual says;",
@@ -1659,7 +1659,7 @@
     f5.querySelector(".f-vendeur-lbl").setAttribute("y", Math.max(22, y(best[P - 1]) - 12).toFixed(0));
   }
 
-  // Figure 6 : essais de challenge (+10 % à atteindre, −5 % par jour et −10 % au total à ne pas toucher).
+  // Figure 6 : essais de challenge (+10 % à atteindre, −5 % par jour et −10 % au total à ne pas toucher).
   const f6 = cl.querySelector('[data-figure="challenges"]');
   if (f6) {
     const r = alea(1185), J = 30, g = f6.querySelector(".f-essais");
