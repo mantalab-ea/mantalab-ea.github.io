@@ -383,8 +383,9 @@
   const REGLAGES = {
     // moteur v2 (26/11/2026) : décisions, causalité perte → hausse, renforts sans stop (voir construireDecisions)
     fenetreDecisionSecondes: 60,
-    ratioMartingale: 1.45, ratioGrilleMartingale: 1.25, minEvenementsMartingale: 3,
-    minPertesMartingale: 10, partMartingaleAlerte: 0.4, ecartMartingaleAlerte: 0.3, partMartingaleAttention: 0.2, ecartMartingaleAttention: 0.15, rapportTailleMartingaleAlerte: 1.6, ecartMartingaleAttention2: 0.1, rapportTailleMartingaleAttention: 1.3,
+    ratioMartingale: 1.25, ratioGrilleMartingale: 1.25, minEvenementsMartingale: 3,
+    minPertesMartingale: 20, minPertesMartingaleAlerte: 30, minPertesMartingaleAttention: 20, minSerieMartingale: 10,
+    partMartingaleAlerte: 0.3, ecartMartingaleAlerte: 0.25, partMartingaleAttention: 0.2, ecartMartingaleAttention: 0.15,
     minEntreesGrille: 5, minRenfortsGrilleAlerte: 10, pileGrilleAlerte: 5, stopLointainFois: 5, risqueStopMax: 0.25, partRenfortsPanier: 0.8, partStopsTouchesMin: 0.05, partRenfortsNonProteges: 0.5, partGrilleMartingale: 0.3,
     partSansStopAlerte: 0.5, partSansStopAttention: 0.1,
     minPertesStopVirtuel: 10, toleranceStopVirtuel: 0.15, partStopVirtuel: 0.7,
@@ -493,6 +494,9 @@
       d.fermeture = ouvertes ? null : maxDe(d.jambes.map((p) => p.fermeture));
       d.profit = d.jambes.reduce((s, p) => s + p.profit, 0);
       d.n = d.jambes.length;
+      // mise de BASE de la décision = sa plus petite position : une martingale multiplie toutes les positions, alors que
+      // le NOMBRE de positions par décision (1 à 6 chez les robots du Market) varie sans lien avec les pertes (examen 1)
+      d.miseBase = minDe(d.jambes.map((p) => p.volume));
       const vp = valeurPoint.get(d.symbole);
       // perte si TOUS les stops de la décision sont touchés, en fraction du solde au moment d'ouvrir
       d.risqueAuStop = vp && d.jambes.every((p) => p.stopLoss > 0)
@@ -528,16 +532,23 @@
     const parFlux = new Map();
     for (const d of fermeesD) { const k = groupe(d); if (!parFlux.has(k)) parFlux.set(k, []); parFlux.get(k).push(d); }
     let apresPerte = 0, hausses = 0, apresGain = 0, haussesGain = 0, chaine = 0, chaineMax = 0, logPerte = 0, logGain = 0;
+    let apres2 = 0, hausses2 = 0, apres3 = 0, hausses3 = 0;
     const exemples = [];
     const tri = decisions.slice().sort((a, b) => a.ouverture - b.ouverture);
+    const mise = (d) => d.miseBase || d.volume;
     for (const d of tri) {
       const liste = parFlux.get(groupe(d)) || [];
       let lo = 0, hi = liste.length;               // dernière décision fermée du même flux avant l'ouverture de d
       while (lo < hi) { const m = (lo + hi) >> 1; if (liste[m].fermeture <= d.ouverture) lo = m + 1; else hi = m; }
       const prev = lo > 0 ? liste[lo - 1] : null;
       if (!prev || prev === d || depotEntre(prev.fermeture, d.ouverture)) continue;
-      const rel = (d.volume / d.solde) / (prev.volume / prev.solde);
-      const hausse = rel >= r.ratioMartingale - EPS && d.volume > prev.volume + EPS;
+      const rel = (mise(d) / d.solde) / (mise(prev) / prev.solde);
+      const hausse = rel >= r.ratioMartingale - EPS && mise(d) > mise(prev) + EPS;
+      // série de pertes qui précède (même flux) : une martingale peut n'agir qu'après 2 ou 3 pertes d'affilée (examen 1)
+      let serie = 0;
+      for (let i = lo - 1; i >= 0 && liste[i].profit < 0; i--) serie++;
+      if (serie >= 2) { apres2++; if (hausse) hausses2++; }
+      if (serie >= 3) { apres3++; if (hausse) hausses3++; }
       if (prev.profit < 0) {
         apresPerte++; logPerte += Math.log(Math.max(rel, 1e-6));
         if (hausse) {
@@ -551,25 +562,31 @@
     }
     const part = apresPerte ? hausses / apresPerte : 0;
     const partGain = apresGain ? haussesGain / apresGain : 0;
+    const p2 = apres2 ? hausses2 / apres2 : 0, p3 = apres3 ? hausses3 / apres3 : 0;
     return { apresPerte, hausses, part: +part.toFixed(3), apresGain, haussesGain, partGain: +partGain.toFixed(3),
+      apresSerie2: apres2, partSerie2: +p2.toFixed(3), apresSerie3: apres3, partSerie3: +p3.toFixed(3),
       ecart: +(part - partGain).toFixed(3), taillePerte: +Math.exp(apresPerte ? logPerte / apresPerte : 0).toFixed(2),
       tailleGain: +Math.exp(apresGain ? logGain / apresGain : 0).toFixed(2), chaineMax, exemples };
   }
 
+  /**
+   * Niveau (moteur v2.1, après l'examen 1 du 26/11/2026). Écart = part de hausses après une perte (ou après une série de
+   * 2 ou 3 pertes) MOINS part de hausses après un gain, sur la mise de base. Marges mesurées sur toute la base : vraies
+   * martingales +0,25 à +1,00 ; robots qui n'en font pas (Market compris) −0,09 à +0,05.
+   * Trop peu de décisions après une perte : « pas assez de données » (on ne rassure jamais sans preuve).
+   */
   function niveauMartingale(m, r) {
-    if (m.apresPerte >= r.minPertesMartingale && m.part >= r.partMartingaleAlerte && m.part - m.partGain >= r.ecartMartingaleAlerte) return "alerte";
-    // Effet de TAILLE : en moyenne, la décision qui suit une perte est bien plus grosse que celle qui suit un gain (la
-    // proportion de hausses est brouillée quand le nombre de positions par décision varie : LaboMulti, 26/11/2026).
-    // Martingales connues : rapport 1,85 à plus de 3 ; 13 robots du Market : 1,32 au plus.
-    if (m.apresPerte >= 2 * r.minPertesMartingale && m.apresGain >= r.minPertesMartingale && m.tailleGain > 0 &&
-        m.taillePerte / m.tailleGain >= r.rapportTailleMartingaleAlerte && m.part - m.partGain >= r.ecartMartingaleAttention) return "alerte";
-    if (m.hausses >= r.minEvenementsMartingale && m.part >= r.partMartingaleAttention && m.part - m.partGain >= r.ecartMartingaleAttention) return "attention";
-    // « à surveiller » à DEUX conditions (écart ≥ 0,10 ET rapport de taille ≥ 1,3) : aucun robot non-martingale de la base ne
-    // remplit les deux (EMA Cross : 0,12 mais 1,23 ; Gold Beaver : 0,07 et 1,31 ; grille plate : 1,67 mais écart ≤ 0,03).
-    if (m.apresPerte >= 2 * r.minPertesMartingale && m.apresGain >= r.minPertesMartingale && m.tailleGain > 0 &&
-        m.part - m.partGain >= r.ecartMartingaleAttention2 && m.taillePerte / m.tailleGain >= r.rapportTailleMartingaleAttention) return "attention";
+    const e1 = m.part - m.partGain;
+    const e2 = m.apresSerie2 >= r.minSerieMartingale ? m.partSerie2 - m.partGain : -1;
+    const e3 = m.apresSerie3 >= r.minSerieMartingale ? m.partSerie3 - m.partGain : -1;
+    const meilleur = Math.max(e1, e2, e3);
+    const partMax = Math.max(m.part, m.apresSerie2 >= r.minSerieMartingale ? m.partSerie2 : 0, m.apresSerie3 >= r.minSerieMartingale ? m.partSerie3 : 0);
+    if (m.apresPerte >= r.minPertesMartingaleAlerte && meilleur >= r.ecartMartingaleAlerte && partMax >= r.partMartingaleAlerte) return "alerte";
+    if (m.apresPerte >= r.minPertesMartingaleAttention && meilleur >= r.ecartMartingaleAttention && partMax >= r.partMartingaleAttention) return "attention";
+    if (m.apresPerte < r.minPertesMartingale) return "inconnu";
     return "ok";
   }
+
 
   /**
    * Stratégie d'une décision, lue dans le COMMENTAIRE de ses ordres (« Janus S-7 B », « Moon Eclipse », « QT S01 »…) : on
@@ -609,16 +626,17 @@
     const vMin = minDe(u.map((p) => p.volume));
     const mult = vMin ? maxDe(u.map((p) => p.volume)) / vMin : 1;
     const global = compterHausses(decisions, (d) => d.symbole, depotEntre, r);
-    let niveau = niveauMartingale(global, r), cle = "martingale_" + niveau;
+    let niveau = niveauMartingale(global, r), cle = niveau === "inconnu" ? "pas_assez" : "martingale_" + niveau;
     let mesures = Object.assign({}, global, { mult: +mult.toFixed(2) });
     delete mesures.exemples;
+    if (niveau === "inconnu") mesures.n = global.apresPerte;   // texte « pas assez de trades pour conclure (n) »
     let exemples = global.exemples;
     if (niveau !== "alerte" && strategiesUtilisables(decisions)) {
       // chaque décision comparée à la précédente de SA stratégie ; résultats regroupés (toutes les données servent, même
       // quand chaque stratégie a peu de trades)
       const m = compterHausses(decisions, (d) => d.symbole + "|" + strategieDe(d), depotEntre, r);
       const n = niveauMartingale(m, r);
-      const rang = { ok: 0, attention: 1, alerte: 2 };
+      const rang = { inconnu: -1, ok: 0, attention: 1, alerte: 2 };
       if (rang[n] > rang[niveau]) {
         // la stratégie la plus en cause, pour le texte
         let nomPire = null, ecartPire = -Infinity;

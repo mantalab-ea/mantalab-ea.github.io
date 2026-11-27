@@ -151,8 +151,8 @@
   <article>
     <h1>Pac Man BTC</h1>
     <p class="meta">Testé par le labo le 27 novembre 2026, version 2.0, sur BTCUSD en H1, réglages par défaut, dépôt de 10 000 $.</p>
-    <p style="margin-top:1.4rem"><span class="risque moyen">Risque moyen</span></p>
-    <p class="verdict">Aucun des pièges qu&#x27;on cherche (martingale, grille, pertes sans stop) n&#x27;a été trouvé. Il perd de l&#x27;argent aussi sur les vrais ticks (−23 $). Niveau de risque : le pire des deux scénarios (risque faible en exécution parfaite, risque moyen sur les vrais ticks).</p>
+    <p style="margin-top:1.4rem"><span class="risque faible">Risque faible</span></p>
+    <p class="verdict">Aucun des pièges qu&#x27;on cherche (martingale, grille, pertes sans stop) n&#x27;a été trouvé. Il perd de l&#x27;argent aussi sur les vrais ticks (−23 $).</p>
 
     <h2>Exécution parfaite contre vrais ticks</h2>
     <p>Le même robot, les mêmes réglages, la même période. Seule l&#x27;exécution change : idéale d&#x27;un côté, les vrais ticks du courtier de l&#x27;autre (écarts de prix réels, glissements).</p>
@@ -168,7 +168,6 @@
 
     <h2>Comment il trade</h2>
     <ul>
-      <li><strong>Martingale</strong> <span class="niv attention">(à surveiller)</span>. Il grossit sa position un peu plus souvent après une perte (35 %) qu&#x27;après un gain (12 %), sans schéma systématique.</li>
       <li><strong>Grille</strong> <span class="niv ok">(rien à signaler)</span>. Pas de renforcement de positions perdantes détecté.</li>
       <li><strong>Stop-loss</strong> <span class="niv ok">(rien à signaler)</span>. Les positions sont ouvertes avec un stop-loss.</li>
       <li><strong>Gains et pertes</strong> <span class="niv ok">(rien à signaler)</span>. 70 % de trades gagnants ; perte moyenne = 2,85× le gain moyen.</li>

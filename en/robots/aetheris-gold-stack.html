@@ -168,8 +168,8 @@
 
     <h2>How it trades</h2>
     <ul>
-      <li><strong>Martingale</strong> <span class="niv ok">(nothing to report)</span>. No loss-driven size increase detected (increases after a loss: 2%, after a win: 2%).</li>
-      <li><strong>Grid</strong> <span class="niv alerte">(alert)</span>. It adds positions without a credible stop-loss while price moves against it (1561 times, 29% of its decisions), with up to 5 open at once.</li>
+      <li><strong>Martingale</strong> <span class="niv ok">(nothing to report)</span>. No loss-driven size increase detected (increases after a loss: 0%, after a win: 0%).</li>
+      <li><strong>Grid</strong> <span class="niv alerte">(alert)</span>. It adds positions in the same direction while price moves against it (1561 times, 29% of its decisions), with up to 5 open at once, and manages them together: this is a grid.</li>
       <li><strong>Stop-loss</strong> <span class="niv ok">(nothing to report)</span>. Positions are opened with a stop-loss.</li>
       <li><strong>Wins and losses</strong> <span class="niv ok">(nothing to report)</span>. 78% winning trades; average loss = 1.49× the average win.</li>
       <li><strong>Prop firm rules</strong> <span class="niv alerte">(alert)</span>. Would fail FTMO 2-Step-type rules (5% daily, 10% total): worst day −17.2%, worst equity drawdown 56.2%.</li>

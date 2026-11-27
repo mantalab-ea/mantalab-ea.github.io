@@ -151,8 +151,8 @@
   <article>
     <h1>Pac Man BTC</h1>
     <p class="meta">Tested by the lab on November 27, 2026, version 2.0, on BTCUSD H1, default settings, $10,000 deposit.</p>
-    <p style="margin-top:1.4rem"><span class="risque moyen">Medium risk</span></p>
-    <p class="verdict">None of the traps we look for (martingale, grid, losses without a stop) was found. It also loses money on real ticks (−$23). Risk level: the worse of the two scenarios (low risk with perfect execution, medium risk on real ticks).</p>
+    <p style="margin-top:1.4rem"><span class="risque faible">Low risk</span></p>
+    <p class="verdict">None of the traps we look for (martingale, grid, losses without a stop) was found. It also loses money on real ticks (−$23).</p>
 
     <h2>Perfect execution vs real ticks</h2>
     <p>Same robot, same settings, same period. Only the execution changes: ideal on one side, the broker&#x27;s real ticks on the other (real spreads, slippage).</p>
@@ -168,7 +168,6 @@
 
     <h2>How it trades</h2>
     <ul>
-      <li><strong>Martingale</strong> <span class="niv attention">(worth watching)</span>. It increases its size slightly more often after a loss (35%) than after a win (12%), with no systematic pattern.</li>
       <li><strong>Grid</strong> <span class="niv ok">(nothing to report)</span>. No adding to losing positions detected.</li>
       <li><strong>Stop-loss</strong> <span class="niv ok">(nothing to report)</span>. Positions are opened with a stop-loss.</li>
       <li><strong>Wins and losses</strong> <span class="niv ok">(nothing to report)</span>. 70% winning trades; average loss = 2.85× the average win.</li>
